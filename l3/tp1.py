@@ -1,0 +1,435 @@
+# -*- coding: utf-8 -*-
+"""Corrigé interactif du TP 1 — entrées-sorties et structures conditionnelles.
+
+Séance 2. Tous les messages d'erreur reproduits ici ont été obtenus en
+exécutant les programmes fautifs ; ils sont donnés tels quels.
+"""
+
+META = {
+    "titre": "TP 1 — Entrées-sorties et structures conditionnelles",
+    "titre_onglet": "Corrigé du TP 1 : entrées-sorties et conditions",
+    "cle": "m355-tp1-corriges-vus",
+}
+
+PARTIES = [
+{"partie": "Partie A — Demander une information", "exercices": [
+
+ {"id": "a1", "titre": "A.1 — Prédire, puis exécuter",
+  "enonce": "",
+  "code": "prenom = input(\"Votre prénom : \")\nprint(\"Bonjour\")\nprint(prenom)",
+  "questions": [
+   {"ref": "", "texte": "Que fait le programme entre l'affichage de `Votre prénom :` et celui de `Bonjour` ?",
+    "reponse": "Il **attend**. Le programme est suspendu tant que l'utilisateur n'a pas tapé quelque chose et validé par Entrée.",
+    "sortie": "Votre prénom : Sara\nBonjour\nSara",
+    "notes": ["`input` fait deux choses d'un coup : il affiche son message, puis il arrête l'exécution jusqu'à la validation. Rien ne se passe pendant ce temps — ce n'est pas un blocage, c'est le fonctionnement attendu.",
+              "La valeur tapée devient celle de `prenom`. Le message `\"Votre prénom : \"` n'est pas la valeur : c'est seulement une invite affichée à l'écran."],
+    "erreurs": [
+     {"titre": "Croire que le programme plante",
+      "cause": "Un curseur qui clignote sans rien afficher ressemble à un blocage. C'est la première surprise de tout débutant, et elle disparaît dès qu'on tape quelque chose."}]}]},
+
+ {"id": "a2", "titre": "A.2 — Ce que input rapporte",
+  "enonce": "On exécute en tapant `21`.",
+  "code": "age = input(\"Votre âge : \")\nprint(age)\nprint(type(age))\nprint(age + 1)",
+  "questions": [
+   {"ref": "a)", "texte": "Qu'affiche le deuxième `print` ?",
+    "reponse": "Le **type** de la variable, et non sa valeur.",
+    "sortie": "<class 'str'>",
+    "notes": ["`str` est le nom du type « chaîne de caractères ». Bien qu'on ait tapé des chiffres, la variable contient le texte `\"21\"` et non le nombre 21."]},
+   {"ref": "b)", "texte": "Recopiez le message d'erreur du troisième.",
+    "reponse": "Le programme s'interrompt sur une erreur de type.",
+    "sortie": "TypeError: can only concatenate str (not \"int\") to str",
+    "notes": ["Le message se lit mot à mot : *on ne peut concaténer à une chaîne qu'une chaîne, pas un entier*. Python dit donc qu'il a bien compris `+` comme une **mise bout à bout**, et non comme une addition."]},
+   {"ref": "c)", "texte": "Pourquoi Python refuse-t-il `age + 1` alors que vous avez tapé un nombre ?",
+    "reponse": "Parce que **`input` rend toujours une chaîne**, quoi qu'on tape.",
+    "notes": ["Ce que l'utilisateur tape au clavier est du texte. Python ne devine pas qu'il « ressemble » à un nombre : la conversion est une décision du programme, jamais une initiative de la machine.",
+              "L'opérateur `+` est ambigu : il additionne entre nombres, il concatène entre chaînes. Entre les deux, il n'a pas de sens, et Python refuse plutôt que de choisir à votre place."],
+    "erreurs": [
+     {"titre": "Répondre que `21` n'est pas un nombre",
+      "cause": "C'en est un, dans la tête de l'utilisateur. Ce qui n'en est pas un, c'est la **variable** : elle contient la chaîne `\"21\"`. La distinction entre la saisie et ce qu'on en fait est tout l'enjeu de cette séance."}]}]},
+
+ {"id": "a3", "titre": "A.3 — Corriger",
+  "enonce": "",
+  "questions": [
+   {"ref": "a)", "texte": "Faites fonctionner `age + 1`.",
+    "reponse": "Une conversion suffit.",
+    "solutions": [
+     {"verdict": "retenue", "nom": "Convertir dès la saisie",
+      "code": "age = int(input(\"Votre âge : \"))\nprint(age + 1)",
+      "texte": "La forme à retenir : les parenthèses s'emboîtent, `input` s'exécute d'abord, `int` convertit ensuite."},
+     {"verdict": "ok", "nom": "Convertir en deux temps",
+      "code": "age_texte = input(\"Votre âge : \")\nage = int(age_texte)\nprint(age + 1)",
+      "texte": "Plus bavard, mais plus facile à lire tant que l'emboîtement déroute. Deux variables distinctes rendent visible qu'il y a deux valeurs : le texte et le nombre."}]},
+   {"ref": "b)", "texte": "Que se passe-t-il si l'utilisateur tape `vingt-et-un` ?",
+    "reponse": "Le programme s'arrête sur une erreur de valeur.",
+    "sortie": "ValueError: invalid literal for int() with base 10: 'vingt-et-un'",
+    "notes": ["La différence avec A.2 est instructive : `TypeError` disait que l'opération n'avait pas de sens pour ce **type** ; `ValueError` dit que le type est bon — c'est bien une chaîne, ce que `int` attend — mais que sa **valeur** n'est pas convertible.",
+              "Le programme ne peut rien y faire aujourd'hui : il s'arrête. Les boucles, en séance 3, permettront de redemander ; les exceptions, en séance 10, de rattraper l'erreur."],
+    "erreurs": [
+     {"titre": "Conclure que `int()` est fragile",
+      "cause": "`int()` fait exactement son travail : il refuse ce qu'il ne sait pas convertir, bruyamment, plutôt que d'inventer une valeur. Une fonction qui aurait rendu 0 en silence serait bien plus dangereuse."}]}]},
+
+ {"id": "a4", "titre": "A.4 — Trois saisies, trois types",
+  "enonce": "Afficher exactement `Sara, 21 ans, 1.78 m`.",
+  "questions": [
+   {"ref": "", "texte": "Écrivez le programme.",
+    "reponse": "Trois saisies, trois conversions différentes — ou aucune pour le prénom.",
+    "sortie": "Sara, 21 ans, 1.78 m",
+    "solutions": [
+     {"verdict": "retenue", "nom": "Avec une f-string",
+      "code": "prenom = input(\"Prénom : \")\nage = int(input(\"Âge : \"))\ntaille = float(input(\"Taille en m : \"))\n\nprint(f\"{prenom}, {age} ans, {taille} m\")"},
+     {"verdict": "ok", "nom": "Avec les virgules de print",
+      "code": "print(prenom + \",\", age, \"ans,\", taille, \"m\")",
+      "texte": "Fonctionne, mais la ponctuation devient difficile à suivre : il faut compter les espaces que `print` ajoute lui-même entre ses arguments."}],
+    "notes": ["Le prénom ne se convertit pas : c'est déjà du texte, et c'est du texte qu'on veut.",
+              "`int` pour l'âge, `float` pour la taille : convertir une taille en `int` donnerait 1 au lieu de 1.78, sans le moindre avertissement."],
+    "erreurs": [
+     {"titre": "Convertir la taille avec `int`",
+      "cause": "`int(\"1.78\")` lève d'ailleurs une `ValueError` : `int` n'accepte pas un texte contenant un point décimal. Mais `int(1.78)` donnerait 1, en silence."}]}]},
+
+ {"id": "a5", "titre": "A.5 — Reprendre le calcul de la séance 1",
+  "enonce": "Demander le poids et la taille, afficher l'IMC avec une décimale. Avec 72 et 1.78, on doit obtenir 22.7.",
+  "questions": [
+   {"ref": "", "texte": "Écrivez le programme.",
+    "reponse": "Le calcul de la séance 1, précédé de deux saisies converties.",
+    "sortie": "IMC : 22.7",
+    "solutions": [
+     {"verdict": "retenue", "nom": "Saisies converties et f-string formatée",
+      "code": "poids = float(input(\"Poids en kg : \"))\ntaille = float(input(\"Taille en m : \"))\n\nimc = poids / taille ** 2\n\nprint(f\"IMC : {imc:.1f}\")"}],
+    "notes": ["`{imc:.1f}` arrondit **à l'affichage** seulement : la variable `imc` garde toute sa précision, soit 22.72384… Si un calcul ultérieur doit employer la valeur arrondie, il faut l'arrondir explicitement avec `round`.",
+              "`taille ** 2` et `taille * taille` donnent le même résultat. La première écriture dit ce qu'on calcule, la seconde comment."],
+    "erreurs": [
+     {"titre": "Écrire `poids / taille ** 2` sans parenthèses en doutant de l'ordre",
+      "cause": "L'ordre est bon : la puissance est prioritaire sur la division, donc c'est bien `poids / (taille ** 2)`. Le doute est légitime ; des parenthèses explicites ne coûtent rien."},
+     {"titre": "Afficher `IMC : 22.72384799899003`",
+      "cause": "Le format `.1f` a été oublié. Un résultat brut à quinze décimales n'est pas une information — c'est du bruit."}]}]}]},
+
+{"partie": "Partie B — Structure conditionnelle", "exercices": [
+
+ {"id": "b1", "titre": "B.1 — Une seule décision",
+  "enonce": "",
+  "code": "temperature = float(input(\"Température : \"))\n\nif temperature >= 38.0:\n    print(\"Fièvre\")\n\nprint(\"Examen terminé\")",
+  "questions": [
+   {"ref": "a)", "texte": "Qu'affiche le programme pour 39, 37, puis 38 ?",
+    "reponse": "`Examen terminé` dans les trois cas ; `Fièvre` seulement dans deux.",
+    "pile": {"entetes": ["Saisie", "Affichage"],
+             "lignes": [["39", "`Fièvre` puis `Examen terminé`"],
+                        ["37", "`Examen terminé`"],
+                        ["38", "`Fièvre` puis `Examen terminé`"]]},
+    "notes": ["Le cas 38 est le plus instructif : `>=` inclut la borne. Avec `>`, une température de 38,0 exactement passerait pour normale."]},
+   {"ref": "b)", "texte": "Pourquoi `Examen terminé` s'affiche-t-il dans les trois cas ?",
+    "reponse": "Parce que ce `print` n'est **pas indenté** : il n'appartient pas au bloc du `if`.",
+    "notes": ["L'indentation est la seule chose qui dise à Python ce qui dépend de la condition. Ici, le bloc conditionnel ne contient qu'une ligne ; tout le reste s'exécute quoi qu'il arrive.",
+              "La ligne vide avant le `print` ne joue aucun rôle : elle aère la lecture, rien de plus."]}]},
+
+ {"id": "b2", "titre": "B.2 — Deux issues",
+  "enonce": "Ajouter un `else` affichant `Température normale`.",
+  "questions": [
+   {"ref": "", "texte": "Pourquoi est-il impossible que les deux messages s'affichent ensemble ?",
+    "reponse": "Parce que `if` et `else` sont **exclusifs** : la condition est vraie ou fausse, jamais les deux.",
+    "solutions": [
+     {"verdict": "retenue", "nom": "Les deux issues",
+      "code": "temperature = float(input(\"Température : \"))\n\nif temperature >= 38.0:\n    print(\"Fièvre\")\nelse:\n    print(\"Température normale\")\n\nprint(\"Examen terminé\")"}],
+    "notes": ["`else` ne porte aucune condition : il recueille **tout** ce que le `if` n'a pas pris. C'est ce qui garantit qu'exactement un des deux blocs s'exécute — ni zéro, ni deux.",
+              "On verra en D.5 qu'écrire deux `if` séparés au lieu d'un `if` / `else` détruit cette garantie."]}]},
+
+ {"id": "b3", "titre": "B.3 — Plusieurs cas",
+  "enonce": "Quatre catégories de température, dont les frontières à 39,0 et 36,0.",
+  "questions": [
+   {"ref": "a)", "texte": "Écrivez le programme.",
+    "reponse": "Les conditions sont testées **dans l'ordre**, de la plus haute à la plus basse.",
+    "solutions": [
+     {"verdict": "retenue", "nom": "Du plus restrictif au plus large",
+      "code": "t = float(input(\"Température : \"))\n\nif t >= 39.0:\n    print(\"Fièvre élevée\")\nelif t >= 38.0:\n    print(\"Fièvre\")\nelif t >= 36.0:\n    print(\"Température normale\")\nelse:\n    print(\"Hypothermie\")"}],
+    "notes": ["Chaque `elif` n'est évalué que si tous les précédents ont échoué. La deuxième branche n'a donc pas besoin d'écrire `t < 39.0` : on y est déjà, par construction.",
+              "Le dernier cas est un `else` sans condition : il attrape tout le reste, et garantit qu'aucune saisie ne laisse le programme muet."]},
+   {"ref": "b)", "texte": "Que donnent les valeurs frontières 39,0 et 36,0 ?",
+    "reponse": "`Fièvre élevée` et `Température normale` — conformément au tableau de l'énoncé.",
+    "pile": {"entetes": ["Saisie", "Message", "Branche"],
+             "lignes": [["40", "Fièvre élevée", "1re"], ["39", "Fièvre élevée", "1re"],
+                        ["38.5", "Fièvre", "2e"], ["37", "Température normale", "3e"],
+                        ["36", "Température normale", "3e"], ["35", "Hypothermie", "`else`"]]},
+    "notes": ["Les frontières sont les seules valeurs où un `>` mis pour un `>=` se voit. Les tester systématiquement coûte deux essais et évite la moitié des erreurs de classification."]}]},
+
+ {"id": "b4", "titre": "B.4 — Classification de l'IMC",
+  "enonce": "Les quatre catégories de l'Organisation mondiale de la santé.",
+  "questions": [
+   {"ref": "", "texte": "Écrivez le programme.",
+    "reponse": "Même structure que B.3, mais les seuils se parcourent cette fois du bas vers le haut — les deux sens sont corrects, à condition d'être cohérent.",
+    "solutions": [
+     {"verdict": "retenue", "nom": "Du plus bas au plus haut",
+      "code": "poids = float(input(\"Poids en kg : \"))\ntaille = float(input(\"Taille en m : \"))\nimc = poids / taille ** 2\n\nprint(f\"IMC : {imc:.1f}\")\n\nif imc < 18.5:\n    print(\"Insuffisance pondérale\")\nelif imc < 25.0:\n    print(\"Corpulence normale\")\nelif imc < 30.0:\n    print(\"Surpoids\")\nelse:\n    print(\"Obésité\")"}],
+    "notes": ["Le tableau de l'énoncé dit « de 18,5 à 24,9 ». En écrivant `imc < 25.0`, on classe correctement un IMC de 24,95 — que le tableau, lu au pied de la lettre, laisserait sans catégorie. Les seuils de l'OMS sont des bornes, non des listes de valeurs.",
+              "Les trois frontières à tester sont 18.5, 25.0 et 30.0 : chacune doit tomber dans la catégorie **supérieure**."],
+    "erreurs": [
+     {"titre": "Écrire `elif imc < 24.9`",
+      "cause": "Un IMC de 24,95 ne serait alors ni dans la corpulence normale ni dans le surpoids : il tomberait dans la branche suivante, c'est-à-dire mal classé. Les valeurs décimales n'ont pas de « suivant »."}]}]},
+
+ {"id": "b5", "titre": "B.5 — Ordre des conditions",
+  "enonce": "Un programme qui s'exécute sans erreur et se trompe pourtant.",
+  "code": "imc = float(input(\"IMC : \"))\n\nif imc < 30:\n    print(\"Pas d'obésité\")\nelif imc < 25:\n    print(\"Pas de surpoids\")\nelif imc < 18.5:\n    print(\"Insuffisance pondérale\")",
+  "questions": [
+   {"ref": "a)", "texte": "Que produit-il pour un IMC de 17 ?",
+    "reponse": "`Pas d'obésité` — ce qui est vrai, mais ce n'est pas l'information attendue.",
+    "sortie": "Pas d'obésité",
+    "notes": ["17 est bien inférieur à 30 : la première condition est vraie, son bloc s'exécute, et les `elif` ne sont même pas évalués."]},
+   {"ref": "b)", "texte": "Pourquoi la troisième branche n'est-elle jamais atteinte ?",
+    "reponse": "Parce que toute valeur inférieure à 18,5 est aussi inférieure à 30 : la première condition l'a déjà captée.",
+    "notes": ["Les trois conditions sont **emboîtées** : `< 18.5` implique `< 25`, qui implique `< 30`. Classées de la plus large à la plus étroite, les deux dernières sont inatteignables.",
+              "La règle générale : dans une chaîne de `elif`, les conditions vont **de la plus restrictive à la plus large**. C'est l'inverse qui est écrit ici."],
+    "erreurs": [
+     {"titre": "Chercher une faute de syntaxe",
+      "cause": "Il n'y en a pas. C'est une **erreur logique** : Python ne signale rien, et seul un test sur une valeur dont on connaît la réponse la révèle. C'est le type d'erreur le plus coûteux du métier."}]},
+   {"ref": "c)", "texte": "Corrigez-le.",
+    "reponse": "Il suffit d'inverser l'ordre des branches ; aucune condition n'a besoin d'être réécrite.",
+    "solutions": [
+     {"verdict": "retenue", "nom": "Du plus restrictif au plus large",
+      "code": "imc = float(input(\"IMC : \"))\n\nif imc < 18.5:\n    print(\"Insuffisance pondérale\")\nelif imc < 25:\n    print(\"Pas de surpoids\")\nelif imc < 30:\n    print(\"Pas d'obésité\")"}],
+    "notes": ["Un IMC de 35 ne produit toujours rien : aucune branche ne le couvre, et il n'y a pas de `else`. Si l'on veut que le programme réponde toujours, il faut ajouter cette dernière branche."]}]}]},
+
+{"partie": "Partie C — Tests avancés", "exercices": [
+
+ {"id": "c1", "titre": "C.1 — and et or",
+  "enonce": "",
+  "code": "age = int(input(\"Âge : \"))\npoids = float(input(\"Poids en kg : \"))\n\nif age >= 18 and poids >= 50:\n    print(\"Éligible au don du sang\")\nelse:\n    print(\"Non éligible\")",
+  "questions": [
+   {"ref": "a)", "texte": "Avec `and`, combien de conditions doivent être vraies ?",
+    "reponse": "**Les deux.** Il suffit qu'une seule soit fausse pour que l'ensemble le soit.",
+    "pile": {"entetes": ["Âge", "Poids", "`and`", "`or`"],
+             "lignes": [["20", "60", "Éligible", "Éligible"],
+                        ["20", "45", "Non éligible", "Éligible"],
+                        ["16", "60", "Non éligible", "Éligible"],
+                        ["16", "45", "Non éligible", "Non éligible"]]}},
+   {"ref": "b)", "texte": "Qu'est-ce qui change avec `or` ?",
+    "reponse": "Trois des quatre combinaisons deviennent éligibles : `or` ne demande **qu'une** condition vraie.",
+    "notes": ["Appliqué au don du sang, `or` donne un programme absurde : un mineur de 60 kg serait accepté. Le choix entre `and` et `or` n'est pas une question de style — il décide de ce que le programme affirme."]},
+   {"ref": "c)", "texte": "Complétez la table de vérité.",
+    "reponse": "`and` n'est vrai qu'une fois sur quatre ; `or` l'est trois fois sur quatre.",
+    "pile": {"entetes": ["Condition 1", "Condition 2", "`and`", "`or`"],
+             "lignes": [["vraie", "vraie", "**vraie**", "**vraie**"],
+                        ["vraie", "fausse", "fausse", "**vraie**"],
+                        ["fausse", "vraie", "fausse", "**vraie**"],
+                        ["fausse", "fausse", "fausse", "fausse"]]},
+    "notes": ["Un repère utile : `and` est plus **exigeant** que chacune de ses conditions prises séparément, `or` est plus **permissif** que chacune d'elles."],
+    "erreurs": [
+     {"titre": "Écrire `if age >= 18 and >= 50`",
+      "cause": "Chaque condition doit être complète des deux côtés de l'opérateur logique. `and` relie deux conditions, pas une condition et une valeur."},
+     {"titre": "Écrire `if age and poids >= 50`",
+      "cause": "Syntaxiquement correct, mais faux : `age` seul est évalué comme vrai dès qu'il n'est pas nul. Le programme accepterait tout âge non nul."}]}]},
+
+ {"id": "c2", "titre": "C.2 — Inverser une condition : not",
+  "enonce": "",
+  "code": "# version 1\nif not temperature >= 38.0:\n    print(\"Pas de fièvre\")\n\n# version 2\nif temperature < 38.0:\n    print(\"Pas de fièvre\")",
+  "questions": [
+   {"ref": "", "texte": "Sont-ils équivalents ? Lequel préférez-vous lire ?",
+    "reponse": "**Oui**, strictement équivalents. La version 2 est préférable.",
+    "notes": ["`not (t >= 38)` et `t < 38` décrivent exactement le même ensemble de valeurs. Il n'y a aucune différence de comportement, y compris sur la frontière 38,0.",
+              "La version 2 se lit d'un trait ; la version 1 demande de former mentalement la condition, puis de la nier. Chaque `not` ajoute une étape de raisonnement à la relecture.",
+              "`not` garde son utilité devant une condition qu'on ne peut pas inverser aussi simplement — un témoin booléen, une appartenance : `if not reponse in [\"oui\", \"non\"]`."],
+    "erreurs": [
+     {"titre": "Croire que `not` change la frontière",
+      "cause": "La négation de `>=` est `<`, et non `<=`. Une température de 38,0 affiche `Pas de fièvre` dans les deux versions — ou plutôt dans aucune, puisque la condition est fausse des deux côtés."}]}]},
+
+ {"id": "c3", "titre": "C.3 — Comparer un intervalle",
+  "enonce": "Réécrire B.3 avec des comparaisons chaînées plutôt que des `elif`.",
+  "questions": [
+   {"ref": "a)", "texte": "Écrivez la version chaînée.",
+    "reponse": "Chaque branche porte désormais son intervalle complet.",
+    "solutions": [
+     {"verdict": "retenue", "nom": "Comparaisons chaînées",
+      "code": "t = float(input(\"Température : \"))\n\nif t >= 39.0:\n    print(\"Fièvre élevée\")\nif 38.0 <= t < 39.0:\n    print(\"Fièvre\")\nif 36.0 <= t < 38.0:\n    print(\"Température normale\")\nif t < 36.0:\n    print(\"Hypothermie\")"}],
+    "notes": ["`38.0 <= t < 39.0` est une **comparaison chaînée** : elle se lit comme en mathématiques et Python l'évalue comme `t >= 38.0 and t < 39.0`. Peu de langages l'autorisent.",
+              "Les bornes doivent se joindre sans trou ni recouvrement : `< 39.0` d'un côté, `>= 39.0` de l'autre. Une seule borne mal mise, et une température est classée deux fois ou pas du tout."]},
+   {"ref": "b)", "texte": "Laquelle est la plus lisible ? La plus facile à modifier ?",
+    "reponse": "La version chaînée se lit mieux ; la version en `elif` se modifie mieux.",
+    "pile": {"entetes": ["", "Avec `elif`", "Comparaisons chaînées"],
+             "lignes": [["Lecture d'une branche isolée", "il faut connaître les précédentes", "la branche se suffit à elle-même"],
+                        ["Changer un seuil", "un seul nombre à modifier", "**deux** nombres, dans deux branches"],
+                        ["Risque de trou entre deux cas", "nul, par construction", "réel"],
+                        ["Ordre des branches", "déterminant", "indifférent"]]},
+    "notes": ["Le compromis est net : la chaîne d'`elif` rend les branches dépendantes mais sans trou ; les comparaisons chaînées rendent chaque branche autonome mais duplique chaque seuil. Pour une classification à seuils, la première est à préférer."]}]},
+
+ {"id": "c4", "titre": "C.4 — Vérifier une appartenance : in",
+  "enonce": "",
+  "code": "groupe = input(\"Groupe sanguin : \")\n\nif groupe in [\"A\", \"B\", \"AB\", \"O\"]:\n    print(\"Groupe valide\")\nelse:\n    print(\"Groupe inconnu\")",
+  "questions": [
+   {"ref": "a)", "texte": "Pourquoi `a` en minuscule est-il refusé ?",
+    "reponse": "Parce qu'une comparaison de chaînes distingue majuscules et minuscules : `\"a\"` et `\"A\"` sont deux valeurs différentes.",
+    "sortie": "\"a\" in [\"A\", \"B\", \"AB\", \"O\"]          -> False\n\"a\".upper() in [\"A\", \"B\", \"AB\", \"O\"]  -> True",
+    "notes": ["`in` compare la saisie à chacune des valeurs autorisées, l'une après l'autre, par égalité stricte. Aucune ne correspond à `\"a\"`.",
+              "La notation entre crochets rassemble ici les quatre valeurs admises. C'est une **liste** ; elle sera étudiée pour elle-même en séance 8. Pour l'instant, retenez seulement la forme `valeur in [choix autorisés]`."]},
+   {"ref": "b)", "texte": "Corrigez pour accepter les minuscules.",
+    "reponse": "`.upper()` met la saisie en capitales avant la comparaison.",
+    "solutions": [
+     {"verdict": "retenue", "nom": "Normaliser la saisie",
+      "code": "groupe = input(\"Groupe sanguin : \").upper()\n\nif groupe in [\"A\", \"B\", \"AB\", \"O\"]:\n    print(\"Groupe valide\")\nelse:\n    print(\"Groupe inconnu\")",
+      "texte": "La normalisation a lieu une fois, à la saisie. Tout le reste du programme travaille sur une valeur propre."},
+     {"verdict": "eviter", "nom": "Doubler la liste",
+      "code": "if groupe in [\"A\", \"B\", \"AB\", \"O\", \"a\", \"b\", \"ab\", \"o\"]:",
+      "texte": "Fonctionne, mais double la liste et oublie `Ab`. Chaque nouvelle variante de casse demanderait une entrée de plus."}],
+    "notes": ["`.upper()` ne modifie pas la chaîne d'origine : il en **rend** une nouvelle. C'est pourquoi on écrit `groupe = groupe.upper()` ou, mieux, on l'enchaîne directement à `input`."]}]},
+
+ {"id": "c5", "titre": "C.5 — Une décision en une ligne",
+  "enonce": "",
+  "code": "temperature = 38.5\netat = \"Fièvre\" if temperature >= 38.0 else \"Normale\"\nprint(etat)",
+  "questions": [
+   {"ref": "", "texte": "Réécrivez-la avec un `if` / `else` ordinaire.",
+    "reponse": "Quatre lignes au lieu d'une, pour le même résultat.",
+    "sortie": "Fièvre",
+    "solutions": [
+     {"verdict": "retenue", "nom": "Forme ordinaire",
+      "code": "if temperature >= 38.0:\n    etat = \"Fièvre\"\nelse:\n    etat = \"Normale\"\nprint(etat)"}],
+    "notes": ["La différence de nature compte plus que la différence de longueur : l'expression conditionnelle **produit une valeur** — elle peut s'écrire à droite d'un `=`, dans un `print`, dans un calcul. Le `if` ordinaire, lui, **exécute un bloc**.",
+              "La forme courte ne se justifie que lorsqu'elle tient sur une ligne et reste lisible. Dès qu'elle déborde, ou qu'elle s'imbrique dans une autre, la forme ordinaire reprend l'avantage."],
+    "erreurs": [
+     {"titre": "Écrire `etat = if temperature >= 38.0: \"Fièvre\" else: \"Normale\"`",
+      "cause": "`SyntaxError`. L'ordre des mots de l'expression conditionnelle est particulier : **valeur si vrai**, `if`, condition, `else`, valeur si faux. La valeur vient d'abord."}]}]}]},
+
+{"partie": "Partie D — Les pièges", "exercices": [
+
+ {"id": "d1", "titre": "D.1 — Affectation dans un test",
+  "enonce": "",
+  "code": "age = int(input(\"Âge : \"))\nif age = 18:\n    print(\"Majeur\")",
+  "questions": [
+   {"ref": "", "texte": "Message, cause, correction.",
+    "reponse": "Python refuse le programme avant même de l'exécuter, et suggère lui-même la correction.",
+    "sortie": "SyntaxError: invalid syntax. Maybe you meant '==' or ':=' instead of '='?",
+    "pile": {"entetes": ["Cause", "Correction"],
+             "lignes": [["`=` **affecte** une valeur ; `==` **compare** deux valeurs. Une condition ne peut pas affecter.", "`if age == 18:`"]]},
+    "notes": ["Rien n'est exécuté : c'est une erreur de syntaxe, détectée à la lecture du fichier. Même la saisie n'a pas lieu.",
+              "Le message mentionne aussi `:=`, un opérateur qui affecte dans une expression. Il n'est pas au programme — ignorez cette partie de la suggestion."],
+    "erreurs": [
+     {"titre": "Corriger en `if age := 18:`",
+      "cause": "Le message le propose, mais c'est un autre opérateur, qui affecte 18 à `age` au lieu de comparer. Le programme s'exécuterait et dirait toujours « Majeur »."}]}]},
+
+ {"id": "d2", "titre": "D.2 — Conversion oubliée",
+  "enonce": "",
+  "code": "temperature = input(\"Température : \")\nif temperature > 38:\n    print(\"Fièvre\")",
+  "questions": [
+   {"ref": "", "texte": "Message, cause, correction.",
+    "reponse": "Cette fois le programme démarre, demande la température, puis échoue sur la comparaison.",
+    "sortie": "TypeError: '>' not supported between instances of 'str' and 'int'",
+    "pile": {"entetes": ["Cause", "Correction"],
+             "lignes": [["`input` rend une chaîne ; on la compare à un entier. Python ne sait pas ordonner un texte et un nombre.", "`temperature = float(input(\"Température : \"))`"]]},
+    "notes": ["Le message est très lisible une fois qu'on sait le lire : il nomme l'opérateur, puis les deux types en présence. `str` et `int` : la conversion manque.",
+              "C'est la même faute qu'en A.2, sous un autre opérateur. Elle reviendra tant que le réflexe `float(input(...))` n'est pas acquis."],
+    "erreurs": [
+     {"titre": "Corriger en `if temperature > \"38\"`",
+      "cause": "Le programme ne lèverait plus d'erreur — et serait faux. Comparer deux chaînes compare leur ordre alphabétique : `\"9\" > \"38\"` est vrai, puisque `9` vient après `3`."}]}]},
+
+ {"id": "d3", "titre": "D.3 — Deux-points manquants",
+  "enonce": "",
+  "code": "temperature = float(input(\"Température : \"))\nif temperature >= 38.0\n    print(\"Fièvre\")",
+  "questions": [
+   {"ref": "", "texte": "Message, cause, correction.",
+    "reponse": "Erreur de syntaxe, signalée avec précision.",
+    "sortie": "SyntaxError: expected ':'",
+    "pile": {"entetes": ["Cause", "Correction"],
+             "lignes": [["Toute ligne qui ouvre un bloc — `if`, `elif`, `else`, plus tard `while` et `for` — se termine par deux-points.", "`if temperature >= 38.0:`"]]},
+    "notes": ["Le message dit exactement ce qui manque et où. Les erreurs de syntaxe sont les plus bénignes : le programme ne démarre pas, donc rien de faux n'est produit."]}]},
+
+ {"id": "d4", "titre": "D.4 — Bloc non indenté",
+  "enonce": "",
+  "code": "temperature = float(input(\"Température : \"))\nif temperature >= 38.0:\nprint(\"Fièvre\")",
+  "questions": [
+   {"ref": "", "texte": "Message, cause, correction.",
+    "reponse": "Python attend un bloc indenté après le `if` et n'en trouve pas.",
+    "sortie": "IndentationError: expected an indented block after 'if' statement on line 2",
+    "pile": {"entetes": ["Cause", "Correction"],
+             "lignes": [["Les deux-points annoncent un bloc ; ce bloc se marque par une indentation, de quatre espaces par convention.", "indenter le `print` de quatre espaces"]]},
+    "notes": ["Dans la plupart des langages, l'indentation est une convention de présentation. En Python, c'est de la **syntaxe** : elle délimite les blocs, là où d'autres langages emploient des accolades.",
+              "Le message nomme la ligne du `if`, non celle du `print` : Python signale l'endroit où le bloc aurait dû commencer."]}]},
+
+ {"id": "d5", "titre": "D.5 — Trois if indépendants",
+  "enonce": "Celui-ci ne provoque aucune erreur.",
+  "code": "note = float(input(\"Note : \"))\n\nif note >= 10:\n    print(\"Admis\")\nif note < 10:\n    print(\"Ajourné\")\nif note >= 16:\n    print(\"Mention très bien\")",
+  "questions": [
+   {"ref": "a)", "texte": "Que produit-il pour une note de 17 ?",
+    "reponse": "**Deux** messages.",
+    "sortie": "Admis\nMention très bien",
+    "notes": ["Les trois `if` sont indépendants : chacun est évalué, quoi qu'aient donné les précédents. Deux conditions sont vraies pour 17, donc deux blocs s'exécutent."]},
+   {"ref": "b)", "texte": "Est-ce souhaitable ? Réécrivez dans les deux sens.",
+    "reponse": "Les deux comportements se défendent — l'essentiel est de choisir délibérément.",
+    "solutions": [
+     {"verdict": "retenue", "nom": "Un seul message : chaîne de elif",
+      "code": "if note >= 16:\n    print(\"Mention très bien\")\nelif note >= 10:\n    print(\"Admis\")\nelse:\n    print(\"Ajourné\")",
+      "texte": "Noter l'ordre : la mention vient **avant** l'admission, sinon elle ne serait jamais atteinte — c'est l'erreur de B.5."},
+     {"verdict": "ok", "nom": "La mention en plus du résultat",
+      "code": "if note >= 10:\n    print(\"Admis\")\nelse:\n    print(\"Ajourné\")\n\nif note >= 16:\n    print(\"Mention très bien\")",
+      "texte": "Deux décisions distinctes, donc deux structures distinctes : le résultat est exclusif, la mention s'y ajoute. C'est le plus fidèle à la réalité d'un relevé de notes."}],
+    "notes": ["Le programme d'origine n'est pas faux en soi : il est **ambigu**. Rien n'y dit si les trois tests sont trois décisions ou une seule, et sa troisième branche se contente de ne jamais contredire les deux premières, par chance.",
+              "Règle pratique : des cas qui s'excluent appellent `elif` ; des informations qui s'ajoutent appellent des `if` séparés."],
+    "erreurs": [
+     {"titre": "Remplacer les trois `if` par trois `elif` sans toucher à l'ordre",
+      "cause": "La mention ne s'afficherait plus jamais : `note >= 10` capterait 17 avant que `note >= 16` ne soit évalué."}]}]},
+
+ {"id": "d6", "titre": "D.6 — La casse et les espaces",
+  "enonce": "",
+  "code": "reponse = input(\"Confirmez-vous ? (oui/non) \")\nif reponse == \"oui\":\n    print(\"Confirmé\")\nelse:\n    print(\"Annulé\")",
+  "questions": [
+   {"ref": "a)", "texte": "Que donnent `oui`, `Oui`, `OUI`, et ` oui ` ?",
+    "reponse": "Seule la première saisie est reconnue.",
+    "pile": {"entetes": ["Saisie", "Résultat", "Pourquoi"],
+             "lignes": [["`oui`", "Confirmé", "égalité exacte"],
+                        ["`Oui`", "Annulé", "`O` majuscule ≠ `o`"],
+                        ["`OUI`", "Annulé", "trois caractères différents"],
+                        ["` oui `", "Annulé", "les espaces font partie de la chaîne"]]},
+    "notes": ["Une égalité de chaînes compare caractère par caractère, sans indulgence. Rien n'est « presque égal »."]},
+   {"ref": "b)", "texte": "Corrigez pour accepter les quatre saisies.",
+    "reponse": "`.strip()` retire les espaces de début et de fin, `.lower()` met en minuscules.",
+    "solutions": [
+     {"verdict": "retenue", "nom": "Normaliser à la saisie",
+      "code": "reponse = input(\"Confirmez-vous ? (oui/non) \").strip().lower()\n\nif reponse == \"oui\":\n    print(\"Confirmé\")\nelse:\n    print(\"Annulé\")"}],
+    "notes": ["L'ordre des deux appels est indifférent ici : retirer les espaces puis abaisser la casse, ou l'inverse, donne le même résultat.",
+              "Le motif est à retenir tel quel : **toute saisie de texte comparée à une valeur attendue se normalise d'abord**. On le retrouvera dans les menus et les réponses `o`/`n` de la séance 3."],
+    "erreurs": [
+     {"titre": "Écrire `reponse.strip().lower()` dans la condition sans réaffecter",
+      "cause": "Cela marche aussi, mais la normalisation est alors refaite à chaque comparaison, et une seule oubliée suffit à réintroduire le défaut. Normaliser une fois, à l'entrée, est plus sûr."},
+     {"titre": "Croire que `.lower()` modifie la variable",
+      "cause": "Il rend une nouvelle chaîne. Sans affectation — `reponse = reponse.lower()` — la variable d'origine reste inchangée."}]}]}]},
+
+{"partie": "Partie E — Bonus", "exercices": [
+
+ {"id": "e1", "titre": "E — Orientation d'un patient",
+  "enonce": "Quatre règles, testées **dans l'ordre**, une seule orientation affichée. Toutes les valeurs sont fictives.",
+  "questions": [
+   {"ref": "a)", "texte": "Écrivez le programme.",
+    "reponse": "L'ordre des règles est l'essentiel : une chaîne de `elif`, de la plus grave à la plus bénigne.",
+    "solutions": [
+     {"verdict": "retenue", "nom": "Programme complet",
+      "code": "nom = input(\"Nom du patient : \")\ntemperature = float(input(\"Température en °C : \"))\nfrequence = int(input(\"Fréquence cardiaque : \"))\nage = int(input(\"Âge : \"))\n\nprint()\nprint(f\"Patient : {nom}\")\nprint(f\"Température : {temperature} °C\")\nprint(f\"Fréquence cardiaque : {frequence} bpm\")\nprint(f\"Âge : {age} ans\")\nprint()\n\nif temperature >= 39.5 or frequence >= 120:\n    print(\"Urgence — prise en charge immédiate\")\nelif temperature >= 38.0 and age >= 65:\n    print(\"Consultation prioritaire\")\nelif temperature >= 38.0:\n    print(\"Consultation le jour même\")\nelse:\n    print(\"Pas de signe d'alerte\")"}],
+    "notes": ["La deuxième règle doit précéder la troisième : un patient de 70 ans à 38,5 °C relève de la consultation prioritaire, et la troisième règle le capterait d'abord si elle venait avant.",
+              "`or` dans la première règle, `and` dans la deuxième : ce n'est pas un hasard. L'urgence se déclenche sur **un seul** signe ; la priorité demande **les deux** conditions."],
+    "erreurs": [
+     {"titre": "Employer quatre `if` indépendants",
+      "cause": "Un patient de 70 ans à 40 °C recevrait trois orientations contradictoires. L'énoncé en demande une seule : c'est une chaîne de `elif`."},
+     {"titre": "Intervertir les deuxième et troisième règles",
+      "cause": "La consultation prioritaire deviendrait inatteignable — exactement l'erreur de B.5, dans un contexte où elle a des conséquences."},
+     {"titre": "Oublier la conversion de la fréquence cardiaque",
+      "cause": "`TypeError: '>=' not supported between instances of 'str' and 'int'`, comme en D.2. Trois saisies sur quatre se convertissent ici ; seul le nom reste du texte."}]},
+
+   {"ref": "b)", "texte": "Quels cas de test fallait-il écrire avant de programmer ?",
+    "reponse": "Un par règle, au minimum, plus les frontières.",
+    "pile": {"entetes": ["Nom", "Temp.", "FC", "Âge", "Orientation attendue", "Règle visée"],
+             "lignes": [["Cas 1", "40.0", "90", "30", "Urgence", "1re, par la température"],
+                        ["Cas 2", "37.0", "130", "30", "Urgence", "1re, par la fréquence"],
+                        ["Cas 3", "38.5", "90", "70", "Consultation prioritaire", "2e"],
+                        ["Cas 4", "38.5", "90", "30", "Consultation le jour même", "3e"],
+                        ["Cas 5", "37.0", "80", "30", "Pas de signe d'alerte", "`else`"],
+                        ["Cas 6", "39.5", "90", "30", "Urgence", "frontière de la 1re"],
+                        ["Cas 7", "38.0", "90", "65", "Consultation prioritaire", "double frontière"]]},
+    "notes": ["Les cas 1 et 2 vérifient séparément les deux branches du `or` : un seul des deux ne suffirait pas à prouver que l'opérateur est le bon.",
+              "Les cas 6 et 7 portent sur les frontières. Le cas 7 est le plus exigeant : il teste en même temps `>= 38.0` et `>= 65`, les deux au seuil exact.",
+              "Écrire ces cas **avant** le programme change la façon de le concevoir : on sait quand s'arrêter, et on ne découvre pas l'ordre des règles en déboguant."]},
+
+   {"ref": "c)", "texte": "Extension — refuser une température hors de 30–45 °C ou un âge négatif.",
+    "reponse": "Les contrôles viennent après les saisies et avant les règles, et le programme s'arrête net si une valeur est hors bornes.",
+    "solutions": [
+     {"verdict": "retenue", "nom": "Avec un témoin de validité",
+      "code": "valide = True\n\nif temperature < 30 or temperature > 45:\n    print(\"Température hors de l'intervalle 30–45 °C.\")\n    valide = False\n\nif age < 0:\n    print(\"L'âge ne peut pas être négatif.\")\n    valide = False\n\nif valide:\n    if temperature >= 39.5 or frequence >= 120:\n        print(\"Urgence — prise en charge immédiate\")\n    elif temperature >= 38.0 and age >= 65:\n        print(\"Consultation prioritaire\")\n    elif temperature >= 38.0:\n        print(\"Consultation le jour même\")\n    else:\n        print(\"Pas de signe d'alerte\")",
+      "texte": "Deux `if` séparés pour les contrôles : les deux erreurs peuvent coexister, et l'utilisateur gagne à les voir toutes les deux."},
+     {"verdict": "ok", "nom": "Un seul contrôle groupé",
+      "code": "if temperature < 30 or temperature > 45 or age < 0:\n    print(\"Saisie invalide.\")\nelse:\n    …",
+      "texte": "Plus court, mais le message ne dit plus **quelle** valeur est en cause. Un diagnostic précis vaut quelques lignes."}],
+    "notes": ["Le témoin `valide` est un booléen — exactement l'outil que la séance 4 formalisera sous ce nom. On le rencontre ici parce que le besoin se présente, bien avant la leçon.",
+              "Avec les boucles de la séance 3, le programme ne s'arrêtera plus : il redemandera la valeur jusqu'à ce qu'elle soit acceptable."]}]}]},
+]

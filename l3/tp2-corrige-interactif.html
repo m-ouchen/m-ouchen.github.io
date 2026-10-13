@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Corrigé du TP 2 : la boucle while</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+/* Disposition : console à deux volets — rail des exercices à gauche, colonne de
+   travail à droite ; au format téléphone le rail devient une barre de pastilles. */
+:root {
+  --bleu:        #2A5B7F;   /* charte du module — titres, rail, filets        */
+  --sarcelle:    #2E8B79;   /* charte du module assombrie pour le texte       */
+  --vert:        #5E7A18;   /* charte du module assombrie — solution retenue  */
+  --prune:       #B03F60;   /* erreurs fréquentes                        */
+  --encre:       #16242E;
+  --encre-douce: #51616C;
+  --fond:        #FBFCFD;
+  --carte:       #FFFFFF;
+  --surface:     #F1F6F9;   /* neutre biaisé vers le bleu de la charte   */
+  --filet:       #D6E3EC;
+  --code-fond:   #F4F8FA;
+  --code-filet:  #DCE8F0;
+  --ombre:       0 1px 2px rgba(22, 36, 46, .06), 0 8px 24px rgba(22, 36, 46, .05);
+
+  --syn-mot:     #C0392B;
+  --syn-natif:   #6F42C1;
+  --syn-texte:   #0B4F8A;
+  --syn-note:    #67757F;
+  --syn-nombre:  #1A6FAF;
+
+  --titre: "Zilla Slab", Rockwell, Georgia, serif;
+  --corps: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: Consolas, "JetBrains Mono", ui-monospace, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+    --encre: #E6EDF2; --encre-douce: #9FB0BC;
+    --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+    --code-fond: #101E27; --code-filet: #263B49;
+    --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+    --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+    --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+  --encre: #E6EDF2; --encre-douce: #9FB0BC;
+  --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+  --code-fond: #101E27; --code-filet: #263B49;
+  --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+  --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0; background: var(--fond); color: var(--encre);
+  font-family: var(--corps); font-size: 16px; line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+h1, h2, h3, h4 { font-family: var(--titre); text-wrap: balance; margin: 0; }
+code, pre { font-family: var(--mono); }
+:focus-visible { outline: 2.5px solid var(--sarcelle); outline-offset: 2px; border-radius: 3px; }
+
+/* — bandeau — */
+.bandeau {
+  background: var(--bleu); color: #fff;
+  padding-block: 18px 16px; padding-inline: 16px;
+}
+.bandeau-interieur { max-width: 1180px; margin: 0 auto; display: flex;
+  flex-wrap: wrap; gap: 12px 24px; align-items: baseline; }
+.bandeau h1 { font-size: clamp(1.25rem, 1rem + 1.2vw, 1.7rem); font-weight: 600;
+  letter-spacing: .01em; }
+.bandeau p { margin: 0; font-size: .86rem; opacity: .82; }
+.bandeau .module { font-family: var(--mono); font-size: .76rem;
+  letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+
+/* — mise en page — */
+.page { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 20px 56px; display: grid; gap: 24px;
+  grid-template-columns: 236px minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .page { grid-template-columns: minmax(0, 1fr); } }
+
+/* — rail — */
+.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+@media (max-width: 860px) { .rail { position: static; } }
+.rail-groupe + .rail-groupe { margin-top: 18px; }
+.rail-titre { font-family: var(--mono); font-size: .68rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); margin-bottom: 7px; }
+.rail-liste { display: flex; flex-direction: column; gap: 3px; }
+@media (max-width: 860px) {
+  .rail-liste { flex-direction: row; flex-wrap: wrap; }
+  .rail-groupe + .rail-groupe { margin-top: 10px; }
+}
+.onglet {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  font: inherit; font-size: .91rem; text-align: left; cursor: pointer;
+  background: none; border: 1px solid transparent; border-radius: 7px;
+  padding: 6px 10px; color: var(--encre);
+}
+.onglet:hover { background: var(--surface); }
+.onglet[aria-current="true"] { background: var(--bleu); color: #fff;
+  border-color: var(--bleu); }
+.onglet .cle { font-family: var(--mono); font-size: .78rem; font-weight: 600;
+  min-width: 1.6em; }
+.onglet .pastille { margin-left: auto; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--vert); opacity: 0; flex: none; }
+.onglet.vu .pastille { opacity: 1; }
+@media (max-width: 860px) { .onglet { width: auto; } .onglet .pastille { margin-left: 4px; } }
+
+/* — colonne de travail — */
+.travail { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.chapeau { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: baseline;
+  justify-content: space-between; }
+.chapeau h2 { font-size: clamp(1.15rem, 1rem + .9vw, 1.5rem); color: var(--bleu);
+  font-weight: 600; }
+.chapeau .partie { font-family: var(--mono); font-size: .72rem; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--encre-douce); display: block;
+  margin-bottom: 2px; }
+
+.bouton-plat { font: inherit; font-size: .84rem; cursor: pointer;
+  background: var(--carte); color: var(--bleu); border: 1px solid var(--filet);
+  border-radius: 7px; padding: 5px 12px; }
+.bouton-plat:hover { background: var(--surface); }
+
+.enonce { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 10px; padding: 14px 16px; }
+.enonce p { margin: 0 0 10px; }
+.enonce p:last-child { margin-bottom: 0; }
+
+.question { background: var(--carte); border: 1px solid var(--filet);
+  border-radius: 10px; box-shadow: var(--ombre); overflow: hidden; }
+.question-tete { display: flex; gap: 12px; align-items: flex-start;
+  padding: 13px 16px; }
+.question-tete .ref { font-family: var(--mono); font-weight: 600;
+  color: var(--sarcelle); flex: none; padding-top: 1px; }
+.question-tete .texte { min-width: 0; flex: 1; }
+.devoiler { font: inherit; font-size: .84rem; cursor: pointer; flex: none;
+  background: var(--bleu); color: #fff; border: 1px solid var(--bleu);
+  border-radius: 7px; padding: 5px 12px; white-space: nowrap; }
+.devoiler[aria-expanded="true"] { background: var(--carte); color: var(--bleu); }
+@media (max-width: 560px) {
+  .question-tete { flex-wrap: wrap; }
+  .devoiler { width: 100%; }
+}
+.correction { border-top: 1px solid var(--filet); padding: 14px 16px 16px;
+  display: flex; flex-direction: column; gap: 14px; }
+@media (prefers-reduced-motion: no-preference) {
+  .correction { animation: apparait .22s ease-out; }
+  @keyframes apparait { from { opacity: 0; transform: translateY(-3px); } }
+}
+
+.reponse { border-left: 3px solid var(--vert); padding-left: 13px; }
+.reponse .etiquette { font-family: var(--mono); font-size: .68rem;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--vert);
+  font-weight: 600; display: block; margin-bottom: 4px; }
+.reponse p { margin: 0 0 8px; }
+.reponse p:last-child { margin-bottom: 0; }
+
+.sous-titre { font-family: var(--mono); font-size: .7rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); font-weight: 600;
+  display: flex; align-items: center; gap: 9px; }
+.sous-titre::after { content: ""; flex: 1; height: 1px; background: var(--filet); }
+
+.lot { display: flex; flex-direction: column; gap: 10px; }
+.fiche { border: 1px solid var(--filet); border-radius: 9px; overflow: hidden;
+  background: var(--carte); }
+.fiche-tete { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center;
+  padding: 9px 13px; background: var(--surface);
+  border-bottom: 1px solid var(--filet); }
+.fiche-tete h4 { font-size: .95rem; font-weight: 600; min-width: 0; }
+.verdict { font-family: var(--mono); font-size: .66rem; letter-spacing: .07em;
+  text-transform: uppercase; font-weight: 600; padding: 2px 8px;
+  border-radius: 999px; border: 1px solid currentColor; flex: none; }
+.v-retenue  { color: var(--vert); }
+.v-ok       { color: var(--sarcelle); }
+.v-eviter   { color: var(--prune); }
+.v-expert   { color: var(--bleu); }
+.fiche-corps { padding: 11px 13px; display: flex; flex-direction: column; gap: 9px; }
+.fiche-corps p { margin: 0; }
+.fiche.erreur { border-color: color-mix(in srgb, var(--prune) 38%, var(--filet)); }
+.fiche.erreur .fiche-tete { background: color-mix(in srgb, var(--prune) 8%, var(--carte)); }
+
+.ligne-diag { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px;
+  font-size: .91rem; }
+.ligne-diag dt { font-family: var(--mono); font-size: .72rem; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--encre-douce); padding-top: 3px; }
+.ligne-diag dd { margin: 0; min-width: 0; }
+
+pre.code { margin: 0; background: var(--code-fond); border: 1px solid var(--code-filet);
+  border-radius: 7px; padding: 10px 12px; overflow-x: auto;
+  font-size: .845rem; line-height: 1.55; tab-size: 4; }
+pre.code.sortie { background: var(--surface); color: var(--encre-douce); }
+.k { color: var(--syn-mot); } .n { color: var(--syn-natif); }
+.s { color: var(--syn-texte); } .c { color: var(--syn-note); font-style: italic; }
+.d { color: var(--syn-nombre); }
+code.ligne { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 4px; padding: .5px 5px; font-size: .88em; }
+
+table.pile { width: 100%; border-collapse: collapse; font-size: .88rem; }
+table.pile th, table.pile td { border: 1px solid var(--filet); padding: 6px 10px;
+  text-align: left; }
+table.pile th { background: var(--surface); font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--encre-douce); font-weight: 600; }
+table.pile td:first-child, table.pile td:last-child { font-family: var(--mono);
+  font-variant-numeric: tabular-nums; }
+.table-enveloppe { overflow-x: auto; }
+
+.pied { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 0 40px; color: var(--encre-douce); font-size: .82rem; }
+.pied p { margin: 0; }
+</style>
+</head>
+<body>
+
+<header class="bandeau">
+  <div class="bandeau-interieur">
+    <div>
+      <span class="module">L3 MGB — Programmation Python</span>
+      <h1>TP 2 — La boucle while</h1>
+    </div>
+    <p>Choisissez un exercice, cherchez, puis dévoilez la correction.</p>
+  </div>
+</header>
+
+<main class="page">
+  <nav class="rail" id="rail" aria-label="Exercices du TP"></nav>
+  <section class="travail" id="travail" aria-live="polite"></section>
+</main>
+
+<footer class="pied">
+  <p>École Supérieure Mohammed VI d'Ingénieurs en Sciences de la Santé — UM6SS. Toutes les sorties affichées ici ont été exécutées sous Python&nbsp;3.</p>
+</footer>
+
+<script>
+/* ------------------------------------------------------------------ *
+ *  Coloration syntaxique Python — segmentation puis échappement.
+ *  On tokenise la chaîne brute, puis on échappe chaque segment : faire
+ *  l'inverse ferait correspondre les motifs à l'intérieur des entités.
+ * ------------------------------------------------------------------ */
+const MOTS = new Set(("False None True and as assert async await break class " +
+  "continue def del elif else except finally for from global if import in is " +
+  "lambda nonlocal not or pass raise return try while with yield").split(" "));
+const NATIFS = new Set(("abs all any bool dict enumerate filter float frozenset " +
+  "int isinstance len list map max min print range repr reversed round set " +
+  "sorted str sum tuple type zip").split(" "));
+const JETON = /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|"[^"\n]*"|'[^'\n]*')|(\b\d+\.?\d*\b)|([A-Za-z_]\w*)/g;
+
+function echapper(t) {
+  return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function colorer(source) {
+  let sortie = "", position = 0, m;
+  JETON.lastIndex = 0;
+  while ((m = JETON.exec(source)) !== null) {
+    sortie += echapper(source.slice(position, m.index));
+    const [tout, note, texte, nombre, mot] = m;
+    if (note !== undefined)        sortie += '<span class="c">' + echapper(tout) + "</span>";
+    else if (texte !== undefined)  sortie += '<span class="s">' + echapper(tout) + "</span>";
+    else if (nombre !== undefined) sortie += '<span class="d">' + echapper(tout) + "</span>";
+    else if (MOTS.has(mot))        sortie += '<span class="k">' + echapper(tout) + "</span>";
+    else if (NATIFS.has(mot))      sortie += '<span class="n">' + echapper(tout) + "</span>";
+    else                           sortie += echapper(tout);
+    position = m.index + tout.length;
+  }
+  return sortie + echapper(source.slice(position));
+}
+
+/* Texte enrichi minimal : `code` et **gras**, échappés. */
+function enrichir(t) {
+  return echapper(t)
+    .replace(/`([^`]+)`/g, '<code class="ligne">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+}
+
+const bloc = (src, sortie) =>
+  '<pre class="code' + (sortie ? " sortie" : "") + '">' +
+  (sortie ? echapper(src) : colorer(src)) + "</pre>";
+
+/* ------------------------------------------------------------------ *
+ *  Le TP, tel qu'il a été distribué.
+ * ------------------------------------------------------------------ */
+const CORRIGE = [
+ {
+  "partie": "Partie A — Cas de base",
+  "exercices": [
+   {
+    "id": "a1",
+    "titre": "A.1 — Prédire, puis exécuter",
+    "enonce": "On recopie ce programme dans `a1.py`, et on écrit sa prédiction avant de l'exécuter.",
+    "code": "p = 0\nwhile p <= 5:\n    p = p + 1\n    print(\"p=\", p)\nprint(\"Done !\")",
+    "questions": [
+     {
+      "ref": "a)",
+      "texte": "Qu'affiche le programme ?",
+      "reponse": "Sept lignes : six tours de boucle, puis la ligne finale.",
+      "sortie": "p= 1\np= 2\np= 3\np= 4\np= 5\np= 6\nDone !",
+      "notes": [
+       "La boucle tourne **six** fois, pour `p` valant successivement 0, 1, 2, 3, 4 et 5 au moment du test. Au septième test, `p` vaut 6 : `6 <= 5` est faux, et la boucle s'arrête.",
+       "Comme `p = p + 1` précède le `print`, la première valeur affichée est 1 et non 0, et la dernière est 6 et non 5."
+      ],
+      "erreurs": [
+       {
+        "titre": "Annoncer cinq lignes",
+        "cause": "On compte les valeurs 1 à 5 en oubliant que le test porte sur `p <= 5`, bornes comprises : la valeur 5 passe encore le test et produit un sixième tour."
+       },
+       {
+        "titre": "Annoncer `p= 0` sur la première ligne",
+        "cause": "C'est ce qu'on obtiendrait si le `print` venait **avant** l'incrémentation. L'ordre des deux lignes du bloc décide de ce qui s'affiche — voir D.6 du cours."
+       },
+       {
+        "titre": "Oublier `Done !`",
+        "cause": "Le dernier `print` n'est pas indenté : il n'appartient pas à la boucle et s'exécute une fois, à la sortie."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "a2",
+    "titre": "A.2 — Les trois ingrédients",
+    "enonce": "On retrouve dans le programme de A.1 les trois étapes indispensables de toute boucle `while`.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Quelle ligne joue chacun des trois rôles ?",
+      "reponse": "Chaque rôle tient en une ligne, et les trois sont présentes.",
+      "pile": {
+       "entetes": [
+        "Rôle",
+        "Ligne"
+       ],
+       "lignes": [
+        [
+         "Initialiser la variable de contrôle",
+         "`p = 0`"
+        ],
+        [
+         "Tester cette variable",
+         "`while p <= 5:`"
+        ],
+        [
+         "Modifier cette variable",
+         "`p = p + 1`"
+        ]
+       ]
+      },
+      "notes": [
+       "La variable de contrôle est `p` : c'est elle que la condition examine. Les trois rôles portent **sur la même variable** — c'est ce qui en fait une boucle qui s'arrête."
+      ],
+      "erreurs": [
+       {
+        "titre": "Désigner `print(\"p=\", p)` comme la modification",
+        "cause": "`print` lit `p` mais ne le change pas. Afficher une variable ne la fait pas avancer : une boucle dont le bloc ne contient que des `print` ne s'arrête jamais."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "a3",
+    "titre": "A.3 — Une boucle qui ne démarre pas",
+    "enonce": "",
+    "code": "t = 0\nwhile t > 0:\n    print(t)\n    t = t - 1\nprint(\"Terminé\")",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Combien de fois le bloc s'exécute-t-il ? Pourquoi ?",
+      "reponse": "**Aucune.** Le programme n'affiche qu'une ligne.",
+      "sortie": "Terminé",
+      "notes": [
+       "La condition est évaluée **avant** le premier tour. `t` vaut 0, donc `0 > 0` est faux dès l'entrée : le bloc est enjambé et l'exécution reprend après la boucle.",
+       "Une boucle `while` peut donc tourner zéro fois. Ce n'est ni une erreur ni un cas rare : c'est exactement ce qu'on veut d'une boucle de validation lorsque la première saisie est déjà correcte."
+      ],
+      "erreurs": [
+       {
+        "titre": "Répondre « une fois »",
+        "cause": "On suppose qu'un bloc s'exécute au moins une fois avant que la condition ne soit vérifiée. C'est le comportement d'un `do … while` dans d'autres langages ; Python n'en a pas."
+       },
+       {
+        "titre": "Répondre que le programme plante",
+        "cause": "Rien n'est anormal ici. Une suite d'instructions non exécutée ne produit aucune erreur."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "a4",
+    "titre": "A.4 — Changer le pas",
+    "enonce": "Écrire `a4.py` qui compte de 0 à 10 de deux en deux.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Écrivez le programme.",
+      "reponse": "Seul le pas change par rapport à A.1 : on ajoute 2 au lieu de 1.",
+      "sortie": "0\n2\n4\n6\n8\n10",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Compter par pas de deux",
+        "code": "p = 0\nwhile p <= 10:\n    print(p)\n    p = p + 2"
+       },
+       {
+        "verdict": "ok",
+        "nom": "Compter de un en un et ne retenir que les pairs",
+        "code": "p = 0\nwhile p <= 10:\n    if p % 2 == 0:\n        print(p)\n    p = p + 1",
+        "texte": "Correct, mais la boucle fait onze tours pour six affichages. Quand le pas suffit, il est préférable au filtrage."
+       }
+      ],
+      "erreurs": [
+       {
+        "titre": "Écrire `while p < 10`",
+        "cause": "La valeur 10 doit être affichée : la borne est **comprise**, donc `<=`. Avec `<`, la suite s'arrête à 8."
+       },
+       {
+        "titre": "Placer `p = p + 2` avant le `print`",
+        "cause": "La suite commencerait à 2 et finirait à 12 — l'erreur que A.1 a déjà montrée."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "a5",
+    "titre": "A.5 — Compter dans l'autre sens",
+    "enonce": "Écrire `a5.py` qui affiche les entiers de 20 à 10, un par ligne.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Écrivez le programme.",
+      "reponse": "Compter à rebours demande deux changements simultanés : le sens du test et le sens de la modification.",
+      "sortie": "20\n19\n18\n17\n16\n15\n14\n13\n12\n11\n10",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Décompte",
+        "code": "n = 20\nwhile n >= 10:\n    print(n)\n    n = n - 1"
+       }
+      ],
+      "notes": [
+       "Onze lignes sont affichées : de 20 à 10 inclus, il y a 20 − 10 + 1 = 11 valeurs. L'oubli du « + 1 » est l'erreur de comptage la plus fréquente."
+      ],
+      "erreurs": [
+       {
+        "titre": "Garder `n = n + 1` en inversant seulement le test",
+        "cause": "La condition `n >= 10` est vraie dès le départ et le reste à jamais, puisque `n` ne fait que grandir : boucle infinie. Le test et la modification doivent être **cohérents**."
+       },
+       {
+        "titre": "Écrire `while n > 10`",
+        "cause": "La valeur 10 n'est alors pas affichée. Pour inclure la borne, il faut `>=`."
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "partie": "Partie B — Boucles infinies",
+  "exercices": [
+   {
+    "id": "b1",
+    "titre": "B.1 — Provoquer l'accident",
+    "enonce": "On reprend `a1.py` en supprimant `p = p + 1`.",
+    "code": "p = 0\nwhile p <= 5:\n    print(\"p=\", p)",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Que s'est-il passé ?",
+      "reponse": "Le programme affiche `p= 0` indéfiniment, jusqu'à ce qu'on l'interrompe par **Ctrl + C**.",
+      "sortie": "p= 0\np= 0\np= 0\n…",
+      "notes": [
+       "`p` garde la valeur 0 : la condition `0 <= 5` reste vraie à chaque test, et rien dans le bloc ne peut la rendre fausse.",
+       "Le programme ne « plante » pas : il fonctionne exactement comme écrit. C'est le programme qui est faux, pas la machine — et aucun message d'erreur ne viendra le signaler."
+      ],
+      "erreurs": [
+       {
+        "titre": "Croire que Python finira par s'arrêter de lui-même",
+        "cause": "Rien n'arrête une boucle infinie : ni le nombre de tours, ni la quantité affichée. Seule une interruption extérieure — **Ctrl + C** — y met fin."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "b3",
+    "titre": "B.3 — Trois boucles à réparer",
+    "enonce": "Pour chacune, dire ce qui cloche, puis corriger.",
+    "questions": [
+     {
+      "ref": "1)",
+      "texte": "`n = 1` ; `while n < 5:` ; `print(n)` ; `n = n - 1`",
+      "reponse": "La variable est modifiée **dans le mauvais sens** : `n` décroît alors que la condition attend qu'il croisse.",
+      "notes": [
+       "C'est la deuxième question du diagnostic : *est-elle modifiée dans le bon sens ?* La boucle affiche 1, 0, −1, −2… sans fin."
+      ],
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Inverser l'opération",
+        "code": "n = 1\nwhile n < 5:\n    print(n)\n    n = n + 1"
+       }
+      ]
+     },
+     {
+      "ref": "2)",
+      "texte": "`n = 1` ; `while n < 5:` ; `print(n)` ; puis `n = n + 1` non indenté",
+      "reponse": "La modification existe, mais elle est **hors du bloc** : elle ne s'exécutera qu'après la boucle, c'est-à-dire jamais.",
+      "notes": [
+       "C'est la troisième question du diagnostic. L'indentation n'est pas une mise en forme : elle décide de ce qui appartient à la boucle."
+      ],
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Indenter la modification",
+        "code": "n = 1\nwhile n < 5:\n    print(n)\n    n = n + 1"
+       }
+      ],
+      "erreurs": [
+       {
+        "titre": "Chercher l'erreur dans la condition",
+        "cause": "`n < 5` est correct. Devant une boucle infinie, on vérifie d'abord que la modification existe, puis son sens, puis son indentation — dans cet ordre."
+       }
+      ]
+     },
+     {
+      "ref": "3)",
+      "texte": "`reponse = input(…)` ; `while reponse == \"o\":` ; `print(\"On continue.\")`",
+      "reponse": "La variable testée n'est **jamais modifiée** dans le bloc : la saisie a lieu une seule fois, avant la boucle.",
+      "notes": [
+       "Si l'utilisateur répond autre chose que `o`, la boucle ne tourne pas du tout ; s'il répond `o`, elle ne s'arrête plus. Les deux comportements viennent de la même cause."
+      ],
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Redemander dans la boucle",
+        "code": "reponse = input(\"Continuer ? (o/n) \")\nwhile reponse == \"o\":\n    print(\"On continue.\")\n    reponse = input(\"Continuer ? (o/n) \")"
+       }
+      ],
+      "erreurs": [
+       {
+        "titre": "Déplacer la saisie avant la boucle en croyant corriger",
+        "cause": "Elle y est déjà. Ce qui manque est une **seconde** saisie, à l'intérieur du bloc, pour que la condition puisse changer de valeur."
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "partie": "Partie C — Accumulateurs et sorties contrôlées",
+  "exercices": [
+   {
+    "id": "c1",
+    "titre": "C.1 — Accumuler au fil des tours",
+    "enonce": "",
+    "code": "somme = 0\nn = 1\nwhile n <= 5:\n    somme = somme + n\n    n = n + 1\nprint(\"Somme :\", somme)",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Remplissez le tableau de déroulé, puis donnez l'affichage.",
+      "reponse": "La boucle fait cinq tours ; `somme` passe de 0 à 15.",
+      "pile": {
+       "entetes": [
+        "Tour",
+        "n avant",
+        "somme avant",
+        "somme après"
+       ],
+       "lignes": [
+        [
+         "1",
+         "1",
+         "0",
+         "1"
+        ],
+        [
+         "2",
+         "2",
+         "1",
+         "3"
+        ],
+        [
+         "3",
+         "3",
+         "3",
+         "6"
+        ],
+        [
+         "4",
+         "4",
+         "6",
+         "10"
+        ],
+        [
+         "5",
+         "5",
+         "10",
+         "15"
+        ]
+       ]
+      },
+      "sortie": "Somme : 15",
+      "notes": [
+       "`somme` est l'**accumulateur**, `n` la variable de contrôle. Les deux changent à chaque tour, mais elles ne jouent pas le même rôle : la condition ne porte que sur `n`."
+      ],
+      "erreurs": [
+       {
+        "titre": "Placer `somme = 0` dans la boucle",
+        "cause": "L'accumulateur serait remis à zéro à chaque tour et le programme afficherait 5, la dernière valeur ajoutée. Aucun message d'erreur : le résultat est simplement faux."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "c2",
+    "titre": "C.2 — Compter combien",
+    "enonce": "Compléter le programme pour compter, parmi cinq températures saisies, combien dépassent 38.0.",
+    "code": "saisies = 0\nnb_fievre = 0\nwhile saisies < 5:\n    t = float(input(\"Température : \"))\n    # à compléter",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Complétez le programme.",
+      "reponse": "Deux accumulateurs cohabitent : `saisies` contrôle la boucle, `nb_fievre` compte.",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Compter sous condition",
+        "code": "saisies = 0\nnb_fievre = 0\nwhile saisies < 5:\n    t = float(input(\"Température : \"))\n    if t > 38.0:\n        nb_fievre = nb_fievre + 1\n    saisies = saisies + 1\nprint(\"Au-dessus de 38 :\", nb_fievre)"
+       }
+      ],
+      "notes": [
+       "`saisies = saisies + 1` doit être **hors du `if`** : on compte une saisie à chaque tour, qu'elle dépasse le seuil ou non. Placée dans le `if`, elle rendrait la boucle infinie dès la première température normale."
+      ],
+      "erreurs": [
+       {
+        "titre": "Indenter `saisies = saisies + 1` sous le `if`",
+        "cause": "La variable de contrôle n'avance plus que lorsque la condition est vraie. Une seule température normale suffit à bloquer le programme."
+       },
+       {
+        "titre": "Écrire `nb_fievre = nb_fievre + t`",
+        "cause": "On additionne les températures au lieu de compter les cas. Un **compte** s'incrémente de 1 ; une **somme** ajoute la valeur."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "c3",
+    "titre": "C.3 — while True et la sortie par break",
+    "enonce": "",
+    "code": "while True:\n    ligne = input(\"Température (vide pour finir) : \")\n    if ligne == \"\":\n        break\n    print(\"Reçu :\", float(ligne))\nprint(\"Fin de la saisie.\")",
+    "questions": [
+     {
+      "ref": "a)",
+      "texte": "Combien de températures pouvez-vous saisir ?",
+      "reponse": "Autant qu'on veut : le nombre de tours n'est pas fixé, c'est l'utilisateur qui décide d'arrêter en validant une ligne vide.",
+      "notes": [
+       "C'est précisément le cas où `while` s'impose : la condition d'arrêt ne peut être évaluée qu'**après** avoir lu la saisie, donc au milieu du bloc."
+      ]
+     },
+     {
+      "ref": "b)",
+      "texte": "Que se passe-t-il si vous oubliez le `break` ?",
+      "reponse": "La boucle devient infinie, et la ligne vide provoque en plus une erreur.",
+      "sortie": "ValueError: could not convert string to float: ''",
+      "notes": [
+       "`while True` est une condition qui ne peut jamais devenir fausse : sans `break`, rien n'arrête la boucle. Ici l'exécution s'interrompt tout de même, mais sur une erreur de conversion — ce qui masque la vraie faute."
+      ],
+      "erreurs": [
+       {
+        "titre": "Conclure que le programme « marche quand même »",
+        "cause": "Il s'arrête sur une exception, ce qui n'est pas un arrêt voulu. Un programme qui se termine par une erreur n'a pas fonctionné."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "c4",
+    "titre": "C.4 — Un menu qui tourne",
+    "enonce": "On ajoute au menu une entrée « 4 — Afficher le nombre de saisies effectuées ».",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Quel code ajouter, et où ?",
+      "reponse": "Un accumulateur déclaré **avant** la boucle, incrémenté dans la branche de saisie, et lu dans la nouvelle branche.",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Les trois endroits à modifier",
+        "code": "nb_saisies = 0          # avant la boucle\nchoix = \"\"\nwhile choix != \"3\":\n    print()\n    print(\"1 — Saisir une température\")\n    print(\"2 — Afficher le seuil de fièvre\")\n    print(\"3 — Quitter\")\n    print(\"4 — Afficher le nombre de saisies effectuées\")\n    choix = input(\"Votre choix : \")\n\n    if choix == \"1\":\n        print(\"Saisie :\", float(input(\"Valeur : \")))\n        nb_saisies = nb_saisies + 1      # dans la branche\n    elif choix == \"2\":\n        print(\"Seuil : 38.0 °C\")\n    elif choix == \"3\":\n        print(\"Au revoir.\")\n    elif choix == \"4\":\n        print(\"Saisies effectuées :\", nb_saisies)\n    else:\n        print(\"Choix inconnu.\")"
+       }
+      ],
+      "notes": [
+       "Le `print` du menu doit lui aussi être complété : une entrée qui fonctionne mais que rien n'annonce reste invisible.",
+       "La nouvelle branche est un `elif`, non un `if` : les quatre choix s'excluent, et un `if` indépendant ferait tester la condition même après qu'un autre choix a été reconnu."
+      ],
+      "erreurs": [
+       {
+        "titre": "Déclarer `nb_saisies = 0` dans la boucle",
+        "cause": "Le compteur repartirait de zéro à chaque passage au menu et afficherait toujours 0 ou 1."
+       },
+       {
+        "titre": "Incrémenter à chaque tour de boucle",
+        "cause": "On compterait les passages au menu, non les saisies. L'incrémentation appartient à la branche `choix == \"1\"`."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "c5",
+    "titre": "C.5 — Insister jusqu'à une saisie valide",
+    "enonce": "On compare les deux écritures possibles de la saisie validée.",
+    "questions": [
+     {
+      "ref": "a)",
+      "texte": "Écrivez `c5.py`.",
+      "reponse": "La boucle ne s'arrête que lorsque la valeur tombe dans l'intervalle.",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Saisie validée",
+        "code": "t = float(input(\"Température : \"))\nwhile t < 30 or t > 45:\n    print(\"Température invalide.\")\n    t = float(input(\"Température : \"))\nprint(\"Valeur retenue :\", t)"
+       }
+      ],
+      "notes": [
+       "La condition dit ce qui est **invalide**, donc ce qui fait continuer la boucle. L'écrire à l'envers — `while t >= 30 and t <= 45` — ferait boucler sur les valeurs correctes."
+      ]
+     },
+     {
+      "ref": "b)",
+      "texte": "Les deux écritures font-elles le même travail ?",
+      "reponse": "**Oui**, elles produisent le même résultat ; elles diffèrent par la forme, non par le comportement.",
+      "pile": {
+       "entetes": [
+        "",
+        "Écriture 1",
+        "Écriture 2"
+       ],
+       "lignes": [
+        [
+         "Saisie correcte du premier coup",
+         "un seul appel à `input`",
+         "un seul appel à `input`"
+        ],
+        [
+         "Trois saisies invalides",
+         "quatre appels",
+         "quatre appels"
+        ],
+        [
+         "Ligne `input` écrite",
+         "deux fois",
+         "une seule fois"
+        ],
+        [
+         "Condition exprimée",
+         "ce qui est invalide",
+         "ce qui est valide"
+        ]
+       ]
+      },
+      "notes": [
+       "L'écriture 2 n'écrit la ligne de saisie qu'une fois : si le message doit changer, il n'y a qu'un endroit à corriger. L'écriture 1 n'emploie pas `break`, ce qui la rend plus facile à lire tant qu'on débute.",
+       "Les deux sont acceptées. Ce qui compte est de savoir **justifier** son choix."
+      ],
+      "erreurs": [
+       {
+        "titre": "Affirmer que l'écriture 2 demande toujours au moins une saisie de plus",
+        "cause": "Non : `break` s'exécute dès que la valeur est correcte, donc dès le premier tour si la saisie est bonne. Les deux écritures appellent `input` le même nombre de fois."
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+];
+
+/* ------------------------------------------------------------------ *
+ *  Mémoire locale — simple confort de lecture, jamais indispensable.
+ * ------------------------------------------------------------------ */
+const CLE = "m355-tp2-corriges-vus";
+let vus = new Set();
+try {
+  const brut = localStorage.getItem(CLE);
+  if (brut) vus = new Set(JSON.parse(brut));
+} catch (e) { /* navigation privée, stockage bloqué : on continue sans */ }
+
+function memoriser() {
+  try { localStorage.setItem(CLE, JSON.stringify([...vus])); } catch (e) {}
+}
+
+/* ------------------------------------------------------------------ *
+ *  Rendu
+ * ------------------------------------------------------------------ */
+const rail = document.getElementById("rail");
+const travail = document.getElementById("travail");
+const tousExercices = CORRIGE.flatMap(p => p.exercices.map(e => ({ ...e, partie: p.partie })));
+
+function cleQuestion(ex, i) { return ex.id + "-" + i; }
+
+function exerciceVu(ex) {
+  return ex.questions.every((_, i) => vus.has(cleQuestion(ex, i)));
+}
+
+function construireRail() {
+  rail.innerHTML = CORRIGE.map(partie => `
+    <div class="rail-groupe">
+      <div class="rail-titre">${echapper(partie.partie.replace(/^Partie /, ""))}</div>
+      <div class="rail-liste">
+        ${partie.exercices.map(ex => `
+          <button class="onglet" type="button" data-cible="${ex.id}">
+            <span class="cle">${echapper(ex.titre.split(" — ")[0])}</span>
+            <span>${echapper(ex.titre.split(" — ")[1] || "")}</span>
+            <span class="pastille" aria-hidden="true"></span>
+          </button>`).join("")}
+      </div>
+    </div>`).join("");
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.addEventListener("click", () => afficher(b.dataset.cible, true)));
+}
+
+function fiche(item, estErreur) {
+  const classeVerdict = { retenue: "v-retenue", ok: "v-ok",
+                          eviter: "v-eviter", expert: "v-expert" }[item.verdict];
+  const libelle = { retenue: "à retenir", ok: "acceptable",
+                    eviter: "à éviter", expert: "pour aller plus loin" }[item.verdict];
+  return `
+    <article class="fiche${estErreur ? " erreur" : ""}">
+      <div class="fiche-tete">
+        <h4>${enrichir(item.nom || item.titre)}</h4>
+        ${estErreur
+          ? '<span class="verdict v-eviter">erreur fréquente</span>'
+          : (classeVerdict ? `<span class="verdict ${classeVerdict}">${libelle}</span>` : "")}
+      </div>
+      <div class="fiche-corps">
+        ${item.code ? bloc(item.code, false) : ""}
+        ${item.sortie ? bloc(item.sortie, true) : ""}
+        ${item.texte ? `<p>${enrichir(item.texte)}</p>` : ""}
+        ${item.cause ? `<dl class="ligne-diag"><dt>Pourquoi</dt><dd>${enrichir(item.cause)}</dd></dl>` : ""}
+      </div>
+    </article>`;
+}
+
+function tableau(p) {
+  return `<div class="table-enveloppe"><table class="pile">
+    <thead><tr>${p.entetes.map(h => `<th>${echapper(h)}</th>`).join("")}</tr></thead>
+    <tbody>${p.lignes.map(l => `<tr>${l.map(c => `<td>${enrichir(c)}</td>`).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+function corpsCorrection(q) {
+  return `
+    <div class="reponse">
+      <span class="etiquette">Réponse</span>
+      <p>${enrichir(q.reponse)}</p>
+    </div>
+    ${q.sortie ? bloc(q.sortie, true) : ""}
+    ${q.pile ? tableau(q.pile) : ""}
+    ${(q.notes || []).map(n => `<p>${enrichir(n)}</p>`).join("")}
+    ${q.solutions && q.solutions.length ? `
+      <div class="sous-titre">Propositions de solution</div>
+      <div class="lot">${q.solutions.map(s => fiche(s, false)).join("")}</div>` : ""}
+    ${q.erreurs && q.erreurs.length ? `
+      <div class="sous-titre">Erreurs fréquentes</div>
+      <div class="lot">${q.erreurs.map(e => fiche(e, true)).join("")}</div>` : ""}`;
+}
+
+let courant = null;
+
+function afficher(id, deplacerFocus) {
+  const ex = tousExercices.find(e => e.id === id) || tousExercices[0];
+  courant = ex;
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.setAttribute("aria-current", String(b.dataset.cible === ex.id)));
+
+  travail.innerHTML = `
+    <div class="chapeau">
+      <div>
+        <span class="partie">${echapper(ex.partie)}</span>
+        <h2>${echapper(ex.titre)}</h2>
+      </div>
+      <button class="bouton-plat" type="button" id="tout">Tout afficher</button>
+    </div>
+    <div class="enonce">
+      <p>${enrichir(ex.enonce)}</p>
+      ${ex.code ? bloc(ex.code, false) : ""}
+    </div>
+    ${ex.questions.map((q, i) => {
+      const cle = cleQuestion(ex, i);
+      const ouvert = vus.has(cle);
+      return `
+      <article class="question" id="q-${cle}">
+        <div class="question-tete">
+          ${q.ref ? `<span class="ref">${echapper(q.ref)}</span>` : ""}
+          <div class="texte">${enrichir(q.texte)}</div>
+          <button class="devoiler" type="button" data-cle="${cle}"
+                  aria-expanded="${ouvert}" aria-controls="c-${cle}">
+            ${ouvert ? "Masquer" : "Afficher la correction"}
+          </button>
+        </div>
+        <div class="correction" id="c-${cle}" ${ouvert ? "" : "hidden"}>
+          ${corpsCorrection(q)}
+        </div>
+      </article>`;
+    }).join("")}`;
+
+  travail.querySelectorAll(".devoiler").forEach(b =>
+    b.addEventListener("click", () => basculer(b)));
+  document.getElementById("tout").addEventListener("click", toutAfficher);
+  majPastilles();
+  if (deplacerFocus) {
+    history.replaceState(null, "", "#" + ex.id);
+    travail.querySelector("h2").scrollIntoView({ block: "nearest" });
+  }
+}
+
+function basculer(bouton) {
+  const cle = bouton.dataset.cle;
+  const zone = document.getElementById("c-" + cle);
+  const ouvrir = zone.hidden;
+  zone.hidden = !ouvrir;
+  bouton.setAttribute("aria-expanded", String(ouvrir));
+  bouton.textContent = ouvrir ? "Masquer" : "Afficher la correction";
+  if (ouvrir) vus.add(cle); else vus.delete(cle);
+  memoriser();
+  majPastilles();
+}
+
+function toutAfficher() {
+  const boutons = [...travail.querySelectorAll(".devoiler")];
+  const toutOuvert = boutons.every(b => b.getAttribute("aria-expanded") === "true");
+  boutons.forEach(b => {
+    if ((b.getAttribute("aria-expanded") === "true") === toutOuvert) basculer(b);
+  });
+  document.getElementById("tout").textContent = toutOuvert ? "Tout afficher" : "Tout masquer";
+}
+
+function majPastilles() {
+  rail.querySelectorAll(".onglet").forEach(b => {
+    const ex = tousExercices.find(e => e.id === b.dataset.cible);
+    b.classList.toggle("vu", exerciceVu(ex));
+  });
+  const bouton = document.getElementById("tout");
+  if (bouton && courant) {
+    const boutons = [...travail.querySelectorAll(".devoiler")];
+    bouton.textContent = boutons.every(b => b.getAttribute("aria-expanded") === "true")
+      ? "Tout masquer" : "Tout afficher";
+  }
+}
+
+construireRail();
+const ancre = (location.hash || "").replace("#", "");
+afficher(tousExercices.some(e => e.id === ancre) ? ancre : tousExercices[0].id, false);
+</script>
+</script>
+</body>
+</html>
