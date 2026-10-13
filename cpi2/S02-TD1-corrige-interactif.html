@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Corrigé du TD 1 : Fonctions et récursivité</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+/* Disposition : console à deux volets — rail des exercices à gauche, colonne de
+   travail à droite ; au format téléphone le rail devient une barre de pastilles. */
+:root {
+  --bleu:        #2A5B7F;   /* charte M235 — titres, rail, filets        */
+  --sarcelle:    #2E8B79;   /* charte M235 assombrie pour le texte       */
+  --vert:        #5E7A18;   /* charte M235 assombrie — solution retenue  */
+  --prune:       #B03F60;   /* erreurs fréquentes                        */
+  --encre:       #16242E;
+  --encre-douce: #51616C;
+  --fond:        #FBFCFD;
+  --carte:       #FFFFFF;
+  --surface:     #F1F6F9;   /* neutre biaisé vers le bleu de la charte   */
+  --filet:       #D6E3EC;
+  --code-fond:   #F4F8FA;
+  --code-filet:  #DCE8F0;
+  --ombre:       0 1px 2px rgba(22, 36, 46, .06), 0 8px 24px rgba(22, 36, 46, .05);
+
+  --syn-mot:     #C0392B;
+  --syn-natif:   #6F42C1;
+  --syn-texte:   #0B4F8A;
+  --syn-note:    #67757F;
+  --syn-nombre:  #1A6FAF;
+
+  --titre: "Zilla Slab", Rockwell, Georgia, serif;
+  --corps: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: Consolas, "JetBrains Mono", ui-monospace, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+    --encre: #E6EDF2; --encre-douce: #9FB0BC;
+    --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+    --code-fond: #101E27; --code-filet: #263B49;
+    --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+    --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+    --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+  --encre: #E6EDF2; --encre-douce: #9FB0BC;
+  --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+  --code-fond: #101E27; --code-filet: #263B49;
+  --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+  --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0; background: var(--fond); color: var(--encre);
+  font-family: var(--corps); font-size: 16px; line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+h1, h2, h3, h4 { font-family: var(--titre); text-wrap: balance; margin: 0; }
+code, pre { font-family: var(--mono); }
+:focus-visible { outline: 2.5px solid var(--sarcelle); outline-offset: 2px; border-radius: 3px; }
+
+/* — bandeau — */
+.bandeau {
+  background: var(--bleu); color: #fff;
+  padding-block: 18px 16px; padding-inline: 16px;
+}
+.bandeau-interieur { max-width: 1180px; margin: 0 auto; display: flex;
+  flex-wrap: wrap; gap: 12px 24px; align-items: baseline; }
+.bandeau h1 { font-size: clamp(1.25rem, 1rem + 1.2vw, 1.7rem); font-weight: 600;
+  letter-spacing: .01em; }
+.bandeau p { margin: 0; font-size: .86rem; opacity: .82; }
+.bandeau .module { font-family: var(--mono); font-size: .76rem;
+  letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+
+/* — mise en page — */
+.page { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 20px 56px; display: grid; gap: 24px;
+  grid-template-columns: 236px minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .page { grid-template-columns: minmax(0, 1fr); } }
+
+/* — rail — */
+.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+@media (max-width: 860px) { .rail { position: static; } }
+.rail-groupe + .rail-groupe { margin-top: 18px; }
+.rail-titre { font-family: var(--mono); font-size: .68rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); margin-bottom: 7px; }
+.rail-liste { display: flex; flex-direction: column; gap: 3px; }
+@media (max-width: 860px) {
+  .rail-liste { flex-direction: row; flex-wrap: wrap; }
+  .rail-groupe + .rail-groupe { margin-top: 10px; }
+}
+.onglet {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  font: inherit; font-size: .91rem; text-align: left; cursor: pointer;
+  background: none; border: 1px solid transparent; border-radius: 7px;
+  padding: 6px 10px; color: var(--encre);
+}
+.onglet:hover { background: var(--surface); }
+.onglet[aria-current="true"] { background: var(--bleu); color: #fff;
+  border-color: var(--bleu); }
+.onglet .cle { font-family: var(--mono); font-size: .78rem; font-weight: 600;
+  min-width: 1.6em; }
+.onglet .pastille { margin-left: auto; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--vert); opacity: 0; flex: none; }
+.onglet.vu .pastille { opacity: 1; }
+@media (max-width: 860px) { .onglet { width: auto; } .onglet .pastille { margin-left: 4px; } }
+
+/* — colonne de travail — */
+.travail { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.chapeau { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: baseline;
+  justify-content: space-between; }
+.chapeau h2 { font-size: clamp(1.15rem, 1rem + .9vw, 1.5rem); color: var(--bleu);
+  font-weight: 600; }
+.chapeau .partie { font-family: var(--mono); font-size: .72rem; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--encre-douce); display: block;
+  margin-bottom: 2px; }
+
+.bouton-plat { font: inherit; font-size: .84rem; cursor: pointer;
+  background: var(--carte); color: var(--bleu); border: 1px solid var(--filet);
+  border-radius: 7px; padding: 5px 12px; }
+.bouton-plat:hover { background: var(--surface); }
+
+.enonce { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 10px; padding: 14px 16px; }
+.enonce p { margin: 0 0 10px; }
+.enonce p:last-child { margin-bottom: 0; }
+
+.question { background: var(--carte); border: 1px solid var(--filet);
+  border-radius: 10px; box-shadow: var(--ombre); overflow: hidden; }
+.question-tete { display: flex; gap: 12px; align-items: flex-start;
+  padding: 13px 16px; }
+.question-tete .ref { font-family: var(--mono); font-weight: 600;
+  color: var(--sarcelle); flex: none; padding-top: 1px; }
+.question-tete .texte { min-width: 0; flex: 1; }
+.devoiler { font: inherit; font-size: .84rem; cursor: pointer; flex: none;
+  background: var(--bleu); color: #fff; border: 1px solid var(--bleu);
+  border-radius: 7px; padding: 5px 12px; white-space: nowrap; }
+.devoiler[aria-expanded="true"] { background: var(--carte); color: var(--bleu); }
+@media (max-width: 560px) {
+  .question-tete { flex-wrap: wrap; }
+  .devoiler { width: 100%; }
+}
+.correction { border-top: 1px solid var(--filet); padding: 14px 16px 16px;
+  display: flex; flex-direction: column; gap: 14px; }
+@media (prefers-reduced-motion: no-preference) {
+  .correction { animation: apparait .22s ease-out; }
+  @keyframes apparait { from { opacity: 0; transform: translateY(-3px); } }
+}
+
+.reponse { border-left: 3px solid var(--vert); padding-left: 13px; }
+.reponse .etiquette { font-family: var(--mono); font-size: .68rem;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--vert);
+  font-weight: 600; display: block; margin-bottom: 4px; }
+.reponse p { margin: 0 0 8px; }
+.reponse p:last-child { margin-bottom: 0; }
+
+.sous-titre { font-family: var(--mono); font-size: .7rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); font-weight: 600;
+  display: flex; align-items: center; gap: 9px; }
+.sous-titre::after { content: ""; flex: 1; height: 1px; background: var(--filet); }
+
+.lot { display: flex; flex-direction: column; gap: 10px; }
+.fiche { border: 1px solid var(--filet); border-radius: 9px; overflow: hidden;
+  background: var(--carte); }
+.fiche-tete { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center;
+  padding: 9px 13px; background: var(--surface);
+  border-bottom: 1px solid var(--filet); }
+.fiche-tete h4 { font-size: .95rem; font-weight: 600; min-width: 0; }
+.verdict { font-family: var(--mono); font-size: .66rem; letter-spacing: .07em;
+  text-transform: uppercase; font-weight: 600; padding: 2px 8px;
+  border-radius: 999px; border: 1px solid currentColor; flex: none; }
+.v-retenue  { color: var(--vert); }
+.v-ok       { color: var(--sarcelle); }
+.v-eviter   { color: var(--prune); }
+.v-expert   { color: var(--bleu); }
+.fiche-corps { padding: 11px 13px; display: flex; flex-direction: column; gap: 9px; }
+.fiche-corps p { margin: 0; }
+.fiche.erreur { border-color: color-mix(in srgb, var(--prune) 38%, var(--filet)); }
+.fiche.erreur .fiche-tete { background: color-mix(in srgb, var(--prune) 8%, var(--carte)); }
+
+.ligne-diag { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px;
+  font-size: .91rem; }
+.ligne-diag dt { font-family: var(--mono); font-size: .72rem; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--encre-douce); padding-top: 3px; }
+.ligne-diag dd { margin: 0; min-width: 0; }
+
+pre.code { margin: 0; background: var(--code-fond); border: 1px solid var(--code-filet);
+  border-radius: 7px; padding: 10px 12px; overflow-x: auto;
+  font-size: .845rem; line-height: 1.55; tab-size: 4; }
+pre.code.sortie { background: var(--surface); color: var(--encre-douce); }
+.k { color: var(--syn-mot); } .n { color: var(--syn-natif); }
+.s { color: var(--syn-texte); } .c { color: var(--syn-note); font-style: italic; }
+.d { color: var(--syn-nombre); }
+code.ligne { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 4px; padding: .5px 5px; font-size: .88em; }
+
+table.pile { width: 100%; border-collapse: collapse; font-size: .88rem; }
+table.pile th, table.pile td { border: 1px solid var(--filet); padding: 6px 10px;
+  text-align: left; }
+table.pile th { background: var(--surface); font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--encre-douce); font-weight: 600; }
+table.pile td:first-child, table.pile td:last-child { font-family: var(--mono);
+  font-variant-numeric: tabular-nums; }
+.table-enveloppe { overflow-x: auto; }
+
+.pied { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 0 40px; color: var(--encre-douce); font-size: .82rem; }
+.pied p { margin: 0; }
+</style>
+</head>
+<body>
+
+<header class="bandeau">
+  <div class="bandeau-interieur">
+    <div>
+      <span class="module">Programmation avancée en Python</span>
+      <h1>TD 1 — Fonctions et récursivité</h1>
+    </div>
+    <p>Choisissez un exercice, cherchez, puis dévoilez la correction.</p>
+  </div>
+</header>
+
+<main class="page">
+  <nav class="rail" id="rail" aria-label="Exercices du TD"></nav>
+  <section class="travail" id="travail" aria-live="polite"></section>
+</main>
+
+<footer class="pied">
+  <p>École Supérieure Mohammed VI d'Ingénieurs en Sciences de la Santé — UM6SS.
+     Toutes les sorties affichées ici ont été exécutées sous Python&nbsp;3.11.</p>
+</footer>
+
+<script>
+/* ------------------------------------------------------------------ *
+ *  Coloration syntaxique Python — segmentation puis échappement.
+ *  On tokenise la chaîne brute, puis on échappe chaque segment : faire
+ *  l'inverse ferait correspondre les motifs à l'intérieur des entités.
+ * ------------------------------------------------------------------ */
+const MOTS = new Set(("False None True and as assert async await break class " +
+  "continue def del elif else except finally for from global if import in is " +
+  "lambda nonlocal not or pass raise return try while with yield").split(" "));
+const NATIFS = new Set(("abs all any bool dict enumerate filter float frozenset " +
+  "int isinstance len list map max min print range repr reversed round set " +
+  "sorted str sum tuple type zip").split(" "));
+const JETON = /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|"[^"\n]*"|'[^'\n]*')|(\b\d+\.?\d*\b)|([A-Za-z_]\w*)/g;
+
+function echapper(t) {
+  return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function colorer(source) {
+  let sortie = "", position = 0, m;
+  JETON.lastIndex = 0;
+  while ((m = JETON.exec(source)) !== null) {
+    sortie += echapper(source.slice(position, m.index));
+    const [tout, note, texte, nombre, mot] = m;
+    if (note !== undefined)        sortie += '<span class="c">' + echapper(tout) + "</span>";
+    else if (texte !== undefined)  sortie += '<span class="s">' + echapper(tout) + "</span>";
+    else if (nombre !== undefined) sortie += '<span class="d">' + echapper(tout) + "</span>";
+    else if (MOTS.has(mot))        sortie += '<span class="k">' + echapper(tout) + "</span>";
+    else if (NATIFS.has(mot))      sortie += '<span class="n">' + echapper(tout) + "</span>";
+    else                           sortie += echapper(tout);
+    position = m.index + tout.length;
+  }
+  return sortie + echapper(source.slice(position));
+}
+
+/* Texte enrichi minimal : `code` et **gras**, échappés. */
+function enrichir(t) {
+  return echapper(t)
+    .replace(/`([^`]+)`/g, '<code class="ligne">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+}
+
+const bloc = (src, sortie) =>
+  '<pre class="code' + (sortie ? " sortie" : "") + '">' +
+  (sortie ? echapper(src) : colorer(src)) + "</pre>";
+
+/* ------------------------------------------------------------------ *
+ *  Le TD, tel qu'il a été distribué.
+ * ------------------------------------------------------------------ */
+const TD = [
+{ partie: "Partie A — Lire et tracer des fonctions", exercices: [
+
+  { id: "a1", titre: "A1 — Afficher ou rendre",
+    enonce: "On considère le programme suivant.",
+    code: `def afficher_double(x):
+    print(x * 2)
+
+def calculer_double(x):
+    return x * 2
+
+r1 = afficher_double(10)
+r2 = calculer_double(10)
+print(r1, r2)`,
+    questions: [
+      { ref: "a)", texte: "Écrivez, ligne par ligne, tout ce qui s'affiche à l'exécution.",
+        reponse: "Deux lignes s'affichent, dans cet ordre.",
+        sortie: `20
+None 20`,
+        notes: ["Le premier `20` vient du `print` qui est **à l'intérieur** de `afficher_double`. La seconde ligne vient du `print` final, qui affiche les deux variables."],
+        erreurs: [
+          { titre: "N'annoncer qu'une seule ligne",
+            cause: "On oublie que `afficher_double(10)` affiche déjà quelque chose au moment de l'appel, avant même que `r1` reçoive sa valeur." },
+          { titre: "Écrire `20 20`",
+            cause: "C'est la réponse attendue si l'on croit que `r1` contient ce que la fonction a affiché. Une fonction n'« attrape » pas ce qu'elle imprime." }
+        ] },
+
+      { ref: "b)", texte: "Quelle est la valeur de r1 ? Celle de r2 ? Justifiez en une phrase.",
+        reponse: "`r1` vaut `None`, `r2` vaut `20`.",
+        notes: ["`afficher_double` ne comporte aucun `return` : elle affiche, puis rend implicitement `None`. `calculer_double` rend la valeur `20`, que la fonction elle-même n'affiche pas."],
+        solutions: [
+          { verdict: "retenue", nom: "Réponse rédigée",
+            texte: "`r1` vaut `None` car la fonction ne rend rien — `print` s'adresse à l'utilisateur, pas au programme appelant. `r2` vaut `20` car `return` transmet la valeur à l'appelant." },
+          { verdict: "ok", nom: "Réponse minimale acceptée",
+            texte: "`r1 = None`, `r2 = 20`, parce que seule la seconde fonction a un `return`." }
+        ],
+        erreurs: [
+          { titre: "Répondre que `r1` vaut 20",
+            cause: "C'est l'erreur la plus fréquente du TD, et celle que le quiz de la séance 1 avait déjà révélée. Elle ne provoque aucune erreur immédiate : le programme continue avec un `None` dans les mains." }
+        ] },
+
+      { ref: "c)", texte: "On ajoute la ligne print(r1 + 1) à la fin. Que se passe-t-il ?",
+        reponse: "Le programme s'arrête sur une exception.",
+        sortie: `TypeError: unsupported operand type(s) for +: 'NoneType' and 'int'`,
+        notes: ["Le point à retenir n'est pas le message, mais **où se trouve la faute**. Elle a été commise à la ligne `r1 = afficher_double(10)` ; elle ne se manifeste que trois lignes plus loin, sous une forme qui ne mentionne plus la fonction."],
+        erreurs: [
+          { titre: "Chercher l'erreur dans `print`",
+            cause: "`print` n'y est pour rien : il reçoit déjà le résultat de l'addition, qui a échoué avant." },
+          { titre: "Annoncer un `NameError`",
+            cause: "`r1` existe bel et bien — elle contient `None`. Un `NameError` signalerait une variable jamais définie." }
+        ] }
+    ] },
+
+  { id: "a2", titre: "A2 — Portée des variables",
+    enonce: "On considère le programme suivant. Ce programme lève une erreur : laquelle, et pourquoi ?",
+    code: `total = 0
+
+def ajouter(valeur):
+    total = total + valeur
+    return total
+
+print(ajouter(5))`,
+    questions: [
+      { ref: "", texte: "Nommez l'erreur, puis expliquez-la.",
+        reponse: "Le programme lève une `UnboundLocalError`.",
+        sortie: `UnboundLocalError: cannot access local variable 'total'
+where it is not associated with a value`,
+        notes: [
+          "L'affectation `total = total + valeur` fait de `total` une variable **locale pour l'ensemble du corps** de la fonction, y compris à droite du signe `=`.",
+          "Au moment d'évaluer `total + valeur`, la variable locale n'a encore reçu aucune valeur, et la variable globale est masquée."
+        ],
+        solutions: [
+          { verdict: "retenue", nom: "Paramètre et valeur rendue",
+            code: `def ajouter(total, valeur):
+    return total + valeur
+
+total = ajouter(total, 5)`,
+            texte: "La fonction devient prévisible : son résultat ne dépend que de ses arguments, et elle se teste isolément." },
+          { verdict: "ok", nom: "Déclarer la variable globale",
+            code: `total = 0
+
+def ajouter(valeur):
+    global total
+    total = total + valeur
+    return total`,
+            texte: "Correct, mais la fonction dépend désormais d'un état extérieur : deux appels identiques peuvent rendre des valeurs différentes selon l'ordre d'exécution." },
+          { verdict: "eviter", nom: "Renommer la variable locale",
+            code: `def ajouter(valeur):
+    resultat = total + valeur
+    return resultat`,
+            texte: "L'erreur disparaît — plus aucune affectation ne rend `total` locale — mais la fonction lit toujours une variable globale qu'elle ne contrôle pas." }
+        ],
+        erreurs: [
+          { titre: "Annoncer un `NameError`",
+            cause: "Les deux erreurs se ressemblent, mais `UnboundLocalError` dit précisément que le nom est **local et pas encore affecté**. C'est cette nuance qui explique le phénomène." },
+          { titre: "Croire que l'ordre des lignes est en cause",
+            cause: "Déplacer `total = 0` ne change rien : Python décide qu'un nom est local en lisant le corps de la fonction, avant de l'exécuter." }
+        ] }
+    ] },
+
+  { id: "a3", titre: "A3 — Valeur par défaut mutable",
+    enonce: "On considère le programme suivant.",
+    code: `def empiler(valeur, pile=[]):
+    pile.append(valeur)
+    return pile
+
+print(empiler(1))
+print(empiler(2))
+print(empiler(3))`,
+    questions: [
+      { ref: "a)", texte: "Qu'affichent les trois print ?",
+        reponse: "La pile grossit d'un appel à l'autre.",
+        sortie: `[1]
+[1, 2]
+[1, 2, 3]`,
+        notes: ["La valeur par défaut est évaluée **une seule fois, à la définition** de la fonction. La liste `[]` écrite dans l'en-tête est donc un objet unique, partagé par tous les appels qui ne fournissent pas le second argument."],
+        erreurs: [
+          { titre: "Répondre `[1]`, `[2]`, `[3]`",
+            cause: "C'est la réponse attendue si l'on suppose que `pile=[]` reconstruit une liste vide à chaque appel. Elle est intuitive, et fausse." }
+        ] },
+
+      { ref: "b)", texte: "Corrigez la fonction pour que chaque appel sans second argument reparte d'une pile vide.",
+        reponse: "On remplace la liste par un témoin `None`, et on crée la liste dans le corps.",
+        solutions: [
+          { verdict: "retenue", nom: "Témoin None",
+            code: `def empiler(valeur, pile=None):
+    if pile is None:
+        pile = []
+    pile.append(valeur)
+    return pile`,
+            texte: "La forme idiomatique. Chaque appel sans second argument crée sa propre liste ; un appel avec une pile existante la modifie, comme on s'y attend." },
+          { verdict: "ok", nom: "Copier en entrée",
+            code: `def empiler(valeur, pile=[]):
+    pile = list(pile)
+    pile.append(valeur)
+    return pile`,
+            texte: "Donne bien `[1]`, `[2]`, `[3]`. Mais le comportement change aussi pour l'appelant qui fournit sa propre pile : elle n'est plus modifiée, seule la copie l'est. À n'employer que si c'est voulu." }
+        ],
+        erreurs: [
+          { titre: "Vider la liste au début",
+            code: `def empiler(valeur, pile=[]):
+    pile.clear()        # efface la pile de l'appelant !
+    pile.append(valeur)
+    return pile`,
+            cause: "Les trois affichages deviennent corrects, mais la fonction détruit désormais toute pile qu'on lui confie. On a réglé le symptôme en créant un dégât plus grand." },
+          { titre: "Écrire `pile = []` en première ligne",
+            cause: "Le paramètre devient inutile : la fonction ignore purement et simplement ce qu'on lui passe." }
+        ] }
+    ] }
+] },
+
+{ partie: "Partie B — Écrire des fonctions", exercices: [
+
+  { id: "b1", titre: "B1 — est_fievreux",
+    enonce: "Écrivez la fonction est_fievreux(temperature, seuil=38.0) qui rend True si la température dépasse strictement le seuil, False sinon. Donnez ensuite la valeur rendue par chacun des trois appels.",
+    code: `est_fievreux(38.5)
+est_fievreux(37.9, 37.5)
+est_fievreux(38.0)`,
+    questions: [
+      { ref: "", texte: "La fonction, puis les trois valeurs.",
+        reponse: "La comparaison rend déjà un booléen : il suffit de la rendre.",
+        solutions: [
+          { verdict: "retenue", nom: "Rendre la comparaison",
+            code: `def est_fievreux(temperature, seuil=38.0):
+    """Rend True si la température dépasse strictement le seuil."""
+    return temperature > seuil`,
+            texte: "Une ligne, pas de branche. C'est la forme attendue." },
+          { verdict: "ok", nom: "Avec un test explicite",
+            code: `def est_fievreux(temperature, seuil=38.0):
+    if temperature > seuil:
+        return True
+    else:
+        return False`,
+            texte: "Correct, mais redondant : le test produit déjà `True` ou `False`. À signaler en correction sans le pénaliser." }
+        ],
+        pile: { entetes: ["Appel", "Valeur rendue"],
+                lignes: [["est_fievreux(38.5)", "True"],
+                         ["est_fievreux(37.9, 37.5)", "True"],
+                         ["est_fievreux(38.0)", "False"]] },
+        notes: ["Le troisième appel est le discriminant : l'énoncé dit **strictement**, donc `38.0` n'est pas fiévreux."],
+        erreurs: [
+          { titre: "Écrire `>=` au lieu de `>`",
+            cause: "Le troisième appel rendrait alors `True`. Un seuil « strictement dépassé » exclut la valeur du seuil." },
+          { titre: "Afficher au lieu de rendre",
+            code: `def est_fievreux(temperature, seuil=38.0):
+    print(temperature > seuil)`,
+            cause: "La fonction rend `None`. C'est exactement la confusion de l'exercice A1, recommise en écriture cette fois." }
+        ] }
+    ] },
+
+  { id: "b2", titre: "B2 — moyenne_max",
+    enonce: "Écrivez la fonction moyenne_max(mesures) qui rend deux valeurs : la valeur moyenne et la plus grande valeur d'une liste de mesures.",
+    questions: [
+      { ref: "a)", texte: "Traitez le cas de la liste vide : la fonction doit alors rendre deux fois None, sans lever d'exception.",
+        reponse: "Un test en tête de fonction suffit.",
+        solutions: [
+          { verdict: "retenue", nom: "Garde en tête, puis fonctions natives",
+            code: `def moyenne_max(mesures):
+    """Rend la moyenne et la plus grande mesure, ou (None, None)."""
+    if not mesures:
+        return None, None
+    return sum(mesures) / len(mesures), max(mesures)`,
+            texte: "`sum`, `len` et `max` font le travail ; la garde traite le seul cas qui les met en échec." },
+          { verdict: "ok", nom: "En une seule boucle",
+            code: `def moyenne_max(mesures):
+    if mesures == []:
+        return None, None
+    total = 0
+    maximum = mesures[0]
+    for mesure in mesures:
+        total = total + mesure
+        if mesure > maximum:
+            maximum = mesure
+    return total / len(mesures), maximum`,
+            texte: "Plus long, mais ne parcourt la liste qu'une fois. Parfaitement acceptable, et utile à ceux qui veulent voir le mécanisme." }
+        ],
+        notes: ["Sans la garde, `sum([]) / len([])` lève `ZeroDivisionError` et `max([])` lève `ValueError` : deux exceptions différentes pour le même oubli."],
+        erreurs: [
+          { titre: "Oublier le cas de la liste vide",
+            sortie: `ZeroDivisionError: division by zero`,
+            cause: "C'est le point noté de la question. Une fonction qui ne tient pas sur l'entrée la plus simple n'est pas finie." },
+          { titre: "Écrire deux `return` successifs",
+            code: `def moyenne_max(mesures):
+    return sum(mesures) / len(mesures)
+    return max(mesures)        # jamais atteint`,
+            cause: "Le premier `return` quitte la fonction. La seconde ligne n'est jamais exécutée, et la fonction ne rend qu'une seule valeur." }
+        ] },
+
+      { ref: "b)", texte: "Montrez comment un appelant récupère les deux valeurs dans deux variables moy et mx.",
+        reponse: "Par déballage, à gauche du signe égal.",
+        solutions: [
+          { verdict: "retenue", nom: "Déballage",
+            code: `moy, mx = moyenne_max([2, 4, 9])
+print(moy, mx)        # 5.0 9` ,
+            texte: "`return a, b` ne rend pas deux objets : il en rend **un seul** qui en contient deux. L'affectation multiple le redécoupe. Cet objet est un tuple, que la séance 3 nommera." }
+        ],
+        erreurs: [
+          { titre: "Appeler la fonction deux fois",
+            code: `moy = moyenne_max(mesures)[0]
+mx = moyenne_max(mesures)[1]`,
+            cause: "Fonctionne, mais recalcule tout deux fois. Le déballage existe précisément pour l'éviter." }
+        ] }
+    ] },
+
+  { id: "b3", titre: "B3 — imc",
+    enonce: "Écrivez la fonction imc(masse, taille) qui rend l'indice de masse corporelle, soit la masse en kilogrammes divisée par le carré de la taille en mètres.",
+    questions: [
+      { ref: "", texte: "La fonction.",
+        reponse: "Une division par le carré de la taille.",
+        solutions: [
+          { verdict: "retenue", nom: "Avec les unités documentées",
+            code: `def imc(masse, taille):
+    """Indice de masse corporelle.
+
+    masse en kilogrammes, taille en mètres ;
+    rend un flottant, sans unité.
+    """
+    return masse / taille ** 2
+
+
+assert round(imc(70, 1.75), 2) == 22.86`,
+            texte: "La docstring précise les **unités** : sans elles, la fonction est inutilisable par un tiers. L'`assert` fige un jeu d'essai qui échouera bruyamment si le code régresse." },
+          { verdict: "ok", nom: "Sans l'opérateur puissance",
+            code: `def imc(masse, taille):
+    return masse / (taille * taille)`,
+            texte: "Strictement équivalent. Utile pour qui doute de la priorité des opérateurs." }
+        ],
+        notes: ["`**` s'évalue **avant** `/`. Les parenthèses autour de `taille ** 2` sont donc facultatives."],
+        erreurs: [
+          { titre: "Parenthéser l'ensemble de la division",
+            code: `return (masse / taille) ** 2        # 1600.0 au lieu de 22.86`,
+            cause: "La priorité est inversée : on élève le quotient au carré au lieu de diviser par le carré. Le résultat reste un nombre plausible, ce qui rend l'erreur difficile à repérer sans jeu d'essai." },
+          { titre: "Mélanger les unités",
+            cause: "Avec une taille en centimètres, `imc(70, 175)` rend `0.0023`. Rien ne plante : c'est la docstring qui protège." }
+        ] }
+    ] }
+  ]
+},
+
+{ partie: "Partie C — Récursivité", exercices: [
+
+  { id: "c1", titre: "C1 — Un cas de base inatteignable",
+    enonce: "On considère la fonction suivante.",
+    code: `def mystere(n):
+    if n == 0:
+        return 0
+    return n + mystere(n - 2)`,
+    questions: [
+      { ref: "a)", texte: "Complétez le tableau de la pile d'appels pour mystere(6).",
+        reponse: "Quatre appels : trois récursifs, puis le cas de base.",
+        pile: { entetes: ["Appel", "Cas", "Valeur rendue"],
+                lignes: [["mystere(6)", "récursif", "6 + 6 = 12"],
+                         ["mystere(4)", "récursif", "4 + 2 = 6"],
+                         ["mystere(2)", "récursif", "2 + 0 = 2"],
+                         ["mystere(0)", "base", "0"]] },
+        notes: ["Descente : 6 → 4 → 2 → 0. Remontée : 0 → 2 → 6 → **12**. Rien n'est calculé à la descente ; tout se calcule à la remontée."],
+        erreurs: [
+          { titre: "Remplir la colonne « valeur rendue » à la descente",
+            cause: "Au moment où `mystere(6)` est appelée, elle ne peut rien rendre : elle attend le résultat de `mystere(4)`. Le tableau se remplit de bas en haut." }
+        ] },
+
+      { ref: "b)", texte: "Que se passe-t-il si l'on appelle mystere(5) ? Expliquez en vous appuyant sur la notion de cas de base.",
+        reponse: "L'appel ne termine pas et finit par échouer.",
+        sortie: `RecursionError: maximum recursion depth exceeded`,
+        notes: [
+          "La descente produit 5, 3, 1, −1, −3, … : elle **saute par-dessus** le cas de base `n == 0` sans jamais l'atteindre.",
+          "Le cas de base est donc bien **écrit**, mais il n'est pas **atteignable** depuis tout argument. C'est une faute de conception, pas une faute de frappe — et elle ne se voit pas à la lecture."
+        ],
+        erreurs: [
+          { titre: "Répondre « boucle infinie »",
+            cause: "L'idée est juste, le terme ne l'est pas : il n'y a pas de boucle, mais un empilement d'appels. Python s'arrête de lui-même vers 1000 cadres de pile, pour protéger la mémoire." },
+          { titre: "Conclure que le cas de base est absent",
+            cause: "Il est présent, et c'est justement ce qui rend l'erreur instructive : vérifier qu'un cas de base existe ne suffit pas, il faut vérifier qu'on l'atteint." }
+        ] },
+
+      { ref: "c)", texte: "Modifiez le cas de base pour que la fonction fonctionne aussi bien sur un argument pair que sur un argument impair.",
+        reponse: "Il suffit d'élargir la condition d'arrêt pour qu'elle attrape aussi les valeurs dépassées.",
+        solutions: [
+          { verdict: "retenue", nom: "Arrêter dès que n n'est plus positif",
+            code: `def mystere(n):
+    """Somme de n, n-2, n-4… jusqu'à épuisement."""
+    if n <= 0:
+        return 0
+    return n + mystere(n - 2)`,
+            texte: "Une seule modification. `mystere(5)` rend alors `9`, soit `5 + 3 + 1`, et `mystere(6)` rend toujours `12`." },
+          { verdict: "ok", nom: "Arrêter en dessous de deux",
+            code: `def mystere(n):
+    if n < 2:
+        return n
+    return n + mystere(n - 2)`,
+            texte: "Fonctionne également : `mystere(0)` rend `0` et `mystere(1)` rend `1`. Le cas de base rend ici la valeur plutôt qu'un zéro, ce qui demande une lecture de plus." }
+        ],
+        erreurs: [
+          { titre: "Ajouter un second cas de base pour les impairs",
+            code: `if n == 0:
+    return 0
+if n == 1:
+    return 1`,
+            cause: "Correct, mais c'est deux conditions là où une seule suffit. Le signaler comme fonctionnel, en montrant la version courte." },
+          { titre: "Remplacer `n == 0` par `n == 1`",
+            cause: "On déplace le problème sur les arguments pairs : `mystere(6)` descend alors 6, 4, 2, 0, −2, … et lève `RecursionError` à son tour." }
+        ] }
+    ] },
+
+  { id: "c2", titre: "C2 — puissance",
+    enonce: "Écrivez la fonction récursive puissance(x, n) qui rend x élevé à la puissance n, pour n entier positif ou nul.",
+    questions: [
+      { ref: "a)", texte: "Identifiez d'abord le cas de base, puis le cas récursif.",
+        reponse: "Cas de base : `n == 0`, car tout nombre élevé à la puissance 0 vaut 1.",
+        notes: ["Cas récursif : `x ** n = x × x ** (n-1)`. L'exposant décroît d'une unité à chaque appel, il se rapproche donc de 0 : la descente est finie."],
+        erreurs: [
+          { titre: "Prendre `n == 1` comme cas de base",
+            cause: "La fonction ne sait alors plus traiter `n = 0` : la descente passe à −1, −2, … et lève `RecursionError`. Le cas de base doit couvrir la plus petite entrée **admissible**, pas la plus petite entrée à laquelle on pense." }
+        ] },
+
+      { ref: "b)", texte: "Écrivez la fonction.",
+        reponse: "Deux lignes de corps.",
+        solutions: [
+          { verdict: "retenue", nom: "Décroissance d'une unité",
+            code: `def puissance(x, n):
+    """Rend x élevé à la puissance n, pour n entier positif ou nul."""
+    if n == 0:
+        return 1
+    return x * puissance(x, n - 1)`,
+            texte: "La forme attendue, qui suit exactement la définition mathématique." },
+          { verdict: "expert", nom: "Exponentiation rapide",
+            code: `def puissance(x, n):
+    if n == 0:
+        return 1
+    demi = puissance(x, n // 2)
+    if n % 2 == 0:
+        return demi * demi
+    return x * demi * demi`,
+            texte: "Hors programme, mais à montrer à qui finit en avance : en divisant l'exposant par deux au lieu de le décrémenter, `puissance(2, 5)` ne coûte que 4 appels, et `puissance(2, 100)` en coûte 8 au lieu de 101." }
+        ],
+        erreurs: [
+          { titre: "Réduire le mauvais argument",
+            code: `return x * puissance(x - 1, n)`,
+            cause: "C'est `x` qui décroît, alors que le cas de base porte sur `n`. Rien ne se rapproche de l'arrêt : `RecursionError`." },
+          { titre: "Oublier le `return` devant l'appel",
+            code: `def puissance(x, n):
+    if n == 0:
+        return 1
+    x * puissance(x, n - 1)        # résultat jeté`,
+            cause: "La fonction calcule puis jette le résultat, et rend `None`. L'erreur se manifeste plus loin, par un `TypeError` sur un `None`." }
+        ] },
+
+      { ref: "c)", texte: "Combien d'appels puissance(2, 5) déclenche-t-elle en tout, cas de base compris ?",
+        reponse: "**6 appels** : les exposants 5, 4, 3, 2, 1, puis le cas de base 0. La valeur rendue est `32`.",
+        notes: ["De façon générale, un exposant `n` engendre `n + 1` appels."],
+        erreurs: [
+          { titre: "Répondre 5",
+            cause: "L'oubli du cas de base. C'est pourtant lui qui rend la première valeur de la remontée." }
+        ] }
+    ] },
+
+  { id: "c3", titre: "C3 — somme_liste",
+    enonce: "Écrivez la fonction récursive somme_liste(mesures) qui rend la somme des éléments d'une liste de nombres, sans utiliser sum ni aucune boucle. Rappel : mesures[0] est le premier élément, et mesures[1:] la liste privée de son premier élément.",
+    questions: [
+      { ref: "", texte: "La fonction.",
+        reponse: "Le cas de base est la **liste vide**, dont la somme vaut 0.",
+        solutions: [
+          { verdict: "retenue", nom: "Tête et queue",
+            code: `def somme_liste(mesures):
+    """Rend la somme des éléments d'une liste, par récursion."""
+    if mesures == []:
+        return 0
+    return mesures[0] + somme_liste(mesures[1:])
+
+
+assert somme_liste([4, 7, 2, 9]) == 22
+assert somme_liste([]) == 0`,
+            texte: "`mesures[1:]` est strictement plus courte que `mesures` : la descente est donc finie." },
+          { verdict: "ok", nom: "Test d'ensemble vide idiomatique",
+            code: `def somme_liste(mesures):
+    if not mesures:
+        return 0
+    return mesures[0] + somme_liste(mesures[1:])`,
+            texte: "Strictement équivalent ici, et plus courant en Python. Les deux écritures se valent pour la note." }
+        ],
+        notes: ["Ici « plus petit » veut dire **plus court**, et non plus proche de zéro. C'est le même raisonnement que sur un nombre, appliqué à une autre grandeur."],
+        erreurs: [
+          { titre: "Oublier le `return` devant l'appel récursif",
+            code: `def somme_liste(mesures):
+    if mesures == []:
+        return 0
+    mesures[0] + somme_liste(mesures[1:])`,
+            sortie: `TypeError: unsupported operand type(s) for +: 'int' and 'NoneType'`,
+            cause: "L'appel récursif rend `None`, que la ligne du dessus essaie d'additionner. Le message désigne le symptôme, pas la cause." },
+          { titre: "Ne pas réduire la liste",
+            code: `return mesures[0] + somme_liste(mesures)`,
+            sortie: `RecursionError: maximum recursion depth exceeded in comparison`,
+            cause: "La liste passée est la même à chaque appel : le cas de base n'est jamais atteint." },
+          { titre: "Employer `sum` ou une boucle",
+            cause: "L'énoncé les interdit explicitement. L'exercice ne porte pas sur le résultat mais sur la construction récursive." }
+        ] }
+    ] },
+
+  { id: "c4", titre: "C4 — Arbre des appels",
+    enonce: "On considère la fonction test.",
+    code: `def test(n):
+    if n <= 2:
+        return n
+    return test(n - 1) - 2 * test(n - 2) + 3 * test(n - 3)`,
+    questions: [
+      { ref: "a)", texte: "Dessinez l'arbre des appels de test(4).",
+        reponse: "Chaque appel non terminal en déclenche **trois**, et non deux.",
+        sortie: `                test(4)
+         ┌─────────┼─────────┐
+      test(3)   test(2)   test(1)
+   ┌─────┼─────┐
+test(2) test(1) test(0)`,
+        notes: ["La valeur rendue est `test(4) = 0 − 2×2 + 3×1 = −1`, en passant par `test(3) = 2 − 2×1 + 3×0 = 0`."],
+        erreurs: [
+          { titre: "Ne dessiner que deux branches par nœud",
+            cause: "Le réflexe vient de Fibonacci, vu en cours, qui n'a que deux appels. Ici la relation en compte trois : `n-1`, `n-2` et `n-3`." },
+          { titre: "Développer les feuilles",
+            cause: "`test(2)`, `test(1)` et `test(0)` sont des cas de base : ils rendent immédiatement et ne déclenchent rien." }
+        ] },
+
+      { ref: "b)", texte: "Combien d'appels cet arbre compte-t-il au total ?",
+        reponse: "**7 appels** : `test(4)`, `test(3)`, deux fois `test(2)`, deux fois `test(1)` et une fois `test(0)`.",
+        notes: ["La relation de comptage est `T(n) = 1 + T(n-1) + T(n-2) + T(n-3)`, avec `T(0) = T(1) = T(2) = 1`."],
+        erreurs: [
+          { titre: "Compter 6 en oubliant la racine",
+            cause: "L'appel initial est un appel comme les autres : il occupe lui aussi un cadre de pile." },
+          { titre: "Ne compter que les feuilles",
+            cause: "La question porte sur le nombre d'appels, donc sur le nombre de nœuds de l'arbre — feuilles comprises." }
+        ] },
+
+      { ref: "c)", texte: "Combien de fois test(2) y est-elle évaluée ? Quelle conséquence en tirez-vous sur le coût quand n grandit ?",
+        reponse: "`test(2)` est évaluée **2 fois**, et `test(1)` également.",
+        notes: ["Chaque réévaluation refait tout le sous-arbre correspondant. Le nombre d'appels est donc multiplié par environ **1,84 à chaque unité ajoutée à n** : la croissance est exponentielle."],
+        pile: { entetes: ["n", "appels de test(n)"],
+                lignes: [["4", "7"], ["6", "25"], ["10", "289"],
+                         ["15", "6 094"], ["20", "128 287"], ["25", "2 700 421"]] },
+        erreurs: [
+          { titre: "Dire que le coût double à chaque fois",
+            cause: "Ce serait vrai pour une récurrence à deux appels. Avec trois appels, le facteur est d'environ 1,84 — plus grand encore que le doublement par pas de deux de Fibonacci." },
+          { titre: "Conclure que la récursivité est à proscrire",
+            cause: "Ce n'est pas la récursivité qui coûte, c'est la **redondance** : le même sous-problème est recalculé. La séance 4 mesurera ce coût et montrera comment le supprimer." }
+        ] }
+    ] },
+
+  { id: "c5", titre: "C5 — Trois erreurs à trouver",
+    enonce: "La fonction suivante contient trois erreurs distinctes.",
+    code: `def somme_jusqua(n):
+    if n == 0:
+        print(0)
+    return n + somme_jusqua(n)`,
+    questions: [
+      { ref: "a)", texte: "Identifiez les trois erreurs et nommez chacune d'elles.",
+        reponse: "Les trois tiennent en quatre lignes, et deux se repèrent sans exécuter le code.",
+        pile: { entetes: ["#", "Erreur", "Conséquence"],
+                lignes: [
+                  ["1", "Le cas de base affiche au lieu de rendre", "la fonction rend None"],
+                  ["2", "Le cas de base n'interrompt pas l'exécution", "la ligne suivante s'exécute quand même"],
+                  ["3", "L'appel récursif porte sur n, non sur n − 1", "le problème ne décroît pas"]] },
+        notes: ["Seule la troisième provoque la `RecursionError`. Les deux premières, isolément, donneraient un `TypeError` sur un `None`."],
+        erreurs: [
+          { titre: "N'en trouver que deux",
+            cause: "Les erreurs 1 et 2 sont liées — remplacer `print(0)` par `return 0` les corrige toutes les deux à la fois — mais elles restent distinctes : l'une porte sur ce que la fonction rend, l'autre sur le flot d'exécution." },
+          { titre: "Compter l'absence de docstring comme une erreur",
+            cause: "L'énoncé parle d'erreurs de fonctionnement. Une docstring manquante est un défaut de documentation, pas une faute qui change le résultat." }
+        ] },
+
+      { ref: "b)", texte: "Réécrivez la fonction correctement.",
+        reponse: "Un `return` dans le cas de base, et une réduction dans l'appel.",
+        solutions: [
+          { verdict: "retenue", nom: "Version corrigée",
+            code: `def somme_jusqua(n):
+    """Rend 0 + 1 + … + n, pour n entier positif ou nul."""
+    if n == 0:
+        return 0
+    return n + somme_jusqua(n - 1)`,
+            texte: "Les trois corrections sont dans les trois lignes du corps." }
+        ],
+        erreurs: [
+          { titre: "Écrire `return print(0)`",
+            code: `if n == 0:
+    return print(0)        # rend None`,
+            cause: "Le `return` est bien là, mais il rend ce que `print` rend — c'est-à-dire `None`. L'erreur 1 n'est pas corrigée, elle est déguisée." }
+        ] },
+
+      { ref: "c)", texte: "Que rend votre version corrigée pour somme_jusqua(4) ?",
+        reponse: "**10**, soit `4 + 3 + 2 + 1 + 0`.",
+        erreurs: [
+          { titre: "Répondre 9",
+            cause: "L'oubli du zéro final. Il ne change pas la somme, mais il marque la fin de la descente : c'est lui qui est rendu en premier à la remontée." }
+        ] }
+    ] },
+
+  { id: "c6", titre: "C6 — Liste imbriquée *",
+    enonce: "Exercice facultatif. Une liste peut contenir des listes, qui peuvent elles-mêmes contenir des listes. Écrivez une fonction récursive somme_imbriquee(donnees) qui rend la somme de tous les nombres, quelle que soit la profondeur d'imbrication — ici 21. La fonction isinstance(objet, list) rend True si l'objet est une liste.",
+    code: `donnees = [1, [2, 3], [4, [5, 6]]]`,
+    questions: [
+      { ref: "", texte: "La fonction.",
+        reponse: "Le cas de base n'est pas une valeur de l'argument, mais le fait qu'un élément **ne soit pas une liste**.",
+        solutions: [
+          { verdict: "retenue", nom: "Parcours avec test de type",
+            code: `def somme_imbriquee(donnees):
+    """Somme tous les nombres d'une liste, à toute profondeur."""
+    total = 0
+    for element in donnees:
+        if isinstance(element, list):
+            total = total + somme_imbriquee(element)
+        else:
+            total = total + element
+    return total
+
+
+assert somme_imbriquee([1, [2, 3], [4, [5, 6]]]) == 21`,
+            texte: "La récursion s'arrête d'elle-même sur les nombres : il n'y a pas de condition d'arrêt explicite à écrire." },
+          { verdict: "ok", nom: "Avec sum et une expression génératrice",
+            code: `def somme_imbriquee(donnees):
+    return sum(somme_imbriquee(e) if isinstance(e, list) else e
+               for e in donnees)`,
+            texte: "Même raisonnement, en une expression. Plus dense à lire, mais rigoureusement équivalent." }
+        ],
+        notes: ["C'est exactement la structure d'un parcours d'arbre : un nœud contient des feuilles et d'autres nœuds. Nous l'écrirons en séance 6."],
+        erreurs: [
+          { titre: "Oublier le test de type",
+            code: `total = total + element        # sans isinstance`,
+            sortie: `TypeError: unsupported operand type(s) for +=: 'int' and 'list'`,
+            cause: "On essaie d'ajouter une sous-liste à un entier. Le message nomme les deux types en cause, ce qui aide à trouver la ligne." },
+          { titre: "Rappeler la fonction sur un nombre",
+            code: `return sum(somme_imbriquee(e) for e in donnees)`,
+            sortie: `TypeError: 'int' object is not iterable`,
+            cause: "Sans le test, la fonction est rappelée sur `1`, puis essaie de le parcourir. C'est le même oubli, vu de l'autre côté." }
+        ] }
+    ] }
+] }
+];
+
+/* ------------------------------------------------------------------ *
+ *  Mémoire locale — simple confort de lecture, jamais indispensable.
+ * ------------------------------------------------------------------ */
+const CLE = "m235-td1-corriges-vus";
+let vus = new Set();
+try {
+  const brut = localStorage.getItem(CLE);
+  if (brut) vus = new Set(JSON.parse(brut));
+} catch (e) { /* navigation privée, stockage bloqué : on continue sans */ }
+
+function memoriser() {
+  try { localStorage.setItem(CLE, JSON.stringify([...vus])); } catch (e) {}
+}
+
+/* ------------------------------------------------------------------ *
+ *  Rendu
+ * ------------------------------------------------------------------ */
+const rail = document.getElementById("rail");
+const travail = document.getElementById("travail");
+const tousExercices = TD.flatMap(p => p.exercices.map(e => ({ ...e, partie: p.partie })));
+
+function cleQuestion(ex, i) { return ex.id + "-" + i; }
+
+function exerciceVu(ex) {
+  return ex.questions.every((_, i) => vus.has(cleQuestion(ex, i)));
+}
+
+function construireRail() {
+  rail.innerHTML = TD.map(partie => `
+    <div class="rail-groupe">
+      <div class="rail-titre">${echapper(partie.partie.replace(/^Partie /, ""))}</div>
+      <div class="rail-liste">
+        ${partie.exercices.map(ex => `
+          <button class="onglet" type="button" data-cible="${ex.id}">
+            <span class="cle">${echapper(ex.titre.split(" — ")[0])}</span>
+            <span>${echapper(ex.titre.split(" — ")[1] || "")}</span>
+            <span class="pastille" aria-hidden="true"></span>
+          </button>`).join("")}
+      </div>
+    </div>`).join("");
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.addEventListener("click", () => afficher(b.dataset.cible, true)));
+}
+
+function fiche(item, estErreur) {
+  const classeVerdict = { retenue: "v-retenue", ok: "v-ok",
+                          eviter: "v-eviter", expert: "v-expert" }[item.verdict];
+  const libelle = { retenue: "à retenir", ok: "acceptable",
+                    eviter: "à éviter", expert: "pour aller plus loin" }[item.verdict];
+  return `
+    <article class="fiche${estErreur ? " erreur" : ""}">
+      <div class="fiche-tete">
+        <h4>${enrichir(item.nom || item.titre)}</h4>
+        ${estErreur
+          ? '<span class="verdict v-eviter">erreur fréquente</span>'
+          : (classeVerdict ? `<span class="verdict ${classeVerdict}">${libelle}</span>` : "")}
+      </div>
+      <div class="fiche-corps">
+        ${item.code ? bloc(item.code, false) : ""}
+        ${item.sortie ? bloc(item.sortie, true) : ""}
+        ${item.texte ? `<p>${enrichir(item.texte)}</p>` : ""}
+        ${item.cause ? `<dl class="ligne-diag"><dt>Pourquoi</dt><dd>${enrichir(item.cause)}</dd></dl>` : ""}
+      </div>
+    </article>`;
+}
+
+function tableau(p) {
+  return `<div class="table-enveloppe"><table class="pile">
+    <thead><tr>${p.entetes.map(h => `<th>${echapper(h)}</th>`).join("")}</tr></thead>
+    <tbody>${p.lignes.map(l => `<tr>${l.map(c => `<td>${enrichir(c)}</td>`).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+function corpsCorrection(q) {
+  return `
+    <div class="reponse">
+      <span class="etiquette">Réponse</span>
+      <p>${enrichir(q.reponse)}</p>
+    </div>
+    ${q.sortie ? bloc(q.sortie, true) : ""}
+    ${q.pile ? tableau(q.pile) : ""}
+    ${(q.notes || []).map(n => `<p>${enrichir(n)}</p>`).join("")}
+    ${q.solutions && q.solutions.length ? `
+      <div class="sous-titre">Propositions de solution</div>
+      <div class="lot">${q.solutions.map(s => fiche(s, false)).join("")}</div>` : ""}
+    ${q.erreurs && q.erreurs.length ? `
+      <div class="sous-titre">Erreurs fréquentes</div>
+      <div class="lot">${q.erreurs.map(e => fiche(e, true)).join("")}</div>` : ""}`;
+}
+
+let courant = null;
+
+function afficher(id, deplacerFocus) {
+  const ex = tousExercices.find(e => e.id === id) || tousExercices[0];
+  courant = ex;
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.setAttribute("aria-current", String(b.dataset.cible === ex.id)));
+
+  travail.innerHTML = `
+    <div class="chapeau">
+      <div>
+        <span class="partie">${echapper(ex.partie)}</span>
+        <h2>${echapper(ex.titre)}</h2>
+      </div>
+      <button class="bouton-plat" type="button" id="tout">Tout afficher</button>
+    </div>
+    <div class="enonce">
+      <p>${enrichir(ex.enonce)}</p>
+      ${ex.code ? bloc(ex.code, false) : ""}
+    </div>
+    ${ex.questions.map((q, i) => {
+      const cle = cleQuestion(ex, i);
+      const ouvert = vus.has(cle);
+      return `
+      <article class="question" id="q-${cle}">
+        <div class="question-tete">
+          ${q.ref ? `<span class="ref">${echapper(q.ref)}</span>` : ""}
+          <div class="texte">${enrichir(q.texte)}</div>
+          <button class="devoiler" type="button" data-cle="${cle}"
+                  aria-expanded="${ouvert}" aria-controls="c-${cle}">
+            ${ouvert ? "Masquer" : "Afficher la correction"}
+          </button>
+        </div>
+        <div class="correction" id="c-${cle}" ${ouvert ? "" : "hidden"}>
+          ${corpsCorrection(q)}
+        </div>
+      </article>`;
+    }).join("")}`;
+
+  travail.querySelectorAll(".devoiler").forEach(b =>
+    b.addEventListener("click", () => basculer(b)));
+  document.getElementById("tout").addEventListener("click", toutAfficher);
+  majPastilles();
+  if (deplacerFocus) {
+    history.replaceState(null, "", "#" + ex.id);
+    travail.querySelector("h2").scrollIntoView({ block: "nearest" });
+  }
+}
+
+function basculer(bouton) {
+  const cle = bouton.dataset.cle;
+  const zone = document.getElementById("c-" + cle);
+  const ouvrir = zone.hidden;
+  zone.hidden = !ouvrir;
+  bouton.setAttribute("aria-expanded", String(ouvrir));
+  bouton.textContent = ouvrir ? "Masquer" : "Afficher la correction";
+  if (ouvrir) vus.add(cle); else vus.delete(cle);
+  memoriser();
+  majPastilles();
+}
+
+function toutAfficher() {
+  const boutons = [...travail.querySelectorAll(".devoiler")];
+  const toutOuvert = boutons.every(b => b.getAttribute("aria-expanded") === "true");
+  boutons.forEach(b => {
+    if ((b.getAttribute("aria-expanded") === "true") === toutOuvert) basculer(b);
+  });
+  document.getElementById("tout").textContent = toutOuvert ? "Tout afficher" : "Tout masquer";
+}
+
+function majPastilles() {
+  rail.querySelectorAll(".onglet").forEach(b => {
+    const ex = tousExercices.find(e => e.id === b.dataset.cible);
+    b.classList.toggle("vu", exerciceVu(ex));
+  });
+  const bouton = document.getElementById("tout");
+  if (bouton && courant) {
+    const boutons = [...travail.querySelectorAll(".devoiler")];
+    bouton.textContent = boutons.every(b => b.getAttribute("aria-expanded") === "true")
+      ? "Tout masquer" : "Tout afficher";
+  }
+}
+
+construireRail();
+const ancre = (location.hash || "").replace("#", "");
+afficher(tousExercices.some(e => e.id === ancre) ? ancre : tousExercices[0].id, false);
+</script>
+</body>
+</html>
