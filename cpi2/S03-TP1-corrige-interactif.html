@@ -1257,18 +1257,16 @@ mesures[385] = "Amal"`,
         ],
         erreurs: [
           { titre: "Rendre une liste",
-            cause: "`return [id_patient, age, groupe_sanguin]` passe tous les traitements ultérieurs — la lecture par indice fonctionne — mais échoue au test, car `['P001', 45, 'O+'] == ('P001', 45, 'O+')` vaut `False`. Une liste et un tuple de même contenu ne sont jamais égaux.",
-            sortie: `Échec ❌ -> Erreur Q1.1 : Le tuple est mal formé.` },
+            cause: "`return [id_patient, age, groupe_sanguin]` va générer une liste modifiable et les données ne sont pas protégées.", },
           { titre: "Afficher au lieu de rendre",
-            cause: "`print((id_patient, age, groupe_sanguin))` montre le bon tuple à l'écran et rend `None`. C'est l'erreur centrale du TD 1, et elle se reconnaît au test qui échoue alors que « l'affichage est juste »." }
+            cause: "`print((id_patient, age, groupe_sanguin))` montre le bon tuple à l'écran et rend `None`." }
         ] },
 
       { ref: "1.2", texte: "Écrivez une fonction besoin_transfusion(liste_patients, groupe_cible) qui retourne une liste contenant uniquement les id_patient des patients ayant ce groupe sanguin.",
-        reponse: "Une compréhension de liste filtrante : on garde `p[0]`, on teste `p[2]`.",
+        reponse: "On teste par `p[2]` et on ajoute `p[0]` au résultat.",
         sortie: `>>> patients = [("P001", 45, "O+"), ("P002", 34, "A-"), ("P003", 60, "O+")]
 >>> besoin_transfusion(patients, "O+")
 ['P001', 'P003']`,
-        notes: ["La fonction rend une **liste**, donc un résultat ordonné : le test compare à `[\"P001\", \"P003\"]` dans cet ordre, qui est celui de la liste d'entrée. C'est exactement l'inverse de la question 2.1, qui rendra des ensembles."],
         solutions: [
           { verdict: "retenue", nom: "Compréhension de liste",
             code: `def besoin_transfusion(liste_patients, groupe_cible):
@@ -1284,10 +1282,9 @@ mesures[385] = "Amal"`,
         ],
         erreurs: [
           { titre: "Oublier le `[0]`",
-            cause: "La fonction rend les tuples entiers : `[('P001', 45, 'O+'), ('P003', 60, 'O+')]`. Le test échoue, et le message ne dit pas où est l'oubli.",
-            sortie: `Échec ❌ -> Erreur Q1.2 : Filtrage incorrect.` },
+            cause: "La fonction rend les tuples entiers : `[('P001', 45, 'O+'), ('P003', 60, 'O+')]` et non pas seulement les identifiants."},
           { titre: "Rendre un ensemble",
-            cause: "`{p[0] for p in ...}` déduplique — ce qui n'est pas demandé — et surtout perd l'ordre : la comparaison avec une liste rend `False` quel que soit le contenu." },
+            cause: "`{p[0] for p in ...}` déduplique — ce qui n'est pas demandé." },
           { titre: "Comparer `p[1]` au groupe sanguin",
             cause: "`p[1]` est l'âge. Aucune erreur n'est levée : `45 == \"O+\"` vaut simplement `False`, et la fonction rend une liste vide. Un résultat vide sans message est le signe d'un indice erroné." }
         ] },
@@ -1304,12 +1301,6 @@ mesures[385] = "Amal"`,
             texte: "Un dossier validé ne doit plus changer. Le tuple inscrit cette décision dans le type lui-même : toute tentative de modification échoue immédiatement, au lieu d'être repérée — ou non — à la relecture. Il devient de surcroît hachable, donc utilisable comme clé d'index, ce qu'une liste interdit." },
           { verdict: "eviter", nom: "Réponse par la performance",
             texte: "On lit souvent qu'un tuple « est plus rapide ». L'écart existe mais il est marginal, et il n'est pas la raison du choix. Un argument de performance invoqué à la place d'un argument de correction est une réponse faible." }
-        ],
-        erreurs: [
-          { titre: "Répondre « parce qu'un tuple consomme moins de mémoire »",
-            cause: "Vrai et hors sujet : la question porte sur la fiabilité d'un dossier médical, pas sur l'empreinte mémoire d'un enregistrement de trois champs." },
-          { titre: "Répondre « parce qu'on ne peut pas se tromper »",
-            cause: "On peut parfaitement se tromper en construisant le tuple. L'immutabilité protège de ce qui arrive **après** la validation, pas de ce qui la précède." }
         ] },
 
       { ref: "1.4", texte: "Écrivez une fonction qui prend un tuple patient (3 éléments), un poids et une taille, et retourne un nouveau tuple combinant les 5 informations.",
@@ -1336,9 +1327,6 @@ mesures[385] = "Amal"`,
             texte: "L'étoile déplie le tuple dans le nouveau. Forme compacte, et qui s'étend sans peine à plusieurs tuples à fusionner." }
         ],
         erreurs: [
-          { titre: "Nommer la fonction autrement, même de peu",
-            cause: "`ajouter_constante`, `ajouter_plus_`, `AjouterPlus` : l'exécution s'arrête net, sans aucun des quatre comptes rendus habituels — ce qui donne l'impression que le fichier est cassé alors qu'il manque une lettre. Le `NameError` est levé **hors** du `try`, à l'appel de la fonction absente.",
-            sortie: `NameError: name 'ajouter_plus' is not defined` },
           { titre: "Appeler `patient.append(poids)`",
             cause: "`AttributeError: 'tuple' object has no attribute 'append'`. C'est la bonne erreur à rencontrer une fois : elle rappelle qu'un tuple n'a pas de méthode d'ajout, puisqu'ajouter n'a pas de sens sur lui." },
           { titre: "Écrire `patient + (poids) + (taille)`",
@@ -1356,34 +1344,25 @@ symp2 = ["fatigue", "maux de tête", "fièvre", "courbatures"]`,
       { ref: "2.1", texte: "Écrivez une fonction comparer_symptomes(symp1, symp2) qui retourne un tuple contenant exactement trois ensembles : les symptômes communs, ceux exclusifs au premier patient, et tous les symptômes uniques observés.",
         reponse: "On convertit **une fois** les deux listes en ensembles, puis on applique les trois opérateurs.",
         sortie: `>>> comparer_symptomes(symp1, symp2)
-({'fatigue', 'fièvre'}, {'anosmie', 'toux'}, {'anosmie', 'courbatures', 'fatigue', 'fièvre', 'maux de tête', 'toux'})`,
-        notes: ["Trois opérateurs, trois questions : `&` ce qu'ils ont en commun, `-` ce que le premier a en propre, `|` tout ce qui a été observé. Le doublon `\"toux\"` de `symp1` disparaît à la conversion, sans que personne n'ait eu à s'en occuper : c'est précisément ce qu'on vient chercher dans un ensemble.",
-                "La fonction rend un tuple de trois ensembles, que l'appelant décompose : `communs, exclusifs, total = comparer_symptomes(...)`. L'ordre des trois est imposé par l'énoncé et par les tests.",
+({'fatigue', 'fièvre'}, {'anosmie', 'toux'}, {'anosmie', 'courbatures', 'maux de tête', 'toux'})`,
+        notes: ["Trois opérateurs, trois questions : `&` ce qu'ils ont en commun, `-` ce que le premier a en propre, `^` ce que chacun a mais pas l'autre (différence symmetrique). Le doublon `\"toux\"` de `symp1` disparaît à la conversion, sans que personne n'ait eu à s'en occuper : c'est précisément ce qu'on vient chercher dans un ensemble.",
+                "La fonction rend un tuple de trois ensembles, que l'appelant décompose : `communs, exclusifs, uniques = comparer_symptomes(...)`. L'ordre des trois est imposé par l'énoncé et par les tests.",
                 "NB: dans tout le problème, les ensembles sont écrits ici **par ordre alphabétique**, pour que la page reste lisible. Votre machine les affichera dans un autre ordre, et un autre à chaque lancement — c'est l'exercice C4. Comparez les contenus, jamais les dispositions."],
         solutions: [
           { verdict: "retenue", nom: "Opérateurs ensemblistes",
             code: `def comparer_symptomes(symp1, symp2):
     s1, s2 = set(symp1), set(symp2)
-    return (s1 & s2, s1 - s2, s1 | s2)`,
+    return (s1 & s2, s1 - s2, s1 ^ s2)`,
             texte: "Les deux conversions sont faites une fois pour trois usages. C'est la forme la plus courte qui reste lisible." },
           { verdict: "ok", nom: "Méthodes nommées",
             code: `def comparer_symptomes(symp1, symp2):
     s1, s2 = set(symp1), set(symp2)
-    return (s1.intersection(s2), s1.difference(s2), s1.union(s2))`,
+    return (s1.intersection(s2), s1.difference(s2), s1.symmetric_difference(s2))`,
             texte: "Identique, et plus explicite pour qui lit sans connaître les opérateurs. Les méthodes acceptent de surcroît une liste en argument, là où les opérateurs exigent deux ensembles." }
         ],
         erreurs: [
           { titre: "Appliquer les opérateurs aux listes",
-            cause: "`symp1 & symp2` sur deux listes lève `TypeError: unsupported operand type(s) for &: 'list' and 'list'`. Les opérateurs ensemblistes n'existent que sur les ensembles — d'où la conversion en première ligne." },
-          { titre: "Confondre `-` et `^`",
-            cause: "`s1 ^ s2` est la différence **symétrique** : ce qui est dans l'un ou l'autre mais pas dans les deux, soit ici quatre symptômes. L'énoncé demande ce qui est dans `symp1` et pas dans `symp2`, donc `-`.",
-            sortie: `>>> set(symp1) ^ set(symp2)
-{'anosmie', 'courbatures', 'maux de tête', 'toux'}` },
-          { titre: "Rendre trois listes",
-            cause: "Le test compare à des ensembles littéraux : `{\"fièvre\", \"fatigue\"}`. Une liste de même contenu n'y est jamais égale, et l'ordre non spécifié d'un ensemble — exercice C4 — interdit de toute façon de comparer à une liste.",
-            sortie: `Échec ❌ -> Erreur Q2.1 : Intersection incorrecte.` },
-          { titre: "Rendre `s1 - s2` pour le troisième ensemble",
-            cause: "L'inversion de deux des trois sorties ne fait échouer que la première assertion rencontrée. Lire le numéro de question dans le message — `Erreur Q2.1` — et vérifier **les trois** valeurs rendues, non la seule qui a échoué." }
+            cause: "`symp1 & symp2` sur deux listes lève `TypeError: unsupported operand type(s) for &: 'list' and 'list'`. Les opérateurs ensemblistes n'existent que sur les ensembles — d'où la conversion en première ligne." }
         ] },
 
       { ref: "2.2", texte: "Écrivez une fonction symptomes_communs_cluster(liste_globale) qui prend une liste de n listes de symptômes (une par patient) et retourne l'ensemble des symptômes présents chez tous les patients du cluster.",
@@ -1393,9 +1372,7 @@ symp2 = ["fatigue", "maux de tête", "fièvre", "courbatures"]`,
 ...            ["fatigue", "fièvre", "courbatures"]]
 >>> symptomes_communs_cluster(cluster)
 {'fatigue', 'fièvre'}`,
-        notes: ["Le point délicat est **l'initialisation**. L'intersection n'a pas d'élément neutre accessible : partir de `set()` donne un résultat vide dès la première opération, puisque l'ensemble vide n'a rien en commun avec quoi que ce soit. Il faut donc partir du premier relevé et boucler sur `liste_globale[1:]`.",
-                "C'est l'exact symétrique de l'union, où l'on part légitimement de `set()`. Retenir le couple : **union, on part du vide ; intersection, on part du premier**.",
-                "NB: l'énoncé distribué comporte une coquille — « une liste contenant  listes de symptômes (pour  patients) », où les deux nombres manquent. Lire : *n* listes pour *n* patients, le nombre n'étant pas connu à l'avance."],
+        notes: ["Le point délicat est **l'initialisation**. L'intersection n'a pas d'élément neutre accessible : partir de `set()` donne un résultat vide dès la première opération, puisque l'ensemble vide n'a rien en commun avec quoi que ce soit. Il faut donc partir du premier relevé et boucler sur `liste_globale[1:]`."],
         solutions: [
           { verdict: "retenue", nom: "Accumulation depuis le premier relevé",
             code: `def symptomes_communs_cluster(liste_globale):
@@ -1423,12 +1400,9 @@ def symptomes_communs_cluster(liste_globale):
         ],
         erreurs: [
           { titre: "Partir d'un ensemble vide",
-            cause: "`communs = set()` puis `communs &= set(symptomes)` rend **toujours** `set()` : la première intersection vide tout, et rien ne peut plus y rentrer. L'erreur est silencieuse et le résultat plausible — un cluster peut légitimement n'avoir aucun symptôme commun.",
-            sortie: `Échec ❌ -> Erreur Q2.2 : Intersection multiple incorrecte.` },
+            cause: "`communs = set()` puis `communs &= set(symptomes)` rend **toujours** `set()` : la première intersection vide tout, et rien ne peut plus y rentrer. L'erreur est silencieuse et le résultat plausible — un cluster peut légitimement n'avoir aucun symptôme commun." },
           { titre: "Employer l'union au lieu de l'intersection",
             cause: "`|=` rend les symptômes observés **chez au moins un** patient, soit cinq ici au lieu de deux. Les deux opérateurs se ressemblent à l'écriture et disent le contraire : `&` c'est « et », `|` c'est « ou »." },
-          { titre: "Boucler sur `liste_globale` au lieu de `liste_globale[1:]`",
-            cause: "Sans conséquence sur le résultat — intersecter le premier relevé avec lui-même ne change rien — mais c'est une opération pour rien, et le signe qu'on n'a pas vu pourquoi l'initialisation posait problème." },
           { titre: "Oublier `set()` autour de chaque relevé",
             cause: "`communs &= symptomes` sur une liste lève `TypeError: unsupported operand type(s) for &=: 'set' and 'list'`. Noter que `communs.intersection_update(symptomes)` aurait accepté la liste : les méthodes sont plus tolérantes que les opérateurs." }
         ] }
@@ -1445,8 +1419,7 @@ def symptomes_communs_cluster(liste_globale):
         reponse: "C'est l'exercice B4, appliqué à l'historique : `defaultdict(list)` et une boucle.",
         sortie: `>>> dict(grouper_patients(hist))
 {'Grippe': ['P1', 'P4', 'P2'], 'COVID': ['P2'], 'Angine': ['P1'], 'Bronchite': ['P5']}`,
-        notes: ["Attention au sens du couple : l'historique livre `(id_patient, pathologie)`, et le dictionnaire demandé va de la **pathologie** vers les patients. La boucle inverse donc les deux termes au moment de l'écriture — `groupes[pathologie].append(id_patient)` —, et c'est là que se logent la plupart des échecs.",
-                "L'ordre des identifiants dans chaque liste est celui de l'historique : le test compare à `[\"P1\", \"P4\", \"P2\"]`, qui n'est ni l'ordre alphabétique ni l'ordre numérique. Une liste conserve l'ordre d'arrivée, et c'est ce qu'on lui demande ici."],
+        notes: ["Attention au sens du couple : l'historique livre `(id_patient, pathologie)`, et le dictionnaire demandé va de la **pathologie** vers les patients. La boucle inverse donc les deux termes au moment de l'écriture — `groupes[pathologie].append(id_patient)` —, et c'est là que se logent la plupart des échecs."],
         solutions: [
           { verdict: "retenue", nom: "defaultdict(list)",
             code: `from collections import defaultdict
@@ -1470,8 +1443,7 @@ def grouper_patients(historique):
         ],
         erreurs: [
           { titre: "Inverser les deux termes du couple",
-            cause: "`for pathologie, id_patient in historique` nomme mal les deux champs : on obtient le dictionnaire patient → pathologies, qui est la réponse de la **question 3.3**. Rien n'est levé, et le résultat est si plausible qu'on peut le croire juste.",
-            sortie: `Échec ❌ -> Erreur Q3.1 : Groupement incorrect.` },
+            cause: "`for pathologie, id_patient in historique` nomme mal les deux champs : on obtient le dictionnaire patient → pathologies, qui est la réponse de la **question 3.3**. Rien n'est levé, et le résultat est si plausible qu'on peut le croire juste."},
           { titre: "Utiliser un dictionnaire ordinaire sans créer la liste",
             cause: "`groupes[pathologie].append(...)` sur un `dict` nu lève `KeyError: 'Grippe'` au premier tour — c'est exactement l'exercice B4." },
           { titre: "Accumuler dans un ensemble",
@@ -1512,11 +1484,7 @@ def rapport_top_maladies(historique, n):
           { titre: "Passer l'historique entier à `Counter`",
             cause: "`Counter(historique)` compte les **couples**, tous distincts : chacun apparaît une fois. Le résultat est une liste d'un couple de couple, parfaitement absurde et pourtant sans erreur.",
             sortie: `>>> Counter(hist).most_common(1)
-[(('P1', 'Grippe'), 1)]` },
-          { titre: "Écrire `most_common()[n]`",
-            cause: "Cela rend **le** `n`-ième couple, un seul, au lieu des `n` premiers. Pour `n = 1`, on obtient `('COVID', 1)` : le deuxième du classement. L'argument se passe à la méthode, pas après." },
-          { titre: "Rendre un dictionnaire",
-            cause: "`dict(compte.most_common(n))` perd le classement que la question demande, et le test, qui compare à `[('Grippe', 3)]`, échoue." }
+[(('P1', 'Grippe'), 1)]` }
         ] },
 
       { ref: "3.3", texte: "À partir du dictionnaire généré par la question 3.1, écrivez une fonction profil_maladies_patients(groupes_patho) qui l'inverse : chaque clé est un ID de patient, et la valeur est l'ensemble des maladies contractées par ce patient.",
@@ -1554,9 +1522,6 @@ def profil_maladies_patients(groupes_patho):
             texte: "Une seule boucle, parce que l'historique porte déjà les couples dans le bon sens. L'énoncé impose de partir du dictionnaire de la question 3.1 — c'est un exercice d'inversion —, mais il faut voir que la donnée d'origine était plus directe. **Inverser un dictionnaire coûte toujours plus que relire la source.**" }
         ],
         erreurs: [
-          { titre: "Accumuler dans une liste",
-            cause: "`defaultdict(list)` et `.append` : le profil de P1 devient `['Grippe', 'Angine']`. Le test compare à `{\"Grippe\", \"Angine\"}`, et une liste n'est jamais égale à un ensemble.",
-            sortie: `Échec ❌ -> Erreur Q3.3 : Profil P1 incorrect.` },
           { titre: "Écrire `profils[id_patient] = pathologie`",
             cause: "Chaque pathologie écrase la précédente : P1 finit avec une seule maladie, sous forme de chaîne de caractères. C'est la perte silencieuse de l'exercice B2.3, reproduite à l'identique." },
           { titre: "Tenter `{ids: patho for patho, ids in groupes.items()}`",
@@ -1704,8 +1669,7 @@ False`,
           { titre: "Ne pas transmettre `visites` à l'appel récursif",
             cause: "Chaque appel repart d'un ensemble vide : le marquage ne sert plus à rien, et le cycle reprend ses droits. Même `RecursionError`, pour une cause plus difficile à voir." },
           { titre: "Écrire `transmission_possible(contact, ...)` sans examiner son résultat",
-            cause: "Appeler la fonction sans `if` devant ignore ce qu'elle rend : la boucle se termine, et le `return False` final s'exécute. La fonction rend alors `False` pour `P1 → P6`, qui est pourtant atteignable. **En récursion, un appel dont on ne lit pas la valeur est un appel perdu.**",
-            sortie: `Échec ❌ -> Erreur Q4.2 : P6 est bien atteignable depuis P1.` },
+            cause: "Appeler la fonction sans `if` devant ignore ce qu'elle rend : la boucle se termine, et le `return False` final s'exécute. La fonction rend alors `False` pour `P1 → P6`, qui est pourtant atteignable. **En récursion, un appel dont on ne lit pas la valeur est un appel perdu.**"},
           { titre: "Terminer la fonction sans `return False`",
             cause: "Elle rend alors `None`, qui n'est pas `False` — `None == False` vaut `False` — mais se comporte comme lui dans un `if`. L'assertion du test, qui compare à `False`, échoue tandis que le programme paraît raisonner juste." },
           { titre: "Explorer tout le réseau avant de répondre",
