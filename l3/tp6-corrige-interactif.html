@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Corrigé du TP 6 : le banc de contrôle biomédical</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+/* Disposition : console à deux volets — rail des exercices à gauche, colonne de
+   travail à droite ; au format téléphone le rail devient une barre de pastilles. */
+:root {
+  --bleu:        #2A5B7F;   /* charte du module — titres, rail, filets        */
+  --sarcelle:    #2E8B79;   /* charte du module assombrie pour le texte       */
+  --vert:        #5E7A18;   /* charte du module assombrie — solution retenue  */
+  --prune:       #B03F60;   /* erreurs fréquentes                        */
+  --encre:       #16242E;
+  --encre-douce: #51616C;
+  --fond:        #FBFCFD;
+  --carte:       #FFFFFF;
+  --surface:     #F1F6F9;   /* neutre biaisé vers le bleu de la charte   */
+  --filet:       #D6E3EC;
+  --code-fond:   #F4F8FA;
+  --code-filet:  #DCE8F0;
+  --ombre:       0 1px 2px rgba(22, 36, 46, .06), 0 8px 24px rgba(22, 36, 46, .05);
+
+  --syn-mot:     #C0392B;
+  --syn-natif:   #6F42C1;
+  --syn-texte:   #0B4F8A;
+  --syn-note:    #67757F;
+  --syn-nombre:  #1A6FAF;
+
+  --titre: "Zilla Slab", Rockwell, Georgia, serif;
+  --corps: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: Consolas, "JetBrains Mono", ui-monospace, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+    --encre: #E6EDF2; --encre-douce: #9FB0BC;
+    --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+    --code-fond: #101E27; --code-filet: #263B49;
+    --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+    --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+    --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+  --encre: #E6EDF2; --encre-douce: #9FB0BC;
+  --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+  --code-fond: #101E27; --code-filet: #263B49;
+  --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+  --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0; background: var(--fond); color: var(--encre);
+  font-family: var(--corps); font-size: 16px; line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+h1, h2, h3, h4 { font-family: var(--titre); text-wrap: balance; margin: 0; }
+code, pre { font-family: var(--mono); }
+:focus-visible { outline: 2.5px solid var(--sarcelle); outline-offset: 2px; border-radius: 3px; }
+
+/* — bandeau — */
+.bandeau {
+  background: var(--bleu); color: #fff;
+  padding-block: 18px 16px; padding-inline: 16px;
+}
+.bandeau-interieur { max-width: 1180px; margin: 0 auto; display: flex;
+  flex-wrap: wrap; gap: 12px 24px; align-items: baseline; }
+.bandeau h1 { font-size: clamp(1.25rem, 1rem + 1.2vw, 1.7rem); font-weight: 600;
+  letter-spacing: .01em; }
+.bandeau p { margin: 0; font-size: .86rem; opacity: .82; }
+.bandeau .module { font-family: var(--mono); font-size: .76rem;
+  letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+
+/* — mise en page — */
+.page { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 20px 56px; display: grid; gap: 24px;
+  grid-template-columns: 236px minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .page { grid-template-columns: minmax(0, 1fr); } }
+
+/* — rail — */
+.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+@media (max-width: 860px) { .rail { position: static; } }
+.rail-groupe + .rail-groupe { margin-top: 18px; }
+.rail-titre { font-family: var(--mono); font-size: .68rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); margin-bottom: 7px; }
+.rail-liste { display: flex; flex-direction: column; gap: 3px; }
+@media (max-width: 860px) {
+  .rail-liste { flex-direction: row; flex-wrap: wrap; }
+  .rail-groupe + .rail-groupe { margin-top: 10px; }
+}
+.onglet {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  font: inherit; font-size: .91rem; text-align: left; cursor: pointer;
+  background: none; border: 1px solid transparent; border-radius: 7px;
+  padding: 6px 10px; color: var(--encre);
+}
+.onglet:hover { background: var(--surface); }
+.onglet[aria-current="true"] { background: var(--bleu); color: #fff;
+  border-color: var(--bleu); }
+.onglet .cle { font-family: var(--mono); font-size: .78rem; font-weight: 600;
+  min-width: 1.6em; }
+.onglet .pastille { margin-left: auto; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--vert); opacity: 0; flex: none; }
+.onglet.vu .pastille { opacity: 1; }
+@media (max-width: 860px) { .onglet { width: auto; } .onglet .pastille { margin-left: 4px; } }
+
+/* — colonne de travail — */
+.travail { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.chapeau { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: baseline;
+  justify-content: space-between; }
+.chapeau h2 { font-size: clamp(1.15rem, 1rem + .9vw, 1.5rem); color: var(--bleu);
+  font-weight: 600; }
+.chapeau .partie { font-family: var(--mono); font-size: .72rem; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--encre-douce); display: block;
+  margin-bottom: 2px; }
+
+.bouton-plat { font: inherit; font-size: .84rem; cursor: pointer;
+  background: var(--carte); color: var(--bleu); border: 1px solid var(--filet);
+  border-radius: 7px; padding: 5px 12px; }
+.bouton-plat:hover { background: var(--surface); }
+
+.enonce { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 10px; padding: 14px 16px; }
+.enonce p { margin: 0 0 10px; }
+.enonce p:last-child { margin-bottom: 0; }
+
+.question { background: var(--carte); border: 1px solid var(--filet);
+  border-radius: 10px; box-shadow: var(--ombre); overflow: hidden; }
+.question-tete { display: flex; gap: 12px; align-items: flex-start;
+  padding: 13px 16px; }
+.question-tete .ref { font-family: var(--mono); font-weight: 600;
+  color: var(--sarcelle); flex: none; padding-top: 1px; }
+.question-tete .texte { min-width: 0; flex: 1; }
+.devoiler { font: inherit; font-size: .84rem; cursor: pointer; flex: none;
+  background: var(--bleu); color: #fff; border: 1px solid var(--bleu);
+  border-radius: 7px; padding: 5px 12px; white-space: nowrap; }
+.devoiler[aria-expanded="true"] { background: var(--carte); color: var(--bleu); }
+@media (max-width: 560px) {
+  .question-tete { flex-wrap: wrap; }
+  .devoiler { width: 100%; }
+}
+.correction { border-top: 1px solid var(--filet); padding: 14px 16px 16px;
+  display: flex; flex-direction: column; gap: 14px; }
+@media (prefers-reduced-motion: no-preference) {
+  .correction { animation: apparait .22s ease-out; }
+  @keyframes apparait { from { opacity: 0; transform: translateY(-3px); } }
+}
+
+.reponse { border-left: 3px solid var(--vert); padding-left: 13px; }
+.reponse .etiquette { font-family: var(--mono); font-size: .68rem;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--vert);
+  font-weight: 600; display: block; margin-bottom: 4px; }
+.reponse p { margin: 0 0 8px; }
+.reponse p:last-child { margin-bottom: 0; }
+
+.sous-titre { font-family: var(--mono); font-size: .7rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); font-weight: 600;
+  display: flex; align-items: center; gap: 9px; }
+.sous-titre::after { content: ""; flex: 1; height: 1px; background: var(--filet); }
+
+.lot { display: flex; flex-direction: column; gap: 10px; }
+.fiche { border: 1px solid var(--filet); border-radius: 9px; overflow: hidden;
+  background: var(--carte); }
+.fiche-tete { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center;
+  padding: 9px 13px; background: var(--surface);
+  border-bottom: 1px solid var(--filet); }
+.fiche-tete h4 { font-size: .95rem; font-weight: 600; min-width: 0; }
+.verdict { font-family: var(--mono); font-size: .66rem; letter-spacing: .07em;
+  text-transform: uppercase; font-weight: 600; padding: 2px 8px;
+  border-radius: 999px; border: 1px solid currentColor; flex: none; }
+.v-retenue  { color: var(--vert); }
+.v-ok       { color: var(--sarcelle); }
+.v-eviter   { color: var(--prune); }
+.v-expert   { color: var(--bleu); }
+.fiche-corps { padding: 11px 13px; display: flex; flex-direction: column; gap: 9px; }
+.fiche-corps p { margin: 0; }
+.fiche.erreur { border-color: color-mix(in srgb, var(--prune) 38%, var(--filet)); }
+.fiche.erreur .fiche-tete { background: color-mix(in srgb, var(--prune) 8%, var(--carte)); }
+
+.ligne-diag { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px;
+  font-size: .91rem; }
+.ligne-diag dt { font-family: var(--mono); font-size: .72rem; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--encre-douce); padding-top: 3px; }
+.ligne-diag dd { margin: 0; min-width: 0; }
+
+pre.code { margin: 0; background: var(--code-fond); border: 1px solid var(--code-filet);
+  border-radius: 7px; padding: 10px 12px; overflow-x: auto;
+  font-size: .845rem; line-height: 1.55; tab-size: 4; }
+pre.code.sortie { background: var(--surface); color: var(--encre-douce); }
+.k { color: var(--syn-mot); } .n { color: var(--syn-natif); }
+.s { color: var(--syn-texte); } .c { color: var(--syn-note); font-style: italic; }
+.d { color: var(--syn-nombre); }
+code.ligne { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 4px; padding: .5px 5px; font-size: .88em; }
+
+table.pile { width: 100%; border-collapse: collapse; font-size: .88rem; }
+table.pile th, table.pile td { border: 1px solid var(--filet); padding: 6px 10px;
+  text-align: left; }
+table.pile th { background: var(--surface); font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--encre-douce); font-weight: 600; }
+table.pile td:first-child, table.pile td:last-child { font-family: var(--mono);
+  font-variant-numeric: tabular-nums; }
+.table-enveloppe { overflow-x: auto; }
+
+.pied { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 0 40px; color: var(--encre-douce); font-size: .82rem; }
+.pied p { margin: 0; }
+</style>
+</head>
+<body>
+
+<header class="bandeau">
+  <div class="bandeau-interieur">
+    <div>
+      <span class="module">L3 MGB — Programmation Python</span>
+      <h1>TP 6 — Le banc de contrôle du service biomédical</h1>
+    </div>
+    <p>Choisissez un exercice, cherchez, puis dévoilez la correction.</p>
+  </div>
+</header>
+
+<main class="page">
+  <nav class="rail" id="rail" aria-label="Exercices du TP"></nav>
+  <section class="travail" id="travail" aria-live="polite"></section>
+</main>
+
+<footer class="pied">
+  <p>École Supérieure Mohammed VI d'Ingénieurs en Sciences de la Santé — UM6SS. Toutes les sorties affichées ici ont été exécutées sous Python&nbsp;3.</p>
+</footer>
+
+<script>
+/* ------------------------------------------------------------------ *
+ *  Coloration syntaxique Python — segmentation puis échappement.
+ *  On tokenise la chaîne brute, puis on échappe chaque segment : faire
+ *  l'inverse ferait correspondre les motifs à l'intérieur des entités.
+ * ------------------------------------------------------------------ */
+const MOTS = new Set(("False None True and as assert async await break class " +
+  "continue def del elif else except finally for from global if import in is " +
+  "lambda nonlocal not or pass raise return try while with yield").split(" "));
+const NATIFS = new Set(("abs all any bool dict enumerate filter float frozenset " +
+  "int isinstance len list map max min print range repr reversed round set " +
+  "sorted str sum tuple type zip").split(" "));
+const JETON = /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|"[^"\n]*"|'[^'\n]*')|(\b\d+\.?\d*\b)|([A-Za-z_]\w*)/g;
+
+function echapper(t) {
+  return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function colorer(source) {
+  let sortie = "", position = 0, m;
+  JETON.lastIndex = 0;
+  while ((m = JETON.exec(source)) !== null) {
+    sortie += echapper(source.slice(position, m.index));
+    const [tout, note, texte, nombre, mot] = m;
+    if (note !== undefined)        sortie += '<span class="c">' + echapper(tout) + "</span>";
+    else if (texte !== undefined)  sortie += '<span class="s">' + echapper(tout) + "</span>";
+    else if (nombre !== undefined) sortie += '<span class="d">' + echapper(tout) + "</span>";
+    else if (MOTS.has(mot))        sortie += '<span class="k">' + echapper(tout) + "</span>";
+    else if (NATIFS.has(mot))      sortie += '<span class="n">' + echapper(tout) + "</span>";
+    else                           sortie += echapper(tout);
+    position = m.index + tout.length;
+  }
+  return sortie + echapper(source.slice(position));
+}
+
+/* Texte enrichi minimal : `code` et **gras**, échappés. */
+function enrichir(t) {
+  return echapper(t)
+    .replace(/`([^`]+)`/g, '<code class="ligne">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+}
+
+const bloc = (src, sortie) =>
+  '<pre class="code' + (sortie ? " sortie" : "") + '">' +
+  (sortie ? echapper(src) : colorer(src)) + "</pre>";
+
+/* ------------------------------------------------------------------ *
+ *  Le TP, tel qu'il a été distribué.
+ * ------------------------------------------------------------------ */
+const CORRIGE = [
+ {
+  "partie": "Étape 1 — La fiche signalétique",
+  "exercices": [
+   {
+    "id": "e1",
+    "titre": "1.0 — Le programme de la fiche",
+    "enonce": "Quatre saisies, deux indicateurs calculés, une fiche affichée au format imposé.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Écrivez `etape1.py`.",
+      "reponse": "Deux saisies en texte, deux en entier, puis les deux calculs et la fiche.",
+      "sortie": "Appareil PS-0147 — Réanimation\nMis en service en 2019, soit 7 ans de service\n12400 h cumulées, soit 1771 h par an en moyenne",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "La fiche complète",
+        "code": "inventaire = input(\"Numéro d'inventaire : \")\nservice = input(\"Service utilisateur : \")\nannee = int(input(\"Année de mise en service : \"))\nheures = int(input(\"Heures de fonctionnement cumulées : \"))\n\nage = 2026 - annee\ncharge = heures / age\n\nprint(f\"Appareil {inventaire} — {service}\")\nprint(f\"Mis en service en {annee}, soit {age} ans de service\")\nprint(f\"{heures} h cumulées, soit {round(charge)} h par an en moyenne\")"
+       }
+      ],
+      "notes": [
+       "Le numéro d'inventaire et le service **ne se convertissent pas** : `PS-0112` n'est pas un nombre, et c'est du texte qu'on veut afficher.",
+       "`round(charge)` arrondit à l'unité : 12400 / 7 vaut 1771,43, donc 1771. L'arrondi se fait à l'affichage ; la variable `charge` garde sa précision."
+      ],
+      "erreurs": [
+       {
+        "titre": "Convertir le numéro d'inventaire avec `int`",
+        "cause": "`ValueError: invalid literal for int() with base 10: 'PS-0112'`. Un identifiant n'est pas un nombre, même quand il contient des chiffres : on ne fait pas d'arithmétique dessus."
+       },
+       {
+        "titre": "Écrire `age = annee - 2026`",
+        "cause": "L'âge serait négatif : −7 au lieu de 7. L'année courante est le plus grand des deux."
+       }
+      ]
+     },
+     {
+      "ref": "Q 1.1",
+      "texte": "Testez avec **2026** comme année de mise en service. Que se passe-t-il exactement, et pourquoi ?",
+      "reponse": "Le programme affiche les deux premières lignes, puis s'interrompt sur une division par zéro.",
+      "sortie": "Appareil PS-0147 — Réanimation\nMis en service en 2026, soit 0 ans de service\nZeroDivisionError: division by zero",
+      "notes": [
+       "`age` vaut 2026 − 2026 = 0, et `heures / age` demande une division par zéro — que Python refuse, comme les mathématiques.",
+       "L'erreur ne survient pas à la ligne du calcul de l'âge, qui est parfaitement légitime, mais à la ligne suivante. La **cause** et le **symptôme** ne sont pas au même endroit : c'est ce qui rend ce genre de panne déroutant.",
+       "Remarquez que les deux premières lignes ont bien été affichées avant l'arrêt. Un programme interrompu n'est pas un programme qui n'a rien fait."
+      ],
+      "erreurs": [
+       {
+        "titre": "Annoncer que le programme affiche une charge nulle",
+        "cause": "Diviser par zéro ne donne pas zéro : c'est une opération sans résultat. Python lève une exception plutôt que d'inventer une valeur."
+       },
+       {
+        "titre": "Croire que l'erreur vient de la saisie",
+        "cause": "2026 est un entier parfaitement valide. La saisie réussit ; c'est l'usage qu'on en fait trois lignes plus loin qui échoue."
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "partie": "Étape 2 — Le verdict d'un étalonnage",
+  "exercices": [
+   {
+    "id": "e21",
+    "titre": "2.1 — L'écart relatif",
+    "enonce": "",
+    "code": "ecart = (mesure - consigne) / consigne * 100",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Ajoutez les deux saisies et l'affichage de l'écart.",
+      "reponse": "Deux conversions en `float`, le calcul, et un affichage à une décimale.",
+      "sortie": "Ecart relatif : 2.8 %",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Le calcul et son affichage",
+        "code": "consigne = float(input(\"Débit de consigne en ml/h : \"))\nmesure = float(input(\"Débit mesuré en ml/h : \"))\n\necart = (mesure - consigne) / consigne * 100\n\nprint(f\"Ecart relatif : {ecart:.1f} %\")"
+       }
+      ],
+      "notes": [
+       "Les deux débits sont des `float`, non des `int` : un débit de 50.5 ml/h est parfaitement ordinaire, et `int(\"50.5\")` lèverait une `ValueError`.",
+       "Détail instructif : pour 51.4 et 50.0, l'écart vaut en réalité 2.799999999999997 en mémoire. Le format `.1f` affiche 2.8. Les décimaux de la machine ne sont pas exactement ceux du papier — c'est normal, et c'est une raison de plus de formater l'affichage."
+      ]
+     },
+     {
+      "ref": "Q 2.1",
+      "texte": "Que calculerait Python sans les parenthèses, avec `ecart = mesure - consigne / consigne * 100` ?",
+      "reponse": "Tout autre chose : **−48.6** au lieu de 2.8, pour une mesure de 51.4 et une consigne de 50.0.",
+      "sortie": "avec parenthèses : 2.799999999999997\nsans parenthèses : -48.6",
+      "notes": [
+       "La division et la multiplication sont prioritaires sur la soustraction. Python calcule donc d'abord `consigne / consigne * 100`, qui vaut toujours 100 quelle que soit la consigne, puis retranche ce 100 de la mesure.",
+       "L'expression se lit en fait `mesure - ((consigne / consigne) * 100)`. Le résultat n'a aucun sens métier, et pourtant aucune erreur n'est levée : le programme calcule faux, en silence."
+      ],
+      "pile": {
+       "entetes": [
+        "Écriture",
+        "Ce que Python calcule",
+        "Résultat"
+       ],
+       "lignes": [
+        [
+         "`(mesure - consigne) / consigne * 100`",
+         "l'écart relatif voulu",
+         "2.8 %"
+        ],
+        [
+         "`mesure - consigne / consigne * 100`",
+         "`mesure - 100`",
+         "−48.6"
+        ]
+       ]
+      },
+      "erreurs": [
+       {
+        "titre": "Répondre que Python signalerait l'ambiguïté",
+        "cause": "Les règles de priorité ne sont jamais ambiguës pour la machine. Elles le sont seulement pour le lecteur : c'est pour lui qu'on met des parenthèses, même quand elles sont superflues."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "e22",
+    "titre": "2.2 — Le verdict métrologique",
+    "enonce": "Trois cas, selon l'ampleur de l'écart, c'est-à-dire sa valeur absolue.",
+    "questions": [
+     {
+      "ref": "a)",
+      "texte": "Écrivez la structure conditionnelle.",
+      "reponse": "Une chaîne de `elif`, ordonnée du seuil le plus bas au plus haut.",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Avec abs et des elif",
+        "code": "if abs(ecart) <= 2.0:\n    print(\"Conforme — remise en service\")\nelif abs(ecart) <= 5.0:\n    print(\"Sous surveillance — contrôle à trois mois\")\nelse:\n    print(\"Non conforme — retrait du service\")"
+       },
+       {
+        "verdict": "ok",
+        "nom": "Avec une variable d'ampleur",
+        "code": "ampleur = abs(ecart)\n\nif ampleur <= 2.0:\n    verdict = \"Conforme — remise en service\"\nelif ampleur <= 5.0:\n    verdict = \"Sous surveillance — contrôle à trois mois\"\nelse:\n    verdict = \"Non conforme — retrait du service\"\n\nprint(f\"Verdict : {verdict}\")",
+        "texte": "`abs(ecart)` n'est calculé qu'une fois, et le verdict devient une valeur réutilisable plus loin — ce dont les étapes 4 et 5 auront besoin."
+       },
+       {
+        "verdict": "ok",
+        "nom": "Sans abs, par un intervalle",
+        "code": "if -2.0 <= ecart <= 2.0:\n    print(\"Conforme — remise en service\")\nelif -5.0 <= ecart <= 5.0:\n    print(\"Sous surveillance — contrôle à trois mois\")\nelse:\n    print(\"Non conforme — retrait du service\")",
+        "texte": "La comparaison chaînée de la séance 2 dit la même chose. Elle devient moins lisible dès que le seuil se complique ; `abs` est ici plus direct."
+       }
+      ],
+      "notes": [
+       "L'ordre des branches est imposé par la logique : `<= 2.0` est inclus dans `<= 5.0`. Tester le seuil large en premier rendrait la branche étroite inatteignable — l'erreur du B.5 du TP 1."
+      ]
+     },
+     {
+      "ref": "b)",
+      "texte": "Quels verdicts pour les six couples d'essai ?",
+      "reponse": "Deux conformes aux frontières, deux sous surveillance, un retrait.",
+      "pile": {
+       "entetes": [
+        "Consigne",
+        "Mesure",
+        "Écart",
+        "Verdict"
+       ],
+       "lignes": [
+        [
+         "50.0",
+         "50.5",
+         "+1.0 %",
+         "Conforme — remise en service"
+        ],
+        [
+         "50.0",
+         "49.0",
+         "−2.0 %",
+         "Conforme — remise en service"
+        ],
+        [
+         "50.0",
+         "51.5",
+         "+3.0 %",
+         "Sous surveillance — contrôle à trois mois"
+        ],
+        [
+         "50.0",
+         "47.5",
+         "−5.0 %",
+         "Sous surveillance — contrôle à trois mois"
+        ],
+        [
+         "50.0",
+         "47.0",
+         "−6.0 %",
+         "Non conforme — retrait du service"
+        ],
+        [
+         "50.0",
+         "50.0",
+         "0.0 %",
+         "Conforme — remise en service"
+        ]
+       ]
+      },
+      "notes": [
+       "Les lignes 2 et 4 sont les **frontières**, et elles sont négatives : un programme qui aurait oublié `abs` les classerait toutes deux « conforme », puisque −2.0 et −5.0 sont bien inférieurs à 2.0. C'est précisément pour cela qu'elles sont dans le jeu d'essai.",
+       "Un jeu d'essai qui n'emploierait que des écarts positifs ne révélerait jamais l'oubli de la valeur absolue."
+      ],
+      "erreurs": [
+       {
+        "titre": "Classer −5.0 % en « non conforme »",
+        "cause": "La borne est incluse : `abs(-5.0) <= 5.0` est vrai. « Strictement supérieure à 5.0 % » commence après 5.0."
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "partie": "Étape 3 — Les saisies protégées",
+  "exercices": [
+   {
+    "id": "e3",
+    "titre": "3.1 — Les trois boucles de validation",
+    "enonce": "Tant qu'une valeur ne convient pas, le programme affiche un message explicite et redemande.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Écrivez les trois validations.",
+      "reponse": "Trois fois la même forme : saisir, puis redemander tant que la condition d'invalidité tient.",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Les trois boucles",
+        "code": "annee = int(input(\"Année de mise en service : \"))\nwhile annee < 1990 or annee > 2025:\n    print(\"L'année doit être comprise entre 1990 et 2025.\")\n    annee = int(input(\"Année de mise en service : \"))\n\nconsigne = float(input(\"Débit de consigne en ml/h : \"))\nwhile consigne <= 0:\n    print(\"La consigne doit être strictement positive.\")\n    consigne = float(input(\"Débit de consigne en ml/h : \"))\n\nmesure = float(input(\"Débit mesuré en ml/h : \"))\nwhile mesure < 0 or mesure > 200:\n    print(\"La mesure doit être comprise entre 0 et 200 ml/h.\")\n    mesure = float(input(\"Débit mesuré en ml/h : \"))"
+       }
+      ],
+      "notes": [
+       "La condition du `while` décrit ce qui est **invalide**, donc ce qui fait continuer la boucle. On l'écrit en niant le domaine accepté : « de 1990 à 2025 » devient `annee < 1990 or annee > 2025`.",
+       "Le message précède la nouvelle saisie : l'utilisateur doit savoir pourquoi on lui redemande."
+      ],
+      "erreurs": [
+       {
+        "titre": "Écrire `while annee < 1990 and annee > 2025`",
+        "cause": "Aucune année n'est à la fois inférieure à 1990 et supérieure à 2025 : la condition est toujours fausse, et la boucle ne tourne jamais. La négation d'un **et** est un **ou**."
+       }
+      ]
+     },
+     {
+      "ref": "Q 3.1",
+      "texte": "Pourquoi une boucle `while` et non une boucle `for` pour valider une saisie ?",
+      "reponse": "Parce que le nombre de tentatives n'est **pas connu d'avance**.",
+      "notes": [
+       "`for` demande un nombre de tours fixé avant d'entrer dans la boucle. Ici, l'utilisateur peut se tromper zéro fois, une fois, ou dix : seule une condition peut décider de l'arrêt.",
+       "C'est le critère de choix du TP 3, appliqué au cas réel : *le nombre de tours est-il connu avant d'entrer dans la boucle ?*"
+      ],
+      "erreurs": [
+       {
+        "titre": "Répondre que `for` ne permet pas de saisir",
+        "cause": "Il le permet très bien — l'étape 4 emploie justement un `for` pour saisir `n` mesures. La différence n'est pas la saisie, c'est de savoir combien de fois."
+       }
+      ]
+     },
+     {
+      "ref": "Q 3.2",
+      "texte": "Le piège classique : la boucle ne contient qu'un `print`. Que se passe-t-il si l'utilisateur saisit −5 ?",
+      "reponse": "Le programme affiche `Valeur invalide.` indéfiniment : c'est une **boucle infinie**.",
+      "sortie": "Valeur invalide.\nValeur invalide.\nValeur invalide.\n…",
+      "notes": [
+       "La variable testée n'est jamais modifiée dans le bloc : `consigne` garde la valeur −5, la condition `consigne <= 0` reste vraie à chaque tour, et rien ne peut la rendre fausse.",
+       "C'est le premier des trois diagnostics du TP 2 : *la variable testée est-elle modifiée dans le bloc ?* Il manque la ligne de nouvelle saisie.",
+       "Pour interrompre un programme bloqué : **Ctrl + C**."
+      ],
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "La correction",
+        "code": "consigne = float(input(\"Débit de consigne en ml/h : \"))\nwhile consigne <= 0:\n    print(\"Valeur invalide.\")\n    consigne = float(input(\"Débit de consigne en ml/h : \"))"
+       }
+      ],
+      "erreurs": [
+       {
+        "titre": "Répondre que le programme passe à la suite",
+        "cause": "Il n'en sort jamais. Un `print` informe l'utilisateur mais ne change aucune variable : afficher n'est pas corriger."
+       }
+      ]
+     },
+     {
+      "ref": "Q 3.3",
+      "texte": "Avec seulement `while mesure > 200:`, quelle valeur aberrante serait acceptée ? Écrivez la condition complète.",
+      "reponse": "Toute valeur **négative** : un débit de −30 ml/h passerait sans protestation.",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "La condition complète",
+        "code": "while mesure < 0 or mesure > 200:"
+       }
+      ],
+      "notes": [
+       "Un débit négatif n'a pas de sens physique : la seringue ne reprend pas le produit. Et il fausserait tout — l'écart relatif deviendrait très négatif, et l'appareil serait retiré pour une faute de frappe.",
+       "Un domaine de validité a presque toujours **deux** bornes. N'en vérifier qu'une est une protection à moitié posée, qui donne l'illusion d'un contrôle."
+      ],
+      "erreurs": [
+       {
+        "titre": "Écrire `while mesure > 200 and mesure < 0`",
+        "cause": "Même faute qu'en 3.1 : aucune valeur ne satisfait les deux à la fois, donc la boucle ne tourne jamais et plus rien n'est validé."
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "partie": "Étape 4 — La série de mesures",
+  "exercices": [
+   {
+    "id": "e41",
+    "titre": "4.1 — Les variables et leur initialisation",
+    "enonce": "Cinq variables évoluent dans la boucle, et la moyenne se calcule à la fin.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Complétez le tableau d'architecture.",
+      "reponse": "Chaque variable a sa valeur de départ et son moment de mise à jour.",
+      "pile": {
+       "entetes": [
+        "Variable",
+        "Valeur initiale avant la boucle",
+        "Quand elle change"
+       ],
+       "lignes": [
+        [
+         "`ecart_moyen`",
+         "0",
+         "cumulée à chaque tour, puis divisée par le nombre de mesures **après** la boucle"
+        ],
+        [
+         "`ecart_max`",
+         "0",
+         "remplacée dans la boucle dès qu'une ampleur dépasse celle déjà retenue"
+        ],
+        [
+         "`rang_max`",
+         "0",
+         "mise à jour **en même temps** que `ecart_max`, jamais séparément"
+        ],
+        [
+         "`nb_non_conformes`",
+         "0",
+         "augmentée de 1 dans la boucle quand l'ampleur dépasse 2.0 %"
+        ],
+        [
+         "`hors_tolerance`",
+         "`False`",
+         "passée à `True` dans la boucle dès qu'une ampleur dépasse 5.0 %, et jamais remise à `False`"
+        ]
+       ]
+      },
+      "notes": [
+       "`ecart_moyen` porte deux valeurs successives : la **somme** pendant la boucle, la **moyenne** après. Réutiliser le même nom est acceptable ici parce que la division a lieu une fois pour toutes, juste après la boucle.",
+       "L'initialisation de `ecart_max` à 0 est licite **parce que l'ampleur est une valeur absolue**, donc toujours positive ou nulle : 0 est bien l'élément neutre du maximum sur ce domaine. Sur des écarts signés, il aurait fallu partir de la première valeur de la série.",
+       "`rang_max` et `ecart_max` forment un couple : les séparer est l'erreur la plus fréquente de l'étape."
+      ],
+      "erreurs": [
+       {
+        "titre": "Initialiser `hors_tolerance` à `True`",
+        "cause": "Un témoin part de l'hypothèse contraire à ce qu'il doit établir. Initialisé à `True`, il déclarerait tout appareil non conforme, y compris celui dont aucune mesure ne sort des clous."
+       },
+       {
+        "titre": "Mettre à jour `rang_max` à chaque tour",
+        "cause": "Il vaudrait alors le rang de la **dernière** mesure, non celui de l'écart maximal. Il doit être dans le même bloc `if` que `ecart_max`."
+       },
+       {
+        "titre": "Déclarer les cinq variables à l'intérieur de la boucle",
+        "cause": "Elles seraient remises à zéro à chaque tour et ne retiendraient que la dernière mesure. Elles vivent **autour** de la boucle, pas dedans."
+       }
+      ]
+     },
+     {
+      "ref": "b)",
+      "texte": "Écrivez la boucle de saisie et de mise à jour.",
+      "reponse": "Une boucle `for` sur `n` tours, contenant la validation `while` de chaque mesure.",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "La boucle complète",
+        "code": "nb_mesures = int(input(\"Nombre de mesures : \"))\n\necart_moyen = 0\necart_max = 0\nrang_max = 0\nnb_non_conformes = 0\nhors_tolerance = False\n\nfor m in range(1, nb_mesures + 1):\n    mesure = float(input(f\"Mesure {m} en ml/h : \"))\n    while mesure < 0 or mesure > 200:\n        print(\"Mesure hors de l'intervalle 0–200 ml/h.\")\n        mesure = float(input(f\"Mesure {m} en ml/h : \"))\n\n    ecart = (mesure - consigne) / consigne * 100\n\n    ecart_moyen = ecart_moyen + ecart\n    if abs(ecart) > 2.0:\n        nb_non_conformes = nb_non_conformes + 1\n    if abs(ecart) > 5.0:\n        hors_tolerance = True\n    if abs(ecart) > abs(ecart_max):\n        ecart_max = ecart\n        rang_max = m\n\necart_moyen = ecart_moyen / nb_mesures"
+       }
+      ],
+      "notes": [
+       "`range(1, nb_mesures + 1)` numérote les tours de 1 à `n`, ce qui donne directement le rang à afficher. Avec `range(nb_mesures)`, il faudrait écrire `rang_max = m + 1`.",
+       "Une boucle `while` **à l'intérieur** d'une boucle `for` : c'est déjà une imbrication, et elle ne pose aucune difficulté nouvelle. La validation est le bloc d'un tour, rien de plus.",
+       "`if abs(ecart) > abs(ecart_max)` compare bien deux ampleurs. Comparer `abs(ecart) > ecart_max` fonctionnerait aussi ici puisque `ecart_max` part de 0, mais deviendrait faux dès qu'un écart négatif y serait rangé."
+      ],
+      "erreurs": [
+       {
+        "titre": "Trois `elif` au lieu de trois `if` indépendants",
+        "cause": "Les trois conditions ne s'excluent pas : une mesure à 6 % est à la fois au-delà de 2 %, au-delà de 5 %, et peut-être le nouveau maximum. Avec des `elif`, seul le premier cas serait pris en compte."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "e42",
+    "titre": "4.2 — Le verdict sur la série",
+    "enonce": "Trois règles, testées dans l'ordre.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Écrivez le verdict et le bilan, puis vérifiez sur la série 50.4 / 50.6 / 51.6 / 50.0.",
+      "reponse": "Les cinq lignes attendues sont bien produites.",
+      "sortie": "Nombre de mesures : 4\nÉcart moyen : 1.3 %\nÉcart d'ampleur maximale : 3.2 % à la mesure 3\nNombre de mesures non conformes : 1\nVerdict : Sous surveillance — contrôle à trois mois",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Le verdict et l'affichage",
+        "code": "if hors_tolerance:\n    verdict = \"Non conforme — retrait du service\"\nelif nb_non_conformes > 0 or abs(ecart_moyen) > 2.0:\n    verdict = \"Sous surveillance — contrôle à trois mois\"\nelse:\n    verdict = \"Conforme — remise en service\"\n\nprint(f\"Nombre de mesures : {nb_mesures}\")\nprint(f\"Écart moyen : {ecart_moyen:.1f} %\")\nprint(f\"Écart d'ampleur maximale : {ecart_max:.1f} % à la mesure {rang_max}\")\nprint(f\"Nombre de mesures non conformes : {nb_non_conformes}\")\nprint(f\"Verdict : {verdict}\")"
+       }
+      ],
+      "pile": {
+       "entetes": [
+        "Mesure",
+        "Écart",
+        "Au-delà de 2 % ?",
+        "Au-delà de 5 % ?"
+       ],
+       "lignes": [
+        [
+         "50.4",
+         "+0.8 %",
+         "non",
+         "non"
+        ],
+        [
+         "50.6",
+         "+1.2 %",
+         "non",
+         "non"
+        ],
+        [
+         "51.6",
+         "+3.2 %",
+         "**oui**",
+         "non"
+        ],
+        [
+         "50.0",
+         "0.0 %",
+         "non",
+         "non"
+        ]
+       ]
+      },
+      "notes": [
+       "La moyenne vaut (0.8 + 1.2 + 3.2 + 0.0) / 4 = 1.3 %, donc dans l'intervalle de tolérance. C'est la troisième mesure, seule au-delà de 2 %, qui fait basculer en surveillance : la deuxième règle se déclenche par son premier terme, non par la moyenne.",
+       "Le témoin `hors_tolerance` est faux, donc la première règle ne s'applique pas — et c'est bien pourquoi les règles sont testées **dans cet ordre**."
+      ],
+      "erreurs": [
+       {
+        "titre": "Remplacer le `or` de la deuxième règle par un `and`",
+        "cause": "Il faudrait alors qu'une mesure dépasse 2 % **et** que la moyenne dépasse 2 % pour déclencher la surveillance. Cette série, dont la moyenne est bonne, serait déclarée conforme — exactement ce que le protocole cherche à éviter."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "e43",
+    "titre": "4.3 — Le piège de la moyenne",
+    "enonce": "Série 48.0 / 52.0 / 48.0 / 52.0, à consigne 50.0.",
+    "questions": [
+     {
+      "ref": "1)",
+      "texte": "Que vaut l'écart relatif moyen, algébrique, de cette série ?",
+      "reponse": "**0.0 %** — les écarts se compensent exactement.",
+      "pile": {
+       "entetes": [
+        "Mesure",
+        "48.0",
+        "52.0",
+        "48.0",
+        "52.0",
+        "Moyenne"
+       ],
+       "lignes": [
+        [
+         "Écart",
+         "−4.0 %",
+         "+4.0 %",
+         "−4.0 %",
+         "+4.0 %",
+         "**0.0 %**"
+        ],
+        [
+         "Ampleur",
+         "4.0 %",
+         "4.0 %",
+         "4.0 %",
+         "4.0 %",
+         "4.0 %"
+        ]
+       ]
+      },
+      "notes": [
+       "La moyenne des écarts **algébriques** est nulle ; la moyenne des **ampleurs** vaut 4.0 %. Les deux grandeurs ne disent pas la même chose, et c'est toute la question."
+      ]
+     },
+     {
+      "ref": "2)",
+      "texte": "Quel verdict votre programme rend-il ?",
+      "reponse": "**Sous surveillance — contrôle à trois mois.**",
+      "sortie": "Écart moyen : 0.0 %\nÉcart d'ampleur maximale : -4.0 % à la mesure 1\nNombre de mesures non conformes : 4\nVerdict : Sous surveillance — contrôle à trois mois",
+      "notes": [
+       "Aucune mesure ne dépasse 5 %, donc pas de retrait. Mais les quatre dépassent 2 % : la deuxième règle se déclenche par son compteur, alors même que la moyenne est parfaite.",
+       "L'ampleur maximale est affichée à la mesure **1** : les quatre ampleurs valent 4.0, et la comparaison `>` est stricte, donc la première rencontrée est conservée. C'est une convention — à égalité, on garde la plus ancienne."
+      ]
+     },
+     {
+      "ref": "3)",
+      "texte": "Quel verdict erroné aurait-il rendu si le seul critère avait été l'écart moyen ?",
+      "reponse": "**Conforme — remise en service.** Un appareil qui délivre 4 % de trop une fois sur deux serait rendu au service.",
+      "notes": [
+       "Sur un pousse-seringue, 4 % de surdosage alterné n'est pas une approximation : c'est une dose administrée hors prescription, un relevé sur deux.",
+       "La moyenne mesure la **tendance centrale** ; elle est aveugle à la **dispersion**. Un même indicateur moyen peut recouvrir un appareil parfaitement réglé et un appareil erratique. Deux indicateurs sont nécessaires : c'est pourquoi le protocole surveille aussi l'écart maximal et le compteur de mesures hors tolérance.",
+       "C'est le raisonnement de fond du TP, et il déborde largement la programmation : un indicateur unique ne résume jamais une série."
+      ],
+      "erreurs": [
+       {
+        "titre": "Conclure que le programme se trompe",
+        "cause": "Il fait exactement ce qu'on lui a demandé. C'est le **critère** qui serait faux, pas le code. Un programme juste au service d'une règle fausse reste faux — et aucun débogage ne le révèle."
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "partie": "Étape 5 — Le bilan du parc",
+  "exercices": [
+   {
+    "id": "e5",
+    "titre": "5.0 — Le programme du parc",
+    "enonce": "Les paramètres sont demandés une fois ; chaque appareil est ensuite traité par la boucle externe.",
+    "questions": [
+     {
+      "ref": "a)",
+      "texte": "Écrivez `etape5.py`.",
+      "reponse": "La boucle de l'étape 4 devient le bloc d'une boucle sur les appareils.",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "La structure à deux niveaux",
+        "code": "nb_appareils = int(input(\"Nombre d'appareils à contrôler : \"))\nconsigne = float(input(\"Débit de consigne commun en ml/h : \"))\nnb_mesures = int(input(\"Nombre de mesures par appareil : \"))\n\nnb_retires = 0                      # avant les deux boucles\n\nfor a in range(nb_appareils):\n    inventaire = input(\"Numéro d'inventaire : \")\n\n    ecart_moyen = 0                 # entre les deux boucles\n    ecart_max = 0\n    rang_max = 0\n    nb_non_conformes = 0\n    hors_tolerance = False\n\n    for m in range(1, nb_mesures + 1):\n        mesure = float(input(f\"    Mesure {m} en ml/h : \"))\n        while mesure < 0 or mesure > 200:\n            print(\"    Mesure hors de l'intervalle 0–200 ml/h.\")\n            mesure = float(input(f\"    Mesure {m} en ml/h : \"))\n        ecart = (mesure - consigne) / consigne * 100\n        ecart_moyen = ecart_moyen + ecart\n        if abs(ecart) > 2.0:\n            nb_non_conformes = nb_non_conformes + 1\n        if abs(ecart) > 5.0:\n            hors_tolerance = True\n        if abs(ecart) > abs(ecart_max):\n            ecart_max = ecart\n            rang_max = m\n\n    ecart_moyen = ecart_moyen / nb_mesures\n    # … verdict, affichage du bilan de l'appareil …\n\n    croix = \"\"                      # entre les deux boucles\n    for c in range(nb_non_conformes):\n        croix = croix + \"X\"\n    print(f\"État {inventaire} : {croix}\")\n\n    if hors_tolerance:\n        nb_retires = nb_retires + 1\n\ntaux = round((nb_appareils - nb_retires) / nb_appareils * 100)\n\nprint(\"================ BILAN DU PARC ================\")\nprint(f\"Nombre d'appareils contrôlés : {nb_appareils}\")\nprint(f\"Mesures effectuées par appareil : {nb_mesures}\")\nprint(f\"Nombre d'appareils retirés du service : {nb_retires}\")\nprint(f\"Taux de maintien en service : {taux} %\")"
+       }
+      ],
+      "sortie": "État PS-0147 : XX\nÉtat PS-0203 :\nÉtat PS-0311 : XXXX\n\n================ BILAN DU PARC ================\nNombre d'appareils contrôlés : 3\nMesures effectuées par appareil : 5\nNombre d'appareils retirés du service : 1\nTaux de maintien en service : 67 %",
+      "notes": [
+       "La consigne et le nombre de mesures sont demandés **avant** la boucle externe : ils valent pour toute la campagne, et les redemander à chaque appareil serait non seulement fastidieux mais faux.",
+       "Le taux de maintien vaut 2 / 3 = 66,67 %, arrondi à 67 %. Il porte sur les appareils **non retirés**, donc les conformes et ceux sous surveillance réunis."
+      ],
+      "erreurs": [
+       {
+        "titre": "Employer la même variable pour les deux boucles",
+        "cause": "`for a in …` et `for a in …` imbriqués : la boucle interne écrase le compteur de l'externe. Deux boucles distinctes, deux noms distincts."
+       },
+       {
+        "titre": "Calculer le taux avec `nb_retires / nb_appareils`",
+        "cause": "On obtiendrait le taux de **retrait**, soit 33 %. L'énoncé demande la part des appareils conservés."
+       }
+      ]
+     },
+     {
+      "ref": "Q 5.1 · 1",
+      "texte": "Quelles variables doivent être réinitialisées à chaque appareil, et laquelle une seule fois en haut du programme ?",
+      "reponse": "Les quatre variables de l'appareil se réinitialisent dans la boucle externe ; seul le compteur d'appareils retirés vit au-dessus des deux boucles.",
+      "pile": {
+       "entetes": [
+        "Variable",
+        "Où l'initialiser",
+        "Pourquoi"
+       ],
+       "lignes": [
+        [
+         "`nb_retires`",
+         "**avant** les deux boucles",
+         "il totalise le parc entier ; réinitialisé par appareil, il ne vaudrait jamais que 0 ou 1"
+        ],
+        [
+         "`ecart_moyen`",
+         "entre les deux boucles",
+         "la somme des écarts d'**un** appareil"
+        ],
+        [
+         "`nb_non_conformes`",
+         "entre les deux boucles",
+         "le compteur d'un appareil, qui alimente sa ligne de croix"
+        ],
+        [
+         "`hors_tolerance`",
+         "entre les deux boucles",
+         "sans remise à `False`, le premier appareil défaillant ferait retirer tous les suivants"
+        ],
+        [
+         "`ecart_max` et `rang_max`",
+         "entre les deux boucles",
+         "l'extremum d'un appareil, non celui du parc"
+        ]
+       ]
+      },
+      "notes": [
+       "La règle tient en une question : **cette variable décrit-elle un appareil ou le parc ?** La réponse donne le niveau d'initialisation, et rien d'autre ne le donne.",
+       "Le cas de `hors_tolerance` est le plus dangereux : oublier de le remettre à `False` ne provoque aucune erreur, et tous les appareils contrôlés après le premier défaillant sont retirés à tort. Le taux de maintien s'effondre sans qu'on sache pourquoi."
+      ]
+     },
+     {
+      "ref": "Q 5.1 · 2",
+      "texte": "Où avez-vous initialisé `croix = \"\"` ? Que se passerait-il si elle était initialisée tout en haut du programme ?",
+      "reponse": "**Entre les deux boucles.** Déclarée tout en haut, les croix de tous les appareils s'accumuleraient.",
+      "pile": {
+       "entetes": [
+        "Appareil",
+        "Croix attendues",
+        "Croix affichées si `croix` est déclarée en haut"
+       ],
+       "lignes": [
+        [
+         "PS-0147",
+         "`XX`",
+         "`XX`"
+        ],
+        [
+         "PS-0203",
+         "— rien —",
+         "`XX`"
+        ],
+        [
+         "PS-0311",
+         "`XXXX`",
+         "`XXXXXX`"
+        ]
+       ]
+      },
+      "notes": [
+       "La chaîne n'étant jamais remise à vide, chaque appareil hérite des croix des précédents. Le deuxième appareil, pourtant irréprochable, afficherait deux croix.",
+       "C'est le même raisonnement que pour le triangle du TP 5 : l'accumulateur d'une ligne se remet à vide à chaque ligne. Ici, une ligne est un appareil."
+      ],
+      "erreurs": [
+       {
+        "titre": "Initialiser `croix` dans la boucle des mesures",
+        "cause": "Elle serait vidée à chaque mesure et ne contiendrait jamais plus d'une croix. Les trois positions possibles donnent trois programmes différents, tous sans erreur."
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+];
+
+/* ------------------------------------------------------------------ *
+ *  Mémoire locale — simple confort de lecture, jamais indispensable.
+ * ------------------------------------------------------------------ */
+const CLE = "m355-tp6-corriges-vus";
+let vus = new Set();
+try {
+  const brut = localStorage.getItem(CLE);
+  if (brut) vus = new Set(JSON.parse(brut));
+} catch (e) { /* navigation privée, stockage bloqué : on continue sans */ }
+
+function memoriser() {
+  try { localStorage.setItem(CLE, JSON.stringify([...vus])); } catch (e) {}
+}
+
+/* ------------------------------------------------------------------ *
+ *  Rendu
+ * ------------------------------------------------------------------ */
+const rail = document.getElementById("rail");
+const travail = document.getElementById("travail");
+const tousExercices = CORRIGE.flatMap(p => p.exercices.map(e => ({ ...e, partie: p.partie })));
+
+function cleQuestion(ex, i) { return ex.id + "-" + i; }
+
+function exerciceVu(ex) {
+  return ex.questions.every((_, i) => vus.has(cleQuestion(ex, i)));
+}
+
+function construireRail() {
+  rail.innerHTML = CORRIGE.map(partie => `
+    <div class="rail-groupe">
+      <div class="rail-titre">${echapper(partie.partie.replace(/^Partie /, ""))}</div>
+      <div class="rail-liste">
+        ${partie.exercices.map(ex => `
+          <button class="onglet" type="button" data-cible="${ex.id}">
+            <span class="cle">${echapper(ex.titre.split(" — ")[0])}</span>
+            <span>${echapper(ex.titre.split(" — ")[1] || "")}</span>
+            <span class="pastille" aria-hidden="true"></span>
+          </button>`).join("")}
+      </div>
+    </div>`).join("");
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.addEventListener("click", () => afficher(b.dataset.cible, true)));
+}
+
+function fiche(item, estErreur) {
+  const classeVerdict = { retenue: "v-retenue", ok: "v-ok",
+                          eviter: "v-eviter", expert: "v-expert" }[item.verdict];
+  const libelle = { retenue: "à retenir", ok: "acceptable",
+                    eviter: "à éviter", expert: "pour aller plus loin" }[item.verdict];
+  return `
+    <article class="fiche${estErreur ? " erreur" : ""}">
+      <div class="fiche-tete">
+        <h4>${enrichir(item.nom || item.titre)}</h4>
+        ${estErreur
+          ? '<span class="verdict v-eviter">erreur fréquente</span>'
+          : (classeVerdict ? `<span class="verdict ${classeVerdict}">${libelle}</span>` : "")}
+      </div>
+      <div class="fiche-corps">
+        ${item.code ? bloc(item.code, false) : ""}
+        ${item.sortie ? bloc(item.sortie, true) : ""}
+        ${item.texte ? `<p>${enrichir(item.texte)}</p>` : ""}
+        ${item.cause ? `<dl class="ligne-diag"><dt>Pourquoi</dt><dd>${enrichir(item.cause)}</dd></dl>` : ""}
+      </div>
+    </article>`;
+}
+
+function tableau(p) {
+  return `<div class="table-enveloppe"><table class="pile">
+    <thead><tr>${p.entetes.map(h => `<th>${echapper(h)}</th>`).join("")}</tr></thead>
+    <tbody>${p.lignes.map(l => `<tr>${l.map(c => `<td>${enrichir(c)}</td>`).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+function corpsCorrection(q) {
+  return `
+    <div class="reponse">
+      <span class="etiquette">Réponse</span>
+      <p>${enrichir(q.reponse)}</p>
+    </div>
+    ${q.sortie ? bloc(q.sortie, true) : ""}
+    ${q.pile ? tableau(q.pile) : ""}
+    ${(q.notes || []).map(n => `<p>${enrichir(n)}</p>`).join("")}
+    ${q.solutions && q.solutions.length ? `
+      <div class="sous-titre">Propositions de solution</div>
+      <div class="lot">${q.solutions.map(s => fiche(s, false)).join("")}</div>` : ""}
+    ${q.erreurs && q.erreurs.length ? `
+      <div class="sous-titre">Erreurs fréquentes</div>
+      <div class="lot">${q.erreurs.map(e => fiche(e, true)).join("")}</div>` : ""}`;
+}
+
+let courant = null;
+
+function afficher(id, deplacerFocus) {
+  const ex = tousExercices.find(e => e.id === id) || tousExercices[0];
+  courant = ex;
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.setAttribute("aria-current", String(b.dataset.cible === ex.id)));
+
+  travail.innerHTML = `
+    <div class="chapeau">
+      <div>
+        <span class="partie">${echapper(ex.partie)}</span>
+        <h2>${echapper(ex.titre)}</h2>
+      </div>
+      <button class="bouton-plat" type="button" id="tout">Tout afficher</button>
+    </div>
+    <div class="enonce">
+      <p>${enrichir(ex.enonce)}</p>
+      ${ex.code ? bloc(ex.code, false) : ""}
+    </div>
+    ${ex.questions.map((q, i) => {
+      const cle = cleQuestion(ex, i);
+      const ouvert = vus.has(cle);
+      return `
+      <article class="question" id="q-${cle}">
+        <div class="question-tete">
+          ${q.ref ? `<span class="ref">${echapper(q.ref)}</span>` : ""}
+          <div class="texte">${enrichir(q.texte)}</div>
+          <button class="devoiler" type="button" data-cle="${cle}"
+                  aria-expanded="${ouvert}" aria-controls="c-${cle}">
+            ${ouvert ? "Masquer" : "Afficher la correction"}
+          </button>
+        </div>
+        <div class="correction" id="c-${cle}" ${ouvert ? "" : "hidden"}>
+          ${corpsCorrection(q)}
+        </div>
+      </article>`;
+    }).join("")}`;
+
+  travail.querySelectorAll(".devoiler").forEach(b =>
+    b.addEventListener("click", () => basculer(b)));
+  document.getElementById("tout").addEventListener("click", toutAfficher);
+  majPastilles();
+  if (deplacerFocus) {
+    history.replaceState(null, "", "#" + ex.id);
+    travail.querySelector("h2").scrollIntoView({ block: "nearest" });
+  }
+}
+
+function basculer(bouton) {
+  const cle = bouton.dataset.cle;
+  const zone = document.getElementById("c-" + cle);
+  const ouvrir = zone.hidden;
+  zone.hidden = !ouvrir;
+  bouton.setAttribute("aria-expanded", String(ouvrir));
+  bouton.textContent = ouvrir ? "Masquer" : "Afficher la correction";
+  if (ouvrir) vus.add(cle); else vus.delete(cle);
+  memoriser();
+  majPastilles();
+}
+
+function toutAfficher() {
+  const boutons = [...travail.querySelectorAll(".devoiler")];
+  const toutOuvert = boutons.every(b => b.getAttribute("aria-expanded") === "true");
+  boutons.forEach(b => {
+    if ((b.getAttribute("aria-expanded") === "true") === toutOuvert) basculer(b);
+  });
+  document.getElementById("tout").textContent = toutOuvert ? "Tout afficher" : "Tout masquer";
+}
+
+function majPastilles() {
+  rail.querySelectorAll(".onglet").forEach(b => {
+    const ex = tousExercices.find(e => e.id === b.dataset.cible);
+    b.classList.toggle("vu", exerciceVu(ex));
+  });
+  const bouton = document.getElementById("tout");
+  if (bouton && courant) {
+    const boutons = [...travail.querySelectorAll(".devoiler")];
+    bouton.textContent = boutons.every(b => b.getAttribute("aria-expanded") === "true")
+      ? "Tout masquer" : "Tout afficher";
+  }
+}
+
+construireRail();
+const ancre = (location.hash || "").replace("#", "");
+afficher(tousExercices.some(e => e.id === ancre) ? ancre : tousExercices[0].id, false);
+</script>
+</script>
+</body>
+</html>

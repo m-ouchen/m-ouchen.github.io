@@ -1,0 +1,1896 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Corrigé du TP 1 : Containers, ensembles et dictionnaires</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+/* Disposition : console à deux volets — rail des exercices à gauche, colonne de
+   travail à droite ; au format téléphone le rail devient une barre de pastilles. */
+:root {
+  --bleu:        #2A5B7F;   /* charte M235 — titres, rail, filets        */
+  --sarcelle:    #2E8B79;   /* charte M235 assombrie pour le texte       */
+  --vert:        #5E7A18;   /* charte M235 assombrie — solution retenue  */
+  --prune:       #B03F60;   /* erreurs fréquentes                        */
+  --encre:       #16242E;
+  --encre-douce: #51616C;
+  --fond:        #FBFCFD;
+  --carte:       #FFFFFF;
+  --surface:     #F1F6F9;   /* neutre biaisé vers le bleu de la charte   */
+  --filet:       #D6E3EC;
+  --code-fond:   #F4F8FA;
+  --code-filet:  #DCE8F0;
+  --ombre:       0 1px 2px rgba(22, 36, 46, .06), 0 8px 24px rgba(22, 36, 46, .05);
+
+  --syn-mot:     #C0392B;
+  --syn-natif:   #6F42C1;
+  --syn-texte:   #0B4F8A;
+  --syn-note:    #67757F;
+  --syn-nombre:  #1A6FAF;
+
+  --titre: "Zilla Slab", Rockwell, Georgia, serif;
+  --corps: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: Consolas, "JetBrains Mono", ui-monospace, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+    --encre: #E6EDF2; --encre-douce: #9FB0BC;
+    --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+    --code-fond: #101E27; --code-filet: #263B49;
+    --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+    --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+    --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+  --encre: #E6EDF2; --encre-douce: #9FB0BC;
+  --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+  --code-fond: #101E27; --code-filet: #263B49;
+  --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+  --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0; background: var(--fond); color: var(--encre);
+  font-family: var(--corps); font-size: 16px; line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+h1, h2, h3, h4 { font-family: var(--titre); text-wrap: balance; margin: 0; }
+code, pre { font-family: var(--mono); }
+:focus-visible { outline: 2.5px solid var(--sarcelle); outline-offset: 2px; border-radius: 3px; }
+
+/* — bandeau — */
+.bandeau {
+  background: var(--bleu); color: #fff;
+  padding-block: 18px 16px; padding-inline: 16px;
+}
+.bandeau-interieur { max-width: 1180px; margin: 0 auto; display: flex;
+  flex-wrap: wrap; gap: 12px 24px; align-items: baseline; }
+.bandeau h1 { font-size: clamp(1.25rem, 1rem + 1.2vw, 1.7rem); font-weight: 600;
+  letter-spacing: .01em; }
+.bandeau p { margin: 0; font-size: .86rem; opacity: .82; }
+.bandeau .module { font-family: var(--mono); font-size: .76rem;
+  letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+
+/* — mise en page — */
+.page { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 20px 56px; display: grid; gap: 24px;
+  grid-template-columns: 236px minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .page { grid-template-columns: minmax(0, 1fr); } }
+
+/* — rail — */
+.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+@media (max-width: 860px) { .rail { position: static; } }
+.rail-groupe + .rail-groupe { margin-top: 18px; }
+.rail-titre { font-family: var(--mono); font-size: .68rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); margin-bottom: 7px; }
+.rail-liste { display: flex; flex-direction: column; gap: 3px; }
+@media (max-width: 860px) {
+  .rail-liste { flex-direction: row; flex-wrap: wrap; }
+  .rail-groupe + .rail-groupe { margin-top: 10px; }
+}
+.onglet {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  font: inherit; font-size: .91rem; text-align: left; cursor: pointer;
+  background: none; border: 1px solid transparent; border-radius: 7px;
+  padding: 6px 10px; color: var(--encre);
+}
+.onglet:hover { background: var(--surface); }
+.onglet[aria-current="true"] { background: var(--bleu); color: #fff;
+  border-color: var(--bleu); }
+.onglet .cle { font-family: var(--mono); font-size: .78rem; font-weight: 600;
+  min-width: 1.6em; }
+.onglet .pastille { margin-left: auto; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--vert); opacity: 0; flex: none; }
+.onglet.vu .pastille { opacity: 1; }
+@media (max-width: 860px) { .onglet { width: auto; } .onglet .pastille { margin-left: 4px; } }
+
+/* — colonne de travail — */
+.travail { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.chapeau { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: baseline;
+  justify-content: space-between; }
+.chapeau h2 { font-size: clamp(1.15rem, 1rem + .9vw, 1.5rem); color: var(--bleu);
+  font-weight: 600; }
+.chapeau .partie { font-family: var(--mono); font-size: .72rem; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--encre-douce); display: block;
+  margin-bottom: 2px; }
+
+.bouton-plat { font: inherit; font-size: .84rem; cursor: pointer;
+  background: var(--carte); color: var(--bleu); border: 1px solid var(--filet);
+  border-radius: 7px; padding: 5px 12px; }
+.bouton-plat:hover { background: var(--surface); }
+
+.enonce { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 10px; padding: 14px 16px; }
+.enonce p { margin: 0 0 10px; }
+.enonce p:last-child { margin-bottom: 0; }
+
+.question { background: var(--carte); border: 1px solid var(--filet);
+  border-radius: 10px; box-shadow: var(--ombre); overflow: hidden; }
+.question-tete { display: flex; gap: 12px; align-items: flex-start;
+  padding: 13px 16px; }
+.question-tete .ref { font-family: var(--mono); font-weight: 600;
+  color: var(--sarcelle); flex: none; padding-top: 1px; }
+.question-tete .texte { min-width: 0; flex: 1; }
+.devoiler { font: inherit; font-size: .84rem; cursor: pointer; flex: none;
+  background: var(--bleu); color: #fff; border: 1px solid var(--bleu);
+  border-radius: 7px; padding: 5px 12px; white-space: nowrap; }
+.devoiler[aria-expanded="true"] { background: var(--carte); color: var(--bleu); }
+@media (max-width: 560px) {
+  .question-tete { flex-wrap: wrap; }
+  .devoiler { width: 100%; }
+}
+.correction { border-top: 1px solid var(--filet); padding: 14px 16px 16px;
+  display: flex; flex-direction: column; gap: 14px; }
+@media (prefers-reduced-motion: no-preference) {
+  .correction { animation: apparait .22s ease-out; }
+  @keyframes apparait { from { opacity: 0; transform: translateY(-3px); } }
+}
+
+.reponse { border-left: 3px solid var(--vert); padding-left: 13px; }
+.reponse .etiquette { font-family: var(--mono); font-size: .68rem;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--vert);
+  font-weight: 600; display: block; margin-bottom: 4px; }
+.reponse p { margin: 0 0 8px; }
+.reponse p:last-child { margin-bottom: 0; }
+
+.sous-titre { font-family: var(--mono); font-size: .7rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); font-weight: 600;
+  display: flex; align-items: center; gap: 9px; }
+.sous-titre::after { content: ""; flex: 1; height: 1px; background: var(--filet); }
+
+.lot { display: flex; flex-direction: column; gap: 10px; }
+.fiche { border: 1px solid var(--filet); border-radius: 9px; overflow: hidden;
+  background: var(--carte); }
+.fiche-tete { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center;
+  padding: 9px 13px; background: var(--surface);
+  border-bottom: 1px solid var(--filet); }
+.fiche-tete h4 { font-size: .95rem; font-weight: 600; min-width: 0; }
+.verdict { font-family: var(--mono); font-size: .66rem; letter-spacing: .07em;
+  text-transform: uppercase; font-weight: 600; padding: 2px 8px;
+  border-radius: 999px; border: 1px solid currentColor; flex: none; }
+.v-retenue  { color: var(--vert); }
+.v-ok       { color: var(--sarcelle); }
+.v-eviter   { color: var(--prune); }
+.v-expert   { color: var(--bleu); }
+.fiche-corps { padding: 11px 13px; display: flex; flex-direction: column; gap: 9px; }
+.fiche-corps p { margin: 0; }
+.fiche.erreur { border-color: color-mix(in srgb, var(--prune) 38%, var(--filet)); }
+.fiche.erreur .fiche-tete { background: color-mix(in srgb, var(--prune) 8%, var(--carte)); }
+
+.ligne-diag { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px;
+  font-size: .91rem; }
+.ligne-diag dt { font-family: var(--mono); font-size: .72rem; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--encre-douce); padding-top: 3px; }
+.ligne-diag dd { margin: 0; min-width: 0; }
+
+pre.code { margin: 0; background: var(--code-fond); border: 1px solid var(--code-filet);
+  border-radius: 7px; padding: 10px 12px; overflow-x: auto;
+  font-size: .845rem; line-height: 1.55; tab-size: 4; }
+pre.code.sortie { background: var(--surface); color: var(--encre-douce); }
+.k { color: var(--syn-mot); } .n { color: var(--syn-natif); }
+.s { color: var(--syn-texte); } .c { color: var(--syn-note); font-style: italic; }
+.d { color: var(--syn-nombre); }
+code.ligne { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 4px; padding: .5px 5px; font-size: .88em; }
+
+table.pile { width: 100%; border-collapse: collapse; font-size: .88rem; }
+table.pile th, table.pile td { border: 1px solid var(--filet); padding: 6px 10px;
+  text-align: left; }
+table.pile th { background: var(--surface); font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--encre-douce); font-weight: 600; }
+table.pile td:first-child, table.pile td:last-child { font-family: var(--mono);
+  font-variant-numeric: tabular-nums; }
+.table-enveloppe { overflow-x: auto; }
+
+.pied { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 0 40px; color: var(--encre-douce); font-size: .82rem; }
+.pied p { margin: 0; }
+</style>
+</head>
+<body>
+
+<header class="bandeau">
+  <div class="bandeau-interieur">
+    <div>
+      <span class="module">Programmation avancée en Python</span>
+      <h1>TP 1 — Containers : tuples, ensembles et dictionnaires</h1>
+    </div>
+    <p>Choisissez un exercice, cherchez, puis dévoilez la correction.</p>
+  </div>
+</header>
+
+<main class="page">
+  <nav class="rail" id="rail" aria-label="Exercices du TP"></nav>
+  <section class="travail" id="travail" aria-live="polite"></section>
+</main>
+
+<footer class="pied">
+  <p>École Supérieure Mohammed VI d'Ingénieurs en Sciences de la Santé — UM6SS.
+     Toutes les sorties affichées ici ont été exécutées sous Python&nbsp;3.11.</p>
+</footer>
+
+<script>
+/* ------------------------------------------------------------------ *
+ *  Coloration syntaxique Python — segmentation puis échappement.
+ *  On tokenise la chaîne brute, puis on échappe chaque segment : faire
+ *  l'inverse ferait correspondre les motifs à l'intérieur des entités.
+ * ------------------------------------------------------------------ */
+const MOTS = new Set(("False None True and as assert async await break class " +
+  "continue def del elif else except finally for from global if import in is " +
+  "lambda nonlocal not or pass raise return try while with yield").split(" "));
+const NATIFS = new Set(("abs all any bool dict enumerate filter float frozenset " +
+  "hash int isinstance len list map max min print range repr reversed round set " +
+  "sorted str sum tuple type zip").split(" "));
+const JETON = /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|"[^"\n]*"|'[^'\n]*')|(\b\d+\.?\d*\b)|([A-Za-z_]\w*)/g;
+
+function echapper(t) {
+  return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function colorer(source) {
+  let sortie = "", position = 0, m;
+  JETON.lastIndex = 0;
+  while ((m = JETON.exec(source)) !== null) {
+    sortie += echapper(source.slice(position, m.index));
+    const [tout, note, texte, nombre, mot] = m;
+    if (note !== undefined)        sortie += '<span class="c">' + echapper(tout) + "</span>";
+    else if (texte !== undefined)  sortie += '<span class="s">' + echapper(tout) + "</span>";
+    else if (nombre !== undefined) sortie += '<span class="d">' + echapper(tout) + "</span>";
+    else if (MOTS.has(mot))        sortie += '<span class="k">' + echapper(tout) + "</span>";
+    else if (NATIFS.has(mot))      sortie += '<span class="n">' + echapper(tout) + "</span>";
+    else                           sortie += echapper(tout);
+    position = m.index + tout.length;
+  }
+  return sortie + echapper(source.slice(position));
+}
+
+/* Texte enrichi minimal : `code` et **gras**, échappés. */
+function enrichir(t) {
+  return echapper(t)
+    .replace(/`([^`]+)`/g, '<code class="ligne">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+}
+
+const bloc = (src, sortie) =>
+  '<pre class="code' + (sortie ? " sortie" : "") + '">' +
+  (sortie ? echapper(src) : colorer(src)) + "</pre>";
+
+/* ------------------------------------------------------------------ *
+ *  Le TP, tel qu'il a été distribué.
+ * ------------------------------------------------------------------ */
+const TP = [
+{ partie: "Partie A — Prise en main", exercices: [
+
+  { id: "a1", titre: "A1 — Liste et tuple",
+    enonce: "On écrit :",
+    code: `L = [2, 7, -1, 6, 4]
+T = (2, 7, -1, 6, 4)`,
+    questions: [
+      { ref: "1.", texte: "Prédisez ce que rend L[-2], puis T[-2].",
+        reponse: "Les deux rendent `6`.",
+        sortie: `>>> L[-2]
+6
+>>> T[-2]
+6`,
+        notes: ["L'indice négatif compte depuis la fin : `-1` est le dernier élément, `-2` l'avant-dernier. **L'accès s'écrit de la même manière sur une liste et sur un tuple** : la différence entre les deux ne porte pas sur la lecture."],
+        erreurs: [
+          { titre: "Répondre `4` pour `L[-2]`",
+            cause: "On compte `-2` comme s'il désignait le deuxième depuis la fin en partant de zéro. La numérotation négative commence à `-1`, non à `0` : il n'existe pas de `-0`." },
+          { titre: "Attendre une erreur sur `T[-2]`",
+            cause: "Un tuple n'interdit pas la lecture, seulement l'écriture. On confond immutabilité et inaccessibilité." }
+        ] },
+
+      { ref: "2.", texte: "Prédisez ce que rend T[1:4:2].",
+        reponse: "Un tuple de deux éléments, `(7, 6)`.",
+        sortie: `>>> T[1:4:2]
+(7, 6)`,
+        notes: ["La tranche se lit `[début:fin:pas]` : on part de l'indice 1, on s'arrête **avant** l'indice 4, en avançant de 2 en 2 — donc les indices 1 et 3, soit `7` et `6`.",
+                "NB: trancher un tuple rend un tuple ; trancher une liste rend une liste. L'opération conserve le type."],
+        solutions: [
+          { verdict: "retenue", nom: "Dérouler les indices retenus",
+            texte: "Indices parcourus : 1, puis 1+2 = 3 ; 3+2 = 5 dépasse la borne 4, on s'arrête. Valeurs : `T[1]` = 7 et `T[3]` = 6." },
+          { verdict: "expert", nom: "Vérifier avec range",
+            code: `print(list(range(1, 4, 2)))    # Affiche [1, 3]`,
+            texte: "La tranche et `range` suivent la même règle de bornes. Quand la tranche est douteuse, `range` la rend lisible." }
+        ],
+        erreurs: [
+          { titre: "Répondre `(7, -1, 6)`",
+            cause: "C'est `T[1:4]`, sans le pas. Le troisième nombre n'est pas une borne mais un incrément." },
+          { titre: "Inclure l'indice 4 et répondre `(7, 6, 4)`",
+            cause: "La borne de fin est toujours exclue, avec ou sans pas." }
+        ] },
+
+      { ref: "3.", texte: "Prédisez ce qui se passe à l'exécution de L[3] = \"Hi\", puis de T[3] = \"Hi\".",
+        reponse: "La première ligne modifie la liste en silence ; la seconde lève une `TypeError`.",
+        sortie: `>>> L[3] = "Hi"
+>>> L
+[2, 7, -1, 'Hi', 4]
+>>> T[3] = "Hi"
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: 'tuple' object does not support item assignment`,
+        notes: ["C'est **la** différence entre les deux structures, et elle ne se voit qu'à l'écriture. La liste accepte l'affectation par indice, le tuple la refuse.",
+                "On remarquera que la liste accepte une chaîne de caractères au milieu d'entiers : Python ne contraint pas le type des éléments. Ce n'est pas la mutabilité qui est en cause ici, mais l'absence de typage des conteneurs natifs."],
+        erreurs: [
+          { titre: "Annoncer une `AttributeError` sur le tuple",
+            cause: "L'affectation par indice ne passe pas par un attribut visible : elle est refusée par le protocole d'écriture lui-même, d'où une `TypeError`. L'`AttributeError`, c'est ce que rend `T.append(5)`." },
+          { titre: "Croire que `L[3] = \"Hi\"` crée une nouvelle liste",
+            cause: "Non : l'objet est modifié **sur place**. Tout autre nom désignant la même liste voit la modification. C'est exactement ce que le piège C3 exploitera." }
+        ] },
+
+      { ref: "4.", texte: "Que rend len(T) ? Et T+(39.1,) ?",
+        reponse: "`len(T)` rend `5` ; `T+(39.1,)` rend un **nouveau** tuple de six éléments.",
+        sortie: `>>> len(T)
+5
+>>> T + (39.1,)
+(2, 7, -1, 6, 4, 39.1)
+>>> T
+(2, 7, -1, 6, 4)`,
+        notes: ["La dernière ligne est la plus instructive : `T` n'a pas changé. La concaténation **construit** un tuple et le rend ; elle ne touche pas aux opérandes. Pour conserver le résultat, il faut l'affecter : `T = T + (39.1,)`."],
+        solutions: [
+          { verdict: "retenue", nom: "Concaténer puis réaffecter",
+            code: `T = T + (39.1,)
+print(len(T))        # Affiche 6`,
+            texte: "Le nom `T` désigne désormais le nouveau tuple. L'ancien, que plus personne ne nomme, est oublié." },
+          { verdict: "ok", nom: "Écrire T += (39.1,)",
+            code: `T += (39.1,)         # équivaut à T = T + (39.1,)`,
+            texte: "Sur un tuple, `+=` n'ajoute rien sur place : il concatène puis réaffecte le nom. Le raccourci est correct, mais il masque ce qui se passe." }
+        ],
+        erreurs: [
+          { titre: "Écrire `T + (39.1)` sans la virgule",
+            cause: "`(39.1)` n'est pas un tuple : les parenthèses y jouent leur rôle arithmétique habituel, et l'expression vaut le flottant `39.1`. D'où l'erreur ci-dessous. **C'est la virgule, et non la parenthèse, qui fait le tuple.**",
+            sortie: `TypeError: can only concatenate tuple (not "float") to tuple` },
+          { titre: "Attendre que `T` contienne six éléments après l'expression",
+            cause: "Évaluer une expression n'est pas affecter. Sans `T =` devant, le tuple produit est calculé, affiché, puis perdu." }
+        ] }
+    ] },
+
+  { id: "a2", titre: "A2 — Ensemble de chaînes",
+    enonce: "On écrit :",
+    code: `banks = {"Banque populaire", "CIH", "Saham Bank", "CIH", "BMCE"}`,
+    questions: [
+      { ref: "1.", texte: "Combien d'éléments contient banks ? Prédisez ce qu'affiche print(banks).",
+        reponse: "Quatre éléments : le doublon `\"CIH\"` a été absorbé à la construction.",
+        sortie: `>>> len(banks)
+4
+>>> print(banks)
+{'CIH', 'Saham Bank', 'BMCE', 'Banque populaire'}`,
+        notes: ["L'ensemble écarte les doublons **sans rien signaler** : aucune erreur, aucun avertissement. Cinq littéraux écrits, quatre éléments stockés.",
+                "L'ordre affiché ci-dessus est celui qu'a donné *une* exécution. Il n'est pas reproductible d'un interpréteur à l'autre — c'est l'objet du piège C4. Ne tenez pour juste que l'**ensemble** des quatre noms, pas leur disposition."],
+        erreurs: [
+          { titre: "Répondre cinq",
+            cause: "On compte les littéraux écrits plutôt que les éléments retenus. C'est précisément la propriété que l'on vient chercher dans un ensemble : la déduplication est gratuite et silencieuse." },
+          { titre: "Prédire l'ordre d'écriture",
+            cause: "Un ensemble n'a pas d'ordre d'insertion à restituer. Prédire l'affichage exact est une question mal posée, et le TP la pose exprès." }
+        ] },
+
+      { ref: "2.", texte: "Que rend \" CIH \" in banks ? Et banks[0] ?",
+        reponse: "Le test rend `False` ; l'indexation lève une `TypeError`.",
+        sortie: `>>> " CIH " in banks
+False
+>>> banks[0]
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: 'set' object is not subscriptable`,
+        notes: ["Deux leçons distinctes dans une seule question. La première : `\" CIH \"` et `\"CIH\"` sont deux chaînes différentes — les espaces comptent, et l'appartenance se juge sur l'égalité exacte. La seconde : un ensemble ne s'indexe pas, parce qu'il n'a **pas de position** à désigner."],
+        solutions: [
+          { verdict: "retenue", nom: "Nettoyer avant de tester",
+            code: `print("  CIH  ".strip() in banks)    # Affiche True`,
+            texte: "`strip()` retire les espaces de début et de fin. C'est le réflexe à prendre sur toute donnée saisie à la main." },
+          { verdict: "ok", nom: "Prendre un élément sans l'indexer",
+            code: `print(next(iter(banks)))    # un élément, lequel n'est pas garanti`,
+            texte: "Techniquement possible, mais l'élément obtenu est arbitraire. Si l'on a besoin d'un rang, c'est qu'il fallait une liste." }
+        ],
+        erreurs: [
+          { titre: "Attendre `True` au test d'appartenance",
+            cause: "On lit la chaîne comme un humain, en ignorant les espaces. Python compare caractère par caractère : `len(\" CIH \")` vaut 5, `len(\"CIH\")` vaut 3." },
+          { titre: "Attendre `'Banque populaire'` pour `banks[0]`",
+            cause: "On transpose la syntaxe de la liste. L'ensemble échange l'accès par rang contre un test d'appartenance très rapide : c'est un troc, pas un oubli des concepteurs." }
+        ] },
+
+      { ref: "3.", texte: "Que ferait l'expression banks.add(\"Bank of Africa\") ?",
+        reponse: "Elle ajoute l'élément **sur place** et ne rend rien (`None`).",
+        sortie: `>>> banks.add("Bank of Africa")
+>>> banks
+{'Bank of Africa', 'CIH', 'Saham Bank', 'Banque populaire', 'BMCE'}`,
+        notes: ["Comparez avec `T + (39.1,)` de l'exercice A1 : là, une expression construisait un nouvel objet sans toucher à l'ancien ; ici, une méthode modifie l'objet existant et ne rend rien. **A retenir : ce qui modifie sur place ne rend généralement rien.**"],
+        solutions: [
+          { verdict: "retenue", nom: "Appeler add comme une instruction",
+            code: `banks.add("Bank of Africa")
+print(len(banks))    # Affiche 5`,
+            texte: "On appelle la méthode pour son effet, puis on observe l'ensemble modifié." },
+          { verdict: "eviter", nom: "Affecter le résultat de add",
+            code: `banks = banks.add("Bank of Africa")   # banks vaut désormais None`,
+            texte: "L'ajout a bien eu lieu, mais l'ensemble est aussitôt remplacé par le `None` que rend la méthode. L'erreur est muette sur l'instant, et se manifeste à l'usage suivant." }
+        ],
+        erreurs: [
+          { titre: "Croire que `add` rend le nouvel ensemble",
+            cause: "C'est le même réflexe que l'on avait sur `liste.append(...)`. La convention de Python est constante : les méthodes qui modifient sur place rendent `None`." },
+          { titre: "Ajouter un élément déjà présent et attendre une erreur",
+            cause: "`banks.add(\"CIH\")` ne fait rien et ne signale rien. L'ajout d'un doublon est une opération licite et sans effet." }
+        ] }
+    ] },
+
+  { id: "a3", titre: "A3 — Dictionnaire",
+    enonce: "On écrit :",
+    code: `voiture = {'Marque': 'Renault', 'Modèle': 'Mégane', 'Année': 2021, 'Carburant': 'Diesel'}`,
+    questions: [
+      { ref: "1.", texte: "Écrivez la ligne qui porte l'année à 2019.",
+        reponse: "`voiture['Année'] = 2019`",
+        notes: ["Une seule syntaxe sert à deux opérations distinctes : si la clé existe, la valeur est remplacée ; si elle n'existe pas, le couple est créé. Le dictionnaire ne distingue pas la mise à jour de l'insertion."],
+        solutions: [
+          { verdict: "retenue", nom: "Affectation par clé",
+            code: `voiture['Année'] = 2019
+print(voiture['Année'])    # Affiche 2019`,
+            texte: "La forme directe, et la seule à connaître pour cette séance." },
+          { verdict: "ok", nom: "Mise à jour par update",
+            code: `voiture.update({'Année': 2019})`,
+            texte: "Correct, et utile quand plusieurs clés changent d'un coup. Pour une seule clé, l'affectation directe se lit mieux." }
+        ],
+        erreurs: [
+          { titre: "Écrire `voiture.Année = 2019`",
+            cause: "La notation pointée désigne un attribut, pas une clé. Elle lève une `AttributeError` : un dictionnaire se lit entre crochets." },
+          { titre: "Écrire `voiture[2] = 2019`",
+            cause: "On transpose l'indexation de la liste. La clé du troisième couple n'est pas `2`, c'est `'Année'` — et un dictionnaire n'a pas de troisième position à désigner." }
+        ] },
+
+      { ref: "2.", texte: "Écrivez la boucle qui affiche les données de la voiture sous la forme clé : valeur.",
+        reponse: "On parcourt `.items()`, qui livre les deux termes à la fois.",
+        sortie: `Marque : Renault
+Modèle : Mégane
+Année : 2019
+Carburant : Diesel`,
+        solutions: [
+          { verdict: "retenue", nom: "Parcourir items()",
+            code: `for cle, valeur in voiture.items():
+    print(f"{cle} : {valeur}")`,
+            texte: "La forme à retenir. `.items()` rend des couples, que la boucle décompose en deux noms." },
+          { verdict: "ok", nom: "Parcourir les clés et relire la valeur",
+            code: `for cle in voiture:
+    print(f"{cle} : {voiture[cle]}")`,
+            texte: "Correct, et utile quand on ne se sert pas de la valeur à chaque tour. Ici, cela fait une consultation de plus par ligne pour rien." },
+          { verdict: "expert", nom: "Aligner les clés",
+            code: `largeur = max(len(c) for c in voiture)
+for cle, valeur in voiture.items():
+    print(f"{cle:<{largeur}} : {valeur}")`,
+            sortie: `Marque    : Renault
+Modèle    : Mégane
+Année     : 2019
+Carburant : Diesel`,
+            texte: "Hors programme, mais c'est ainsi qu'on rend lisible un relevé un peu long." }
+        ],
+        erreurs: [
+          { titre: "Écrire `for cle, valeur in voiture:`",
+            cause: "Parcourir un dictionnaire livre ses **clés**, une par tour — et non des couples. Python tente alors de décomposer la chaîne `'Marque'` en deux noms et échoue : `ValueError: too many values to unpack (expected 2)`." },
+          { titre: "Écrire `print(cle, \" : \", valeur)`",
+            cause: "Le résultat n'est pas faux, mais `print` insère ses propres espaces autour de chaque argument : on obtient `Marque  :  Renault`. L'`f`-chaîne laisse la maîtrise de l'espacement." }
+        ] },
+
+      { ref: "3.", texte: "Prédisez ce que rend len(voiture) après avoir exécuté voiture['Couleur'] = 'Rouge'.",
+        reponse: "`5` : la clé `'Couleur'` n'existait pas, le couple a donc été **ajouté**.",
+        sortie: `>>> len(voiture)
+4
+>>> voiture['Couleur'] = 'Rouge'
+>>> len(voiture)
+5`,
+        notes: ["Comparez avec la question 1 : la même syntaxe avait laissé la taille inchangée, parce que la clé existait déjà. `len` compte les **couples**, c'est-à-dire les clés.",
+                "NB: c'est aussi ce qui rend l'écriture dans un dictionnaire silencieusement risquée. Une faute de frappe sur une clé ne lève rien : elle crée une entrée de plus."],
+        erreurs: [
+          { titre: "Répondre `4`, en pensant que l'affectation remplace",
+            cause: "Elle ne remplace que si la clé est déjà là. Sinon, elle crée." },
+          { titre: "Répondre `10` en comptant clés et valeurs",
+            cause: "`len` d'un dictionnaire compte les entrées, non les objets qu'elles contiennent." }
+        ] }
+    ] }
+] },
+{ partie: "Partie B — Extension", exercices: [
+
+  { id: "b1", titre: "B1 — Ce qui peut servir de clé",
+    enonce: "On tente d'utiliser chacun de ces objets comme clé d'un dictionnaire.",
+    code: `d = {42: "a"}
+d = {"Amal": "a"}
+d = {(37.2, 38.5): "a"}
+d = {[37.2, 38.5]: "a"}
+d = {(1, [2, 3]): "a"}`,
+    questions: [
+      { ref: "1.", texte: "Prédisez, pour chacune des cinq lignes, si elle fonctionne ou lève une erreur. Écrivez vos cinq prédictions avant de passer à la machine.",
+        reponse: "Les trois premières fonctionnent, les deux dernières échouent.",
+        pile: { entetes: ["Ligne", "Clé proposée", "Résultat"],
+          lignes: [
+            ["1", "`42` — entier", "fonctionne"],
+            ["2", "`\"Amal\"` — chaîne de caractères", "fonctionne"],
+            ["3", "`(37.2, 38.5)` — tuple de flottants", "fonctionne"],
+            ["4", "`[37.2, 38.5]` — liste", "`TypeError`"],
+            ["5", "`(1, [2, 3])` — tuple **contenant** une liste", "`TypeError`"]
+          ] },
+        notes: ["La cinquième ligne est celle qui départage les prédictions. Le tuple est pourtant immuable : ce n'est donc pas le type de l'enveloppe qui décide, mais **son contenu**."],
+        erreurs: [
+          { titre: "Prédire que la ligne 5 fonctionne parce que c'est un tuple",
+            cause: "C'est la prédiction majoritaire, et c'est pour elle que la question existe. Un tuple n'est hachable que si **tous** ses éléments le sont : il calcule son empreinte à partir des leurs." },
+          { titre: "Prédire que la ligne 3 échoue à cause des flottants",
+            cause: "Un flottant est parfaitement hachable. Il pose un autre problème, celui du piège C5 — mais pas celui-ci." }
+        ] },
+
+      { ref: "2.", texte: "Pour celles qui échouent, quel est le nom de l'erreur ?",
+        reponse: "`TypeError`, avec le même message dans les deux cas.",
+        sortie: `>>> d = {[37.2, 38.5]: "a"}
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: unhashable type: 'list'
+>>> d = {(1, [2, 3]): "a"}
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: unhashable type: 'list'`,
+        notes: ["Le message désigne la liste dans les deux lignes, y compris quand elle est enfouie dans un tuple. C'est la meilleure indication que le refus vient du contenu.",
+                "NB: le même message apparaîtra si vous tentez `set_de_listes = {[1, 2], [3]}` : un ensemble impose à ses éléments exactement ce qu'un dictionnaire impose à ses clés."],
+        erreurs: [
+          { titre: "Annoncer une `KeyError`",
+            cause: "La `KeyError` signale une clé **absente** d'un dictionnaire existant. Ici, la clé est refusée avant même d'être posée : le dictionnaire n'est jamais construit." }
+        ] },
+
+      { ref: "3.", texte: "Énoncez en une phrase la règle qui explique vos cinq résultats.",
+        reponse: "Une clé doit être **hachable**, c'est-à-dire posséder une empreinte stable — ce qui suppose qu'elle soit immuable de part en part.",
+        notes: ["Le dictionnaire range chaque couple à une position calculée depuis l'empreinte de sa clé. Si la clé pouvait changer après le rangement, son empreinte changerait aussi et le couple deviendrait introuvable. Python interdit donc la situation en amont, plutôt que de laisser se produire une perte silencieuse."],
+        solutions: [
+          { verdict: "retenue", nom: "Formulation retenue",
+            texte: "Est hachable tout objet immuable dont les éléments sont eux-mêmes hachables. Les types natifs hachables : `int`, `float`, `str`, `bool`, `tuple` d'éléments hachables, `frozenset`. Ne le sont pas : `list`, `dict`, `set`." },
+          { verdict: "expert", nom: "Le vérifier soi-même",
+            code: `print(hash((37.2, 38.5)))    # Affiche un entier
+print(hash([37.2, 38.5]))    # TypeError: unhashable type: 'list'`,
+            texte: "`hash` est la fonction que le dictionnaire appelle pour vous. L'essayer directement sur un objet répond à la question « puis-je en faire une clé ? »." },
+          { verdict: "expert", nom: "Rendre un ensemble utilisable comme clé",
+            code: `d = {frozenset([1, 2]): "ok"}
+print(frozenset([1, 2]) in d)    # Affiche True`,
+            texte: "`frozenset` est la version immuable de l'ensemble, donc hachable. C'est la solution quand on veut indexer par un groupe sans ordre." }
+        ],
+        erreurs: [
+          { titre: "Formuler « une clé doit être immuable »",
+            cause: "Presque juste, et insuffisant : la ligne 5 propose une clé immuable, et elle est refusée. Il faut l'immuabilité **de bout en bout**." },
+          { titre: "Formuler « une clé doit être un nombre ou une chaîne »",
+            cause: "La règle décrit les cas courants sans expliquer la ligne 3, qui fonctionne. Une règle qui n'explique pas les cinq résultats n'est pas la règle." }
+        ] }
+    ] },
+
+  { id: "b2", titre: "B2 — Compréhension de dictionnaire",
+    enonce: "Une compréhension de dictionnaire se construit comme une compréhension de liste, mais produit des couples clé: valeur.",
+    code: `celsius = {"Amal": 38.5, "Reda": 37.1}
+fahrenheit = {nom: t * 9 / 5 + 32 for nom, t in celsius.items()}`,
+    questions: [
+      { ref: "1.", texte: "Prédisez le contenu de fahrenheit.",
+        reponse: "Les mêmes clés, les valeurs converties.",
+        sortie: `>>> fahrenheit
+{'Amal': 101.3, 'Reda': 98.78}`,
+        notes: ["La compréhension construit un **nouveau** dictionnaire : `celsius` est intact. Les deux parties de l'expression se lisent séparément — `nom: t * 9 / 5 + 32` dit ce qu'on fabrique, `for nom, t in celsius.items()` dit avec quoi.",
+                "NB: `98.78` et non `98.8` — les flottants s'affichent tels qu'ils sont calculés. L'arrondi, si on le veut, se demande : `round(t * 9 / 5 + 32, 1)`."],
+        erreurs: [
+          { titre: "Prédire que `celsius` est modifié",
+            cause: "Une compréhension ne modifie jamais sa source. Elle la lit." },
+          { titre: "Oublier les deux-points dans l'expression de tête",
+            cause: "`{nom, t * 9 / 5 + 32 for ...}` ne construit pas un dictionnaire : Python lit un couple là où il attend une expression unique et refuse la ligne. Le deux-points est ce qui distingue la compréhension de dictionnaire de celle d'ensemble.",
+            sortie: `SyntaxError: did you forget parentheses around the comprehension target?` }
+        ] },
+
+      { ref: "2.", texte: "Écrivez, sur ce modèle, l'expression qui construit le dictionnaire des seuls patients dont la température dépasse 38.0.",
+        reponse: "On ajoute une clause `if` après le `for`.",
+        sortie: `>>> temperatures = {"Amal": 38.5, "Reda": 37.1, "Sara": 39.2}
+>>> {nom: t for nom, t in temperatures.items() if t > 38.0}
+{'Amal': 38.5, 'Sara': 39.2}`,
+        solutions: [
+          { verdict: "retenue", nom: "Compréhension filtrante",
+            code: `fievres = {nom: t for nom, t in temperatures.items() if t > 38.0}`,
+            texte: "La forme à retenir : l'expression de tête fabrique, la clause `if` sélectionne." },
+          { verdict: "ok", nom: "Boucle explicite",
+            code: `fievres = {}
+for nom, t in temperatures.items():
+    if t > 38.0:
+        fievres[nom] = t`,
+            texte: "Strictement équivalent, en quatre lignes au lieu d'une. À préférer dès que la condition devient longue ou que l'on doit journaliser les cas écartés." },
+          { verdict: "eviter", nom: "Filtrer en supprimant",
+            code: `for nom in list(temperatures):
+    if temperatures[nom] <= 38.0:
+        del temperatures[nom]`,
+            texte: "Le résultat est juste, mais on a **détruit** la source. Le piège C2 montre en outre ce qui se passe si l'on omet le `list(...)`." }
+        ],
+        erreurs: [
+          { titre: "Placer le `if` avant le `for`",
+            cause: "`{nom: t if t > 38.0 for ...}` est une erreur de syntaxe. Avant le `for`, un `if` doit être ternaire et porter un `else` : il choisit une **valeur**, il ne filtre pas." },
+          { titre: "Écrire `if t > 38` et considérer que c'est la même chose",
+            cause: "Ici, oui, parce qu'aucune température ne vaut exactement 38. Mais `38` et `38.0` ne sont pas interchangeables dans tous les contextes, et un seuil écrit en entier finit par mentir sur son intention." }
+        ] },
+
+      { ref: "3.", texte: "Écrivez celle qui inverse le dictionnaire — les températures deviennent les clés. Que se passe-t-il si deux patients ont la même température ?",
+        reponse: "L'inversion s'écrit en échangeant les deux termes ; en cas d'égalité, **le dernier écrase le premier, en silence**.",
+        sortie: `>>> temperatures = {"Amal": 38.5, "Reda": 37.1, "Sara": 38.5}
+>>> {t: nom for nom, t in temperatures.items()}
+{38.5: 'Sara', 37.1: 'Reda'}`,
+        notes: ["Trois patients entrent, deux couples sortent. Amal a disparu : sa température était déjà une clé lorsque Sara est arrivée, et l'affectation par clé remplace.",
+                "Aucune erreur n'est levée. C'est le genre de perte que l'on ne découvre qu'en comptant les résultats — d'où l'intérêt de poser `len()` sur les deux dictionnaires."],
+        solutions: [
+          { verdict: "retenue", nom: "Inversion simple, avec sa limite assumée",
+            code: `par_temperature = {t: nom for nom, t in temperatures.items()}
+print(len(temperatures), len(par_temperature))    # Affiche 3 2`,
+            texte: "Acceptable **si** les valeurs sont uniques. La comparaison des deux longueurs est le contrôle qui le vérifie." },
+          { verdict: "expert", nom: "Inversion sans perte",
+            code: `from collections import defaultdict
+
+par_temperature = defaultdict(list)
+for nom, t in temperatures.items():
+    par_temperature[t].append(nom)
+print(dict(par_temperature))`,
+            sortie: `{38.5: ['Amal', 'Sara'], 37.1: ['Reda']}`,
+            texte: "La valeur devient une liste de noms : plus rien ne se perd. C'est exactement le mécanisme de l'exercice B4, et celui de la question 3.3 du problème." }
+        ],
+        erreurs: [
+          { titre: "Écrire `{nom: t for t, nom in temperatures.items()}`",
+            cause: "On a inversé les noms dans la clause `for` au lieu de l'expression de tête : `t` reçoit donc le nom du patient, et `nom` sa température. Le dictionnaire produit est identique à l'original, aux noms de variables près — un piège d'autant plus efficace qu'il ne lève rien." },
+          { titre: "Répondre qu'une erreur est levée en cas d'égalité",
+            cause: "Rien n'est levé. Un dictionnaire n'a aucun moyen de savoir qu'une clé réécrite vous dérangeait : réécrire une clé est l'opération normale." }
+        ] }
+    ] },
+
+  { id: "b3", titre: "B3 — Dictionnaire imbriqué",
+    enonce: "Un relevé peut être organisé par service :",
+    code: `hopital = {
+    "Cardiologie": {"Amal": 38.5, "Reda": 37.1},
+    "Pédiatrie": {"Sara": 39.2},
+}`,
+    questions: [
+      { ref: "1.", texte: "Écrivez l'expression qui rend la température de Sara.",
+        reponse: "`hopital[\"Pédiatrie\"][\"Sara\"]`, soit `39.2`.",
+        sortie: `>>> hopital["Pédiatrie"]["Sara"]
+39.2`,
+        notes: ["Les crochets s'enchaînent de gauche à droite : le premier rend le dictionnaire du service, le second y cherche le patient. Il n'y a pas de syntaxe spéciale pour l'imbrication — seulement deux accès successifs."],
+        solutions: [
+          { verdict: "retenue", nom: "Accès enchaîné",
+            code: `print(hopital["Pédiatrie"]["Sara"])    # Affiche 39.2` },
+          { verdict: "ok", nom: "Accès en deux temps",
+            code: `pediatrie = hopital["Pédiatrie"]
+print(pediatrie["Sara"])               # Affiche 39.2`,
+            texte: "Plus lisible quand on consulte plusieurs patients du même service — et `pediatrie` désigne bien le dictionnaire intérieur, pas une copie." },
+          { verdict: "expert", nom: "Accès prudent",
+            code: `print(hopital.get("Néphrologie", {}).get("Sara", "inconnue"))`,
+            sortie: `inconnue`,
+            texte: "Le `{}` par défaut permet de chaîner un second `.get` sans risque. Utile quand le service peut manquer ; voir le piège C1 pour le choix entre `.get` et l'erreur." }
+        ],
+        erreurs: [
+          { titre: "Écrire `hopital[\"Sara\"]`",
+            cause: "Le dictionnaire extérieur n'a que deux clés, les noms de services. `\"Sara\"` n'en est pas une : `KeyError: 'Sara'`." },
+          { titre: "Écrire `hopital[\"Pédiatrie\", \"Sara\"]`",
+            cause: "La virgule entre crochets forme un **tuple** : Python cherche alors la clé `(\"Pédiatrie\", \"Sara\")`, qui n'existe pas. Le message est trompeur car il affiche bien les deux noms." }
+        ] },
+
+      { ref: "2.", texte: "Écrivez la boucle qui affiche, pour chaque service, son nombre de patients.",
+        reponse: "`len` appliqué au dictionnaire intérieur donne le compte.",
+        sortie: `Cardiologie : 2 patient(s)
+Pédiatrie : 1 patient(s)`,
+        solutions: [
+          { verdict: "retenue", nom: "Parcourir les couples service / patients",
+            code: `for service, patients in hopital.items():
+    print(f"{service} : {len(patients)} patient(s)")` },
+          { verdict: "ok", nom: "Parcourir les clés",
+            code: `for service in hopital:
+    print(f"{service} : {len(hopital[service])} patient(s)")`,
+            texte: "Correct ; `.items()` évite simplement de redemander la valeur qu'on avait déjà sous la main." }
+        ],
+        erreurs: [
+          { titre: "Écrire `len(hopital)` dans la boucle",
+            cause: "On compte les services au lieu des patients. L'affichage donnerait `2` deux fois — un résultat plausible qui ne lève rien." },
+          { titre: "Compter avec une variable incrémentée",
+            cause: "Pas faux, mais `len` répond en un mot. Dérouler une boucle intérieure pour compter ce qu'une fonction native compte déjà obscurcit l'intention." }
+        ] },
+
+      { ref: "3.", texte: "Ajoutez le patient \"Youssef\" à 38.1 en Pédiatrie.",
+        reponse: "On écrit dans le dictionnaire intérieur, désigné par la première clé.",
+        sortie: `>>> hopital["Pédiatrie"]["Youssef"] = 38.1
+>>> hopital["Pédiatrie"]
+{'Sara': 39.2, 'Youssef': 38.1}`,
+        notes: ["La même expression sert à lire et à écrire : à gauche du signe `=`, les crochets désignent l'emplacement où ranger la valeur. C'est la propriété qui rend l'imbrication commode — et le piège C3 redoutable."],
+        solutions: [
+          { verdict: "retenue", nom: "Écriture directe",
+            code: `hopital["Pédiatrie"]["Youssef"] = 38.1` },
+          { verdict: "expert", nom: "Ajouter dans un service peut-être absent",
+            code: `hopital.setdefault("Urgences", {})["Karim"] = 37.4
+print(hopital["Urgences"])    # Affiche {'Karim': 37.4}`,
+            texte: "`setdefault` crée le service vide s'il manque, puis rend le dictionnaire — qu'on garnit aussitôt. C'est le mécanisme que l'exercice B4 généralise." }
+        ],
+        erreurs: [
+          { titre: "Écrire `hopital[\"Youssef\"] = 38.1`",
+            cause: "Le patient est ajouté au **mauvais niveau** : il devient un service dont la valeur est un flottant. Rien n'est levé, et la structure est désormais incohérente — `len(hopital[\"Youssef\"])` échouera bien plus tard." },
+          { titre: "Écrire `hopital[\"Néphrologie\"][\"Karim\"] = 37.4`",
+            cause: "`KeyError: 'Néphrologie'` : l'écriture crée la clé manquante au **dernier** niveau seulement. Les niveaux intermédiaires doivent exister, d'où le `setdefault` ci-dessus." }
+        ] }
+    ] },
+
+  { id: "b4", titre: "B4 — Regrouper sans connaître les clés",
+    enonce: "On veut regrouper les patients par service à partir d'une liste de couples, sans savoir à l'avance quels services apparaîtront.",
+    code: `admissions = [("Amal", "Cardiologie"), ("Sara", "Pédiatrie"),
+              ("Reda", "Cardiologie"), ("Youssef", "Urgences")]`,
+    questions: [
+      { ref: "1.", texte: "Écrivez la boucle qui construit {\"Cardiologie\": [\"Amal\", \"Reda\"], …}. Une première tentative naïve lève une erreur : laquelle, et pourquoi ?",
+        reponse: "La tentative naïve lève une `KeyError` : on ajoute à une liste qui n'existe pas encore.",
+        sortie: `>>> groupes = {}
+>>> for nom, service in admissions:
+...     groupes[service].append(nom)
+...
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+KeyError: 'Cardiologie'`,
+        notes: ["Le raisonnement fautif est tentant : « j'ajoute Amal à la liste de Cardiologie ». Mais la liste de Cardiologie n'a jamais été créée, et `groupes[service]` doit d'abord **lire** la clé pour pouvoir appeler `.append` dessus. Lire une clé absente lève.",
+                "Noter la dissymétrie : `groupes[service] = [nom]` aurait fonctionné, parce que l'affectation crée. C'est l'accès en lecture qui refuse."],
+        solutions: [
+          { verdict: "retenue", nom: "Créer la liste au premier passage",
+            code: `groupes = {}
+for nom, service in admissions:
+    if service not in groupes:
+        groupes[service] = []
+    groupes[service].append(nom)
+print(groupes)`,
+            sortie: `{'Cardiologie': ['Amal', 'Reda'], 'Pédiatrie': ['Sara'], 'Urgences': ['Youssef']}`,
+            texte: "La forme explicite, à savoir écrire avant de connaître `defaultdict`. Les trois lignes disent exactement ce qui se passe." },
+          { verdict: "ok", nom: "setdefault",
+            code: `groupes = {}
+for nom, service in admissions:
+    groupes.setdefault(service, []).append(nom)`,
+            texte: "Une ligne au lieu de trois. `setdefault` rend la valeur de la clé, en la créant d'abord si elle manque — c'est donc toujours sur une liste qu'on appelle `.append`." }
+        ],
+        erreurs: [
+          { titre: "Écrire `groupes[service] = nom`",
+            cause: "Chaque admission écrase la précédente : Cardiologie finirait à `'Reda'` seul, et sous forme de chaîne de caractères, non de liste. Aucune erreur n'est levée." },
+          { titre: "Écrire `groupes[service] = groupes[service] + [nom]`",
+            cause: "Même `KeyError`, et pour la même raison : la partie droite lit la clé avant de pouvoir y ajouter quoi que ce soit." }
+        ] },
+
+      { ref: "2.", texte: "Utilisez defaultdict du module collections pour corriger cette erreur.",
+        reponse: "`defaultdict(list)` fabrique la liste vide à la première demande.",
+        sortie: `>>> from collections import defaultdict
+>>> groupes = defaultdict(list)
+>>> for nom, service in admissions:
+...     groupes[service].append(nom)
+...
+>>> dict(groupes)
+{'Cardiologie': ['Amal', 'Reda'], 'Pédiatrie': ['Sara'], 'Urgences': ['Youssef']}`,
+        notes: ["L'argument passé à `defaultdict` est une **fonction sans argument** qui fabrique la valeur par défaut : on écrit `list`, pas `list()` ni `[]`. Le dictionnaire l'appellera lui-même, autant de fois que nécessaire.",
+                "`defaultdict(list)` pour accumuler des listes, `defaultdict(set)` pour des ensembles, `defaultdict(int)` pour compter. La question 3.3 du problème utilisera le deuxième."],
+        solutions: [
+          { verdict: "retenue", nom: "defaultdict(list)",
+            code: `from collections import defaultdict
+
+groupes = defaultdict(list)
+for nom, service in admissions:
+    groupes[service].append(nom)` },
+          { verdict: "expert", nom: "Le revers du procédé",
+            code: `print(groupes["Néphrologie"])    # Affiche []
+print(list(groupes))             # Néphrologie est désormais une clé`,
+            sortie: `[]
+['Cardiologie', 'Pédiatrie', 'Urgences', 'Néphrologie']`,
+            texte: "Une simple consultation **crée** la clé. Pratique en construction, dangereux en lecture : si le dictionnaire doit ensuite être interrogé sans être modifié, le figer par `groupes = dict(groupes)` évite la surprise." }
+        ],
+        erreurs: [
+          { titre: "Écrire `defaultdict([])`",
+            cause: "`TypeError: first argument must be callable or None`. On passe une liste là où une fonction est attendue — et la même liste serait partagée par toutes les clés, ce qui serait pire encore si c'était permis." },
+          { titre: "Écrire `defaultdict(list())`",
+            cause: "Même erreur : `list()` est déjà une liste, pas la fonction qui en fabrique." },
+          { titre: "Oublier l'import",
+            cause: "`NameError: name 'defaultdict' is not defined`. `collections` fait partie de la bibliothèque standard, mais ses noms ne sont pas prédéfinis : il faut les demander." }
+        ] }
+    ] },
+
+  { id: "b5", titre: "B5 — Compter des occurrences",
+    enonce: "On dispose des motifs de consultation :",
+    code: `motifs = ["fièvre", "toux", "fièvre", "douleur", "toux", "fièvre"]`,
+    questions: [
+      { ref: "1.", texte: "Écrivez l'appel à Counter qui les compte.",
+        reponse: "`Counter(motifs)` suffit : la classe prend l'itérable entier.",
+        sortie: `>>> from collections import Counter
+>>> Counter(motifs)
+Counter({'fièvre': 3, 'toux': 2, 'douleur': 1})`,
+        notes: ["Un `Counter` **est** un dictionnaire : `c[\"fièvre\"]` rend `3`, `c.items()` fonctionne, et il se parcourt comme tel. Il ajoute deux choses : le comptage à la construction, et un `0` au lieu d'une `KeyError` pour une clé absente."],
+        solutions: [
+          { verdict: "retenue", nom: "Counter sur l'itérable",
+            code: `from collections import Counter
+
+compte = Counter(motifs)
+print(compte["fièvre"])    # Affiche 3
+print(compte["grippe"])    # Affiche 0 — aucune KeyError` },
+          { verdict: "ok", nom: "À la main, pour comprendre",
+            code: `compte = {}
+for motif in motifs:
+    compte[motif] = compte.get(motif, 0) + 1`,
+            texte: "C'est ce que `Counter` fait pour vous. L'écrire une fois rend le raccourci intelligible." }
+        ],
+        erreurs: [
+          { titre: "Écrire `Counter(*motifs)`",
+            cause: "L'étoile déplie la liste en six arguments ; `Counter` n'en attend qu'un. `TypeError`." },
+          { titre: "Compter avec `motifs.count(...)` dans une boucle",
+            cause: "Le résultat est juste, mais chaque appel reparcourt toute la liste : le coût devient quadratique. La séance 4 y reviendra." }
+        ] },
+
+      { ref: "2.", texte: "Cherchez la méthode qui rend les deux motifs les plus fréquents, et écrivez l'appel.",
+        reponse: "`most_common(2)`.",
+        sortie: `>>> compte.most_common(2)
+[('fièvre', 3), ('toux', 2)]`,
+        notes: ["L'argument est le **nombre** d'entrées voulues, non un seuil. Sans argument, `most_common()` rend tout le contenu, trié du plus fréquent au moins fréquent.",
+                "NB: les égalités sont départagées par l'ordre de première rencontre, non par l'alphabet. Ce n'est pas un ordre à exploiter dans un programme."],
+        erreurs: [
+          { titre: "Écrire `compte.most_common()[2]`",
+            cause: "Cela rend le **troisième** couple, non les deux premiers. Ici, `('douleur', 1)`." },
+          { titre: "Chercher une fonction native `max_frequent`",
+            cause: "Elle n'existe pas. L'intérêt de `Counter` est précisément d'apporter cette méthode que le dictionnaire ordinaire n'a pas." }
+        ] },
+
+      { ref: "3.", texte: "Quel est le type de l'objet rendu par cette méthode ?",
+        reponse: "Une **liste de tuples**, non un dictionnaire.",
+        sortie: `>>> type(compte.most_common(2))
+<class 'list'>
+>>> compte.most_common(2)[0]
+('fièvre', 3)
+>>> compte.most_common(2)[0][0]
+'fièvre'`,
+        notes: ["Le choix est délibéré : un dictionnaire n'aurait pas pu porter le classement, puisqu'il n'offre pas de rang. La liste, oui — `[0]` est bien le premier.",
+                "Chaque élément est un couple `(motif, compte)`, donc indexable : `[0]` pour le motif, `[1]` pour le nombre. C'est la forme que la question 3.2 du problème demande de produire."],
+        solutions: [
+          { verdict: "retenue", nom: "Décomposer les couples",
+            code: `for motif, nombre in compte.most_common(2):
+    print(f"{motif} : {nombre}")`,
+            sortie: `fièvre : 3
+toux : 2`,
+            texte: "La boucle décompose chaque tuple en deux noms, comme sur `.items()`." },
+          { verdict: "ok", nom: "En faire un dictionnaire",
+            code: `print(dict(compte.most_common(2)))    # Affiche {'fièvre': 3, 'toux': 2}`,
+            texte: "Licite, mais on y perd ce que la liste apportait : le classement. À ne faire que si le rang n'importe plus." }
+        ],
+        erreurs: [
+          { titre: "Répondre « un dictionnaire »",
+            cause: "L'affichage y ressemble peu, mais la confusion vient de ce que `Counter`, lui, en est un. La méthode change de type pour pouvoir trier." },
+          { titre: "Écrire `compte.most_common(1)[\"fièvre\"]`",
+            cause: "`TypeError: list indices must be integers or slices, not str`. On indexe une liste par une chaîne de caractères." }
+        ] }
+    ] }
+] },
+{ partie: "Partie C — Pièges", exercices: [
+
+  { id: "c1", titre: "C1 — Clé absente",
+    enonce: "On exécute :",
+    code: `temperatures = {"Amal": 38.5}
+print(temperatures["Zahra"])`,
+    questions: [
+      { ref: "a)", texte: "Quelle erreur obtenez-vous ?",
+        reponse: "Une `KeyError`, dont le message est la clé demandée.",
+        sortie: `Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+KeyError: 'Zahra'`,
+        notes: ["Le message est économe : il ne dit pas « clé absente », il donne la clé. C'est suffisant, et c'est précieux — l'erreur **nomme la donnée fautive**, ce qui permet de la retrouver dans un fichier d'entrée."],
+        erreurs: [
+          { titre: "Attendre `None`",
+            cause: "C'est ce que rendrait `.get(\"Zahra\")`. L'accès par crochets, lui, affirme que la clé existe : s'il se trompe, il le dit." },
+          { titre: "Annoncer une `IndexError`",
+            cause: "L'`IndexError` concerne les positions — listes, tuples, chaînes de caractères. Le dictionnaire n'a pas de position, donc pas d'index : il a des clés, donc une `KeyError`." }
+        ] },
+
+      { ref: "b)", texte: "Donner une instruction permettant d'obtenir une valeur par défaut au lieu de l'erreur.",
+        reponse: "`.get()`, avec ou sans deuxième argument.",
+        sortie: `>>> temperatures.get("Zahra")
+>>> print(temperatures.get("Zahra"))
+None
+>>> temperatures.get("Zahra", 0.0)
+0.0`,
+        solutions: [
+          { verdict: "retenue", nom: "get avec une valeur de repli explicite",
+            code: `print(temperatures.get("Zahra", 0.0))    # Affiche 0.0`,
+            texte: "La forme à préférer : la valeur de repli est écrite, donc choisie. Sans second argument, `.get` rend `None`, ce qui provoquera une erreur plus loin si l'on fait de l'arithmétique dessus." },
+          { verdict: "ok", nom: "Tester l'appartenance d'abord",
+            code: `if "Zahra" in temperatures:
+    print(temperatures["Zahra"])
+else:
+    print("mesure absente")`,
+            texte: "Correct et très lisible. Deux consultations au lieu d'une, ce qui est sans conséquence ici." },
+          { verdict: "eviter", nom: "setdefault",
+            code: `print(temperatures.setdefault("Zahra", 0.0))    # Affiche 0.0
+print(temperatures)    # {'Amal': 38.5, 'Zahra': 0.0}`,
+            texte: "`setdefault` rend bien la valeur de repli, mais il **l'écrit aussi** dans le dictionnaire. Pour une simple lecture, c'est un effet de bord non voulu : une température de 0.0 vient d'entrer dans le relevé." },
+          { verdict: "expert", nom: "Rattraper l'exception",
+            code: `try:
+    t = temperatures["Zahra"]
+except KeyError:
+    t = 0.0`,
+            texte: "Équivalent, et c'est la forme à adopter lorsque l'absence doit être journalisée ou comptée. Les exceptions seront le sujet d'une séance ultérieure." }
+        ],
+        erreurs: [
+          { titre: "Écrire `temperatures.get[\"Zahra\"]`",
+            cause: "`.get` est une méthode : elle s'appelle avec des parenthèses. Les crochets tentent d'indexer la méthode elle-même, d'où `TypeError: 'builtin_function_or_method' object is not subscriptable`." },
+          { titre: "Croire que `.get` crée la clé",
+            cause: "Non : `.get` ne modifie rien. C'est `setdefault` qui écrit, et c'est toute la différence entre les deux." }
+        ] },
+
+      { ref: "c)", texte: "Laquelle convient quand l'absence est normale ? Laquelle convient quand elle est anormale ?",
+        reponse: "`.get()` quand l'absence est prévue ; **les crochets** quand elle ne devrait pas arriver.",
+        notes: ["C'est le point de l'exercice, et il est contre-intuitif : on croit volontiers que la bonne pratique consiste à ne jamais laisser une erreur se produire. C'est l'inverse.",
+                "Si une température manque parce que le patient n'a pas encore été mesuré, l'absence fait partie du métier : `.get(nom, None)` et le programme continue. Si elle manque parce qu'un patient du relevé n'a pas de dossier, les données sont corrompues : il faut que le programme s'arrête **là**, et non trois fonctions plus loin avec un `None` dans les mains.",
+                "**A retenir : une erreur qui s'affiche coûte une minute ; une valeur par défaut qui se propage coûte une journée.**"],
+        solutions: [
+          { verdict: "retenue", nom: "Formulation retenue",
+            texte: "Les crochets expriment une **garantie** : « cette clé est là ». `.get` exprime une **éventualité** : « elle peut manquer, voici quoi faire ». Choisir, c'est dire laquelle des deux situations on décrit." },
+          { verdict: "expert", nom: "Quand l'absence est anormale et doit être expliquée",
+            code: `if nom not in dossiers:
+    raise KeyError(f"{nom} figure au relevé mais n'a pas de dossier")`,
+            texte: "On garde l'arrêt du programme, en remplaçant le message laconique par un message qui dit **pourquoi** c'est anormal." }
+        ],
+        erreurs: [
+          { titre: "Répondre « toujours `.get`, c'est plus sûr »",
+            cause: "Plus silencieux, non plus sûr. Un `None` qui traverse le programme finit en `TypeError` dans une fonction qui n'a rien à voir avec la cause — et c'est là qu'on perd son temps." },
+          { titre: "Masquer l'erreur par `.get(nom, 0.0)` sur une température",
+            cause: "Pire que `None` : `0.0` est un flottant parfaitement calculable. Il entrera dans la moyenne et la faussera sans jamais rien signaler." }
+        ] }
+    ] },
+
+  { id: "c2", titre: "C2 — Modifier pendant le parcours",
+    enonce: "On exécute :",
+    code: `temperatures = {"Amal": 38.5, "Reda": 37.1, "Sara": 39.2}
+for nom in temperatures:
+    if temperatures[nom] < 38.0:
+        del temperatures[nom]`,
+    questions: [
+      { ref: "a)", texte: "Quelle erreur obtenez-vous ?",
+        reponse: "Une `RuntimeError`, et non une `KeyError`.",
+        sortie: `Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+RuntimeError: dictionary changed size during iteration`,
+        notes: ["Le message est explicite, ce qui est rare : il nomme la cause plutôt que le symptôme. Noter aussi que la suppression de `Reda` **a bien eu lieu** avant l'erreur — on se retrouve avec un dictionnaire à moitié traité."],
+        erreurs: [
+          { titre: "Attendre une `KeyError`",
+            cause: "La clé supprimée existait bien au moment du `del`. Ce n'est pas l'accès qui échoue, c'est le parcours qui refuse de continuer." },
+          { titre: "Croire que le code fonctionne parce qu'il n'y a qu'une suppression",
+            cause: "Le contrôle a lieu au tour suivant, quand l'itérateur constate que la taille a changé. Une seule suppression suffit, sauf si elle porte sur le **dernier** élément — auquel cas rien ne se produit, et le code paraît juste. C'est la pire des configurations." }
+        ] },
+
+      { ref: "b)", texte: "Pourquoi Python l'interdit-il ?",
+        reponse: "Parce qu'un parcours repose sur une structure interne stable, que l'ajout ou le retrait d'une clé peut réorganiser.",
+        notes: ["Le dictionnaire range ses couples dans un tableau interne dont la taille dépend du nombre d'entrées. Supprimer ou ajouter peut provoquer une réorganisation ; l'itérateur, qui mémorise une position dans l'ancien agencement, se retrouverait à sauter des éléments ou à en rendre deux fois.",
+                "Python choisit donc de refuser plutôt que de rendre un résultat faux. **C'est un garde-fou, non une limitation** : l'interdiction porte sur la taille, et modifier la *valeur* d'une clé existante reste permis.",
+                "NB: la même règle vaut pour les ensembles et les listes. Sur une liste, elle ne lève rien du tout — elle saute silencieusement des éléments, ce qui est bien plus gênant."],
+        solutions: [
+          { verdict: "expert", nom: "Vérifier que changer une valeur est permis",
+            code: `for nom in temperatures:
+    temperatures[nom] = round(temperatures[nom])    # aucune erreur`,
+            texte: "La taille ne change pas : le parcours reste valide. C'est bien le **nombre de clés** qui est gelé pendant l'itération, pas leur contenu." }
+        ],
+        erreurs: [
+          { titre: "Répondre « parce qu'un dictionnaire est immuable »",
+            cause: "Il ne l'est pas du tout : on vient de le modifier. Ce sont ses **clés** qui doivent être immuables — exercice B1 — ce qui est une tout autre affirmation." }
+        ] },
+
+      { ref: "c)", texte: "Donner une expression qui génèrera le résultat souhaité.",
+        reponse: "Une compréhension de dictionnaire, qui construit au lieu de détruire.",
+        sortie: `>>> {nom: t for nom, t in temperatures.items() if t >= 38.0}
+{'Amal': 38.5, 'Sara': 39.2}`,
+        solutions: [
+          { verdict: "retenue", nom: "Construire le dictionnaire voulu",
+            code: `temperatures = {nom: t for nom, t in temperatures.items() if t >= 38.0}`,
+            texte: "On ne supprime rien : on fabrique le dictionnaire des entrées à garder, puis on lui donne l'ancien nom. Le parcours porte sur l'objet d'origine, qui n'est pas touché pendant ce temps." },
+          { verdict: "ok", nom: "Parcourir une copie des clés",
+            code: `for nom in list(temperatures):
+    if temperatures[nom] < 38.0:
+        del temperatures[nom]`,
+            texte: "`list(temperatures)` fige la liste des clés avant de commencer. La suppression sur place devient licite. À retenir quand le dictionnaire est volumineux et qu'on ne veut pas le dupliquer." },
+          { verdict: "eviter", nom: "Collecter puis supprimer",
+            code: `a_retirer = [nom for nom, t in temperatures.items() if t < 38.0]
+for nom in a_retirer:
+    del temperatures[nom]`,
+            texte: "Correct, et en deux temps bien séparés — mais c'est la version longue de la précédente. Elle se justifie seulement si la liste des clés retirées doit être conservée." }
+        ],
+        erreurs: [
+          { titre: "Écrire `for nom in temperatures.keys():`",
+            cause: "Cela ne change rien : `.keys()` rend une **vue**, non une copie. La vue suit le dictionnaire, et la même `RuntimeError` se produit. Il faut `list(temperatures.keys())`, ou plus simplement `list(temperatures)`." },
+          { titre: "Écrire `for nom in temperatures.copy():`",
+            cause: "Celui-là fonctionne — mais il copie tous les couples quand seules les clés sont nécessaires. `list(temperatures)` dit mieux ce que l'on veut." }
+        ] }
+    ] },
+
+  { id: "c3", titre: "C3 — Copie superficielle",
+    enonce: "On exécute :",
+    code: `modele = {"Cardiologie": {"Amal": 38.5}}
+copie = dict(modele)
+copie["Cardiologie"]["Amal"] = 40.0
+print(modele)`,
+    questions: [
+      { ref: "a)", texte: "Qu'affiche le print ?",
+        reponse: "`modele` a changé, alors qu'on a écrit dans `copie`.",
+        sortie: `{'Cardiologie': {'Amal': 40.0}}`,
+        notes: ["Aucune erreur, aucun avertissement : le programme fait exactement ce qu'on lui a demandé, et ce n'est pas ce qu'on voulait. C'est le piège le plus coûteux de la partie C, parce qu'il ne se signale jamais."],
+        erreurs: [
+          { titre: "Prédire `{'Cardiologie': {'Amal': 38.5}}`",
+            cause: "C'est la prédiction majoritaire, et c'est pour elle que l'exercice existe. On raisonne sur le mot « copie » et non sur ce que `dict()` copie réellement." }
+        ] },
+
+      { ref: "b)", texte: "Expliquez le résultat.",
+        reponse: "`dict(modele)` a copié le dictionnaire extérieur, mais **pas** celui qu'il contient : les deux dictionnaires partagent le même sous-dictionnaire.",
+        sortie: `>>> modele is copie
+False
+>>> modele["Cardiologie"] is copie["Cardiologie"]
+True`,
+        notes: ["Les deux lignes ci-dessus résument tout. Le premier `is` dit que la copie extérieure a bien eu lieu ; le second dit que la valeur n'a pas été copiée, seulement **désignée à nouveau**.",
+                "Un dictionnaire ne contient pas ses valeurs : il contient des références vers elles. Copier le dictionnaire copie les références, pas les objets au bout. **A retenir : copier n'est pas dupliquer en profondeur.**",
+                "NB: `copie = modele` n'aurait rien copié du tout, et `modele is copie` aurait rendu `True`. Trois niveaux de partage sont donc possibles, et seul le troisième est sûr."],
+        solutions: [
+          { verdict: "expert", nom: "Le constater sur un cas inoffensif",
+            code: `modele = {"Cardiologie": {"Amal": 38.5}}
+copie = dict(modele)
+copie["Pédiatrie"] = {}          # ajout d'une clé extérieure
+print(modele)                    # inchangé : {'Cardiologie': {'Amal': 38.5}}`,
+            texte: "Écrire au **premier** niveau ne contamine rien : la copie extérieure est réelle. C'est la modification en profondeur qui traverse." }
+        ],
+        erreurs: [
+          { titre: "Expliquer que `dict()` ne copie rien",
+            cause: "Il copie le premier niveau, et l'ajout ci-dessus le prouve. Dire « il ne copie rien » n'explique pas pourquoi certaines modifications passent et d'autres non." }
+        ] },
+
+      { ref: "c)", texte: "Cherchez dans le module copy la fonction qui règle le problème.",
+        reponse: "`copy.deepcopy`, qui recopie la structure à tous les niveaux.",
+        sortie: `>>> import copy
+>>> modele = {"Cardiologie": {"Amal": 38.5}}
+>>> profonde = copy.deepcopy(modele)
+>>> profonde["Cardiologie"]["Amal"] = 40.0
+>>> modele
+{'Cardiologie': {'Amal': 38.5}}
+>>> profonde
+{'Cardiologie': {'Amal': 40.0}}`,
+        solutions: [
+          { verdict: "retenue", nom: "deepcopy",
+            code: `import copy
+
+profonde = copy.deepcopy(modele)`,
+            texte: "La fonction descend dans la structure et recopie chaque niveau. Le coût est réel — tout est dupliqué — mais c'est ce qu'on demande." },
+          { verdict: "ok", nom: "Copier explicitement un niveau",
+            code: `profonde = {service: dict(patients) for service, patients in modele.items()}`,
+            texte: "Suffisant quand on sait que la structure a exactement deux niveaux, et bien plus économe. Devient illisible dès trois." },
+          { verdict: "eviter", nom: "copy.copy",
+            code: `profonde = copy.copy(modele)    # équivaut à dict(modele)`,
+            texte: "`copy.copy` est la copie **superficielle** : c'est précisément celle qui vient de causer le problème. Les deux fonctions du module ne diffèrent que par un mot." }
+        ],
+        erreurs: [
+          { titre: "Écrire `modele.deepcopy()`",
+            cause: "`deepcopy` n'est pas une méthode du dictionnaire mais une fonction du module : `copy.deepcopy(modele)`. `AttributeError` sinon." },
+          { titre: "Appliquer `deepcopy` par précaution partout",
+            cause: "Sur une structure volumineuse, tout est dupliqué à chaque appel. La question à se poser n'est pas « copier profond ou non » mais « qui a le droit de modifier cet objet »." }
+        ] }
+    ] },
+
+  { id: "c4", titre: "C4 — Ordre d'un ensemble",
+    enonce: "On exécute plusieurs fois, dans des interpréteurs différents :",
+    code: `print(list({"Amal", "Reda", "Sara", "Youssef", "Zahra"}))`,
+    questions: [
+      { ref: "a)", texte: "L'ordre affiché est-il le même à chaque fois ?",
+        reponse: "Non. Trois exécutions dans trois interpréteurs différents, trois ordres différents.",
+        sortie: `['Zahra', 'Reda', 'Sara', 'Amal', 'Youssef']
+['Sara', 'Zahra', 'Amal', 'Youssef', 'Reda']
+['Sara', 'Zahra', 'Youssef', 'Reda', 'Amal']`,
+        notes: ["L'ordre dépend des empreintes, et Python tire au démarrage une graine aléatoire qui entre dans le calcul de l'empreinte des **chaînes de caractères**. D'un lancement à l'autre, les positions changent donc.",
+                "**Deux relances dans le même interpréteur donnent le même ordre** : c'est ce qui rend le piège efficace. Qui ne teste qu'en relançant sa boucle croit l'ordre stable."],
+        solutions: [
+          { verdict: "expert", nom: "Observer la cause",
+            code: `# Dans deux interpréteurs successifs :
+print(hash("Amal"))`,
+            sortie: `455093411418726013
+-8365272357976737214`,
+            texte: "L'empreinte d'une même chaîne de caractères change d'un lancement à l'autre. La protection est volontaire : elle rend impraticable une attaque qui provoquerait des collisions délibérées." },
+          { verdict: "expert", nom: "Un ensemble d'entiers trompe davantage",
+            code: `print(list({10, 2, 33, 4}))    # [33, 10, 2, 4] à chaque lancement`,
+            texte: "L'empreinte d'un entier **est** sa valeur, et ne dépend donc d'aucune graine : l'ordre paraît stable. Il n'est pour autant pas garanti, et changera au moindre ajout dans l'ensemble." }
+        ],
+        erreurs: [
+          { titre: "Conclure que l'ordre est aléatoire à chaque parcours",
+            cause: "Il ne l'est pas : il est **non spécifié**, ce qui est différent. Au sein d'une exécution, le même ensemble inchangé se parcourt toujours dans le même ordre." },
+          { titre: "Tester en relançant seulement la boucle",
+            cause: "L'ordre ne changera pas, et l'on en tirera la conclusion inverse de la bonne. C'est pourquoi l'énoncé précise « dans des interpréteurs différents »." }
+        ] },
+
+      { ref: "b)", texte: "Que vaut {1, 2, 3} == {3, 2, 1} ?",
+        reponse: "`True` — l'égalité de deux ensembles ne regarde pas l'ordre.",
+        sortie: `>>> {1, 2, 3} == {3, 2, 1}
+True
+>>> [1, 2, 3] == [3, 2, 1]
+False`,
+        notes: ["La comparaison avec la liste est le cœur de la question. Un ensemble est égal à un autre s'ils ont les mêmes éléments ; une liste, s'ils ont les mêmes éléments **dans le même ordre**. L'ordre n'est pas « perdu » par l'ensemble : il n'en fait pas partie."],
+        erreurs: [
+          { titre: "Répondre `False` par symétrie avec la liste",
+            cause: "C'est transposer une règle depuis la structure voisine. Les deux comparaisons sont justes, chacune pour son type." }
+        ] },
+
+      { ref: "c)", texte: "Quelle conclusion en tirez-vous sur ce qu'un programme a le droit de supposer d'un ensemble ?",
+        reponse: "Rien sur l'ordre. Un ensemble garantit l'appartenance et l'unicité, pas la disposition.",
+        notes: ["Conséquence pratique immédiate : **ne jamais afficher un résultat directement depuis un ensemble**, ni le comparer à une liste attendue. Si l'ordre importe pour la lecture, il faut le demander : `sorted(...)`.",
+                "Conséquence pour le problème : les tests comparent des ensembles à des ensembles (`{\"fièvre\", \"fatigue\"}`), jamais à des listes. C'est la seule comparaison qui ait un sens."],
+        solutions: [
+          { verdict: "retenue", nom: "Trier au moment d'afficher",
+            code: `print(sorted({"Amal", "Reda", "Sara", "Youssef", "Zahra"}))`,
+            sortie: `['Amal', 'Reda', 'Sara', 'Youssef', 'Zahra']`,
+            texte: "`sorted` rend une **liste** triée. L'ordre est alors le vôtre, et il est reproductible." },
+          { verdict: "ok", nom: "Garder l'ordre d'arrivée",
+            code: `vus = []
+for nom in ["Reda", "Amal", "Reda"]:
+    if nom not in vus:
+        vus.append(nom)
+print(vus)    # Affiche ['Reda', 'Amal']`,
+            texte: "Quand l'unicité **et** l'ordre d'arrivée importent, l'ensemble ne suffit pas. Ici le test `not in` sur une liste coûte cher ; on garde alors un ensemble à côté, pour le test seul." }
+        ],
+        erreurs: [
+          { titre: "Conclure qu'il faut éviter les ensembles",
+            cause: "C'est renoncer à ce qu'ils apportent : un test d'appartenance immédiat et la déduplication gratuite. On ne renonce pas à l'outil, on renonce à lui demander un ordre." }
+        ] }
+    ] },
+
+  { id: "c5", titre: "C5 — Flottant comme clé",
+    enonce: "On exécute :",
+    code: `mesures = {}
+mesures[0.1 + 0.2] = "a"
+print(mesures[0.3])`,
+    questions: [
+      { ref: "a)", texte: "Que se passe-t-il ?",
+        reponse: "Une `KeyError: 0.3`, sur un dictionnaire qui semble pourtant contenir cette clé.",
+        sortie: `Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+KeyError: 0.3`,
+        notes: ["La clé posée n'est pas `0.3`. Elle en est très proche, et c'est tout ce que la représentation binaire permet."],
+        erreurs: [
+          { titre: "Attendre `'a'`",
+            cause: "Prédiction naturelle, et c'est le but du piège : `0.1 + 0.2` ne vaut pas `0.3` en arithmétique flottante." }
+        ] },
+
+      { ref: "b)", texte: "Comment peut-on expliquer ce résultat ?",
+        reponse: "`0.1 + 0.2` vaut `0.30000000000000004`, dont l'empreinte diffère de celle de `0.3`.",
+        sortie: `>>> 0.1 + 0.2
+0.30000000000000004
+>>> 0.1 + 0.2 == 0.3
+False
+>>> list(mesures)
+[0.30000000000000004]
+>>> hash(0.1 + 0.2)
+691752902764108288
+>>> hash(0.3)
+691752902764108160`,
+        notes: ["Ni `0.1` ni `0.2` ne possède de représentation binaire exacte, pas davantage que `1/3` n'a de représentation décimale finie. Chacun est stocké arrondi, et leur somme accumule les deux arrondis.",
+                "Le dictionnaire, lui, ne fait rien de surprenant : il cherche la clé dont l'empreinte est celle de `0.3`, ne la trouve pas, et le dit. Les deux empreintes ci-dessus diffèrent des quatre derniers chiffres — c'est assez pour tomber ailleurs.",
+                "`list(mesures)` est le diagnostic à connaître : il montre la clé **telle qu'elle a été rangée**, et non telle qu'on croit l'avoir écrite."],
+        solutions: [
+          { verdict: "expert", nom: "Voir d'où vient l'écart",
+            code: `from decimal import Decimal
+print(Decimal(0.1))    # la valeur réellement stockée`,
+            sortie: `0.1000000000000000055511151231257827021181583404541015625`,
+            texte: "`Decimal(0.1)` affiche ce que la machine a mis derrière le littéral `0.1`. L'écart était là avant toute addition." }
+        ],
+        erreurs: [
+          { titre: "Mettre en cause le dictionnaire",
+            cause: "Il se comporte correctement. Le même phénomène se produit sur un simple `if 0.1 + 0.2 == 0.3:`, qui est faux, sans aucun dictionnaire dans le programme." },
+          { titre: "Croire qu'il s'agit d'un défaut de Python",
+            cause: "La norme IEEE 754 est celle de pratiquement tous les langages et de la plupart des processeurs. Le même test est faux en C, en Java et dans un tableur." }
+        ] },
+
+      { ref: "c)", texte: "Que faut-il en conclure quant au choix d'un type de clé ?",
+        reponse: "Un flottant **calculé** ne fait pas une clé fiable. Il faut une clé dont l'égalité est exacte : entier, chaîne de caractères, tuple de ceux-là.",
+        notes: ["Le flottant est hachable — exercice B1 — mais hachable ne veut pas dire fiable comme clé. La condition pour qu'une clé serve est que l'on sache **reconstruire exactement** la même valeur au moment de la relire, et aucun calcul flottant ne le garantit.",
+                "**A retenir : une clé se retrouve par égalité exacte ; un flottant calculé ne garantit aucune égalité exacte.**"],
+        solutions: [
+          { verdict: "retenue", nom: "Changer de type de clé",
+            code: `mesures = {}
+mesures["0.3"] = "a"           # chaîne de caractères
+print(mesures["0.3"])          # Affiche a`,
+            texte: "Quand la clé désigne une étiquette — un seuil, un palier, un identifiant —, c'est une chaîne de caractères ou un entier, jamais un résultat de calcul." },
+          { verdict: "ok", nom: "Arrondir avant de poser la clé",
+            code: `mesures = {}
+mesures[round(0.1 + 0.2, 2)] = "a"
+print(mesures[0.3])            # Affiche a`,
+            texte: "Fonctionne **à condition** d'arrondir aussi bien à l'écriture qu'à la lecture, avec la même précision. Une seule omission et le piège revient." },
+          { verdict: "expert", nom: "Travailler en décimal exact",
+            code: `from decimal import Decimal
+print(Decimal("0.1") + Decimal("0.2") == Decimal("0.3"))    # Affiche True`,
+            texte: "`Decimal` fait l'arithmétique décimale exacte, à condition de construire ses valeurs **depuis des chaînes de caractères**. C'est ce qu'on emploie pour des montants ou des doses." },
+          { verdict: "expert", nom: "Passer à l'entier",
+            code: `# températures en dixièmes de degré
+mesures[385] = "Amal"`,
+            texte: "La technique classique en instrumentation : on choisit une unité où la mesure est entière. L'égalité redevient exacte, et l'arithmétique aussi." }
+        ],
+        erreurs: [
+          { titre: "Conclure qu'un flottant ne peut pas être une clé",
+            cause: "Il peut l'être, et `mesures[0.5]` se relit sans difficulté — `0.5` est représentable exactement. C'est le flottant **issu d'un calcul** qui pose problème, non le type." },
+          { titre: "Comparer avec `==` après arrondi d'un seul côté",
+            cause: "`round(0.1 + 0.2, 2) == 0.3` rend `True`, mais `0.1 + 0.2 == round(0.3, 2)` rend `False`. L'arrondi doit s'appliquer aux deux membres, ou à aucun." }
+        ] }
+    ] }
+] },
+{ partie: "Problème — Analyse épidémiologique et traçage", exercices: [
+
+  { id: "p1", titre: "P1 — Immutabilité et structuration",
+    enonce: "Les informations de base d'un patient doivent être liées entre elles tout en étant protégées contre toute modification après leur création. Les tests de la **Partie 1** de `probleme_tp1.py` construisent `p1 = creer_patient(\"P001\", 45, \"O+\")` et vérifient les trois fonctions sur ce patient.",
+    questions: [
+      { ref: "1.1", texte: "Écrivez une fonction creer_patient(id_patient, age, groupe_sanguin) qui retourne un tuple regroupant ces trois données dans cet ordre.",
+        reponse: "Le corps tient en une ligne : il suffit d'assembler les paramètres.",
+        sortie: `>>> creer_patient("P001", 45, "O+")
+('P001', 45, 'O+')`,
+        notes: ["L'ordre demandé par l'énoncé n'est pas décoratif : tout le reste du problème lit `patient[0]` pour l'identifiant et `patient[2]` pour le groupe sanguin. Changer l'ordre fait échouer la question 1.2 sans qu'aucun message ne désigne la vraie cause."],
+        solutions: [
+          { verdict: "retenue", nom: "Construction explicite",
+            code: `def creer_patient(id_patient, age, groupe_sanguin):
+    return (id_patient, age, groupe_sanguin)`,
+            texte: "Les parenthèses ne sont pas obligatoires, mais elles disent au lecteur qu'on rend **un** objet et non trois valeurs." },
+          { verdict: "ok", nom: "Sans parenthèses",
+            code: `def creer_patient(id_patient, age, groupe_sanguin):
+    return id_patient, age, groupe_sanguin`,
+            texte: "Strictement identique : c'est la virgule qui construit le tuple. La forme est courante en Python, et il faut savoir la lire." }
+        ],
+        erreurs: [
+          { titre: "Rendre une liste",
+            cause: "`return [id_patient, age, groupe_sanguin]` passe tous les traitements ultérieurs — la lecture par indice fonctionne — mais échoue au test, car `['P001', 45, 'O+'] == ('P001', 45, 'O+')` vaut `False`. Une liste et un tuple de même contenu ne sont jamais égaux.",
+            sortie: `Échec ❌ -> Erreur Q1.1 : Le tuple est mal formé.` },
+          { titre: "Afficher au lieu de rendre",
+            cause: "`print((id_patient, age, groupe_sanguin))` montre le bon tuple à l'écran et rend `None`. C'est l'erreur centrale du TD 1, et elle se reconnaît au test qui échoue alors que « l'affichage est juste »." }
+        ] },
+
+      { ref: "1.2", texte: "Écrivez une fonction besoin_transfusion(liste_patients, groupe_cible) qui retourne une liste contenant uniquement les id_patient des patients ayant ce groupe sanguin.",
+        reponse: "Une compréhension de liste filtrante : on garde `p[0]`, on teste `p[2]`.",
+        sortie: `>>> patients = [("P001", 45, "O+"), ("P002", 34, "A-"), ("P003", 60, "O+")]
+>>> besoin_transfusion(patients, "O+")
+['P001', 'P003']`,
+        notes: ["La fonction rend une **liste**, donc un résultat ordonné : le test compare à `[\"P001\", \"P003\"]` dans cet ordre, qui est celui de la liste d'entrée. C'est exactement l'inverse de la question 2.1, qui rendra des ensembles."],
+        solutions: [
+          { verdict: "retenue", nom: "Compréhension de liste",
+            code: `def besoin_transfusion(liste_patients, groupe_cible):
+    return [p[0] for p in liste_patients if p[2] == groupe_cible]` },
+          { verdict: "ok", nom: "Décomposition nommée",
+            code: `def besoin_transfusion(liste_patients, groupe_cible):
+    retenus = []
+    for id_patient, age, groupe in liste_patients:
+        if groupe == groupe_cible:
+            retenus.append(id_patient)
+    return retenus`,
+            texte: "Plus long, mais les trois noms disent ce que contient chaque position — là où `p[2]` oblige le lecteur à remonter à la question 1.1. À préférer si le tuple compte plus de trois champs." }
+        ],
+        erreurs: [
+          { titre: "Oublier le `[0]`",
+            cause: "La fonction rend les tuples entiers : `[('P001', 45, 'O+'), ('P003', 60, 'O+')]`. Le test échoue, et le message ne dit pas où est l'oubli.",
+            sortie: `Échec ❌ -> Erreur Q1.2 : Filtrage incorrect.` },
+          { titre: "Rendre un ensemble",
+            cause: "`{p[0] for p in ...}` déduplique — ce qui n'est pas demandé — et surtout perd l'ordre : la comparaison avec une liste rend `False` quel que soit le contenu." },
+          { titre: "Comparer `p[1]` au groupe sanguin",
+            cause: "`p[1]` est l'âge. Aucune erreur n'est levée : `45 == \"O+\"` vaut simplement `False`, et la fonction rend une liste vide. Un résultat vide sans message est le signe d'un indice erroné." }
+        ] },
+
+      { ref: "1.3", texte: "Pourquoi le choix du tuple (plutôt qu'une liste) est-il pertinent en ingénierie de la santé pour représenter un dossier patient validé ?",
+        reponse: "Parce que l'immutabilité transforme une règle de bonne conduite en **garantie vérifiée par le langage**.",
+        notes: ["Trois arguments, par ordre de poids.",
+                "**1. La modification accidentelle devient impossible.** Une fois le dossier validé, aucune fonction recevant le tuple ne peut en changer un champ, même par erreur : la tentative lève une `TypeError` à l'endroit exact de la faute — exercice A1 — au lieu de corrompre la donnée en silence.",
+                "**2. Le dossier devient utilisable comme clé.** Un tuple de champs hachables est hachable — exercice B1 —, donc indexable dans un dictionnaire ou rangeable dans un ensemble. Une liste ne le permet pas. C'est ce qui rend possible un index par `(identifiant, date)`.",
+                "**3. L'intention est lisible.** Un tuple annonce « ces trois champs forment un tout, de longueur fixe » ; une liste annonce « une collection homogène, qui grandira ». Le lecteur du code n'a pas à chercher si un `append` se cache quelque part.",
+                "NB: la protection porte sur la **structure**, non sur les objets contenus. L'exercice C3 montre qu'un tuple contenant une liste laisse passer les modifications de cette liste."],
+        solutions: [
+          { verdict: "retenue", nom: "Réponse rédigée attendue",
+            texte: "Un dossier validé ne doit plus changer. Le tuple inscrit cette décision dans le type lui-même : toute tentative de modification échoue immédiatement, au lieu d'être repérée — ou non — à la relecture. Il devient de surcroît hachable, donc utilisable comme clé d'index, ce qu'une liste interdit." },
+          { verdict: "eviter", nom: "Réponse par la performance",
+            texte: "On lit souvent qu'un tuple « est plus rapide ». L'écart existe mais il est marginal, et il n'est pas la raison du choix. Un argument de performance invoqué à la place d'un argument de correction est une réponse faible." }
+        ],
+        erreurs: [
+          { titre: "Répondre « parce qu'un tuple consomme moins de mémoire »",
+            cause: "Vrai et hors sujet : la question porte sur la fiabilité d'un dossier médical, pas sur l'empreinte mémoire d'un enregistrement de trois champs." },
+          { titre: "Répondre « parce qu'on ne peut pas se tromper »",
+            cause: "On peut parfaitement se tromper en construisant le tuple. L'immutabilité protège de ce qui arrive **après** la validation, pas de ce qui la précède." }
+        ] },
+
+      { ref: "1.4", texte: "Écrivez une fonction qui prend un tuple patient (3 éléments), un poids et une taille, et retourne un nouveau tuple combinant les 5 informations.",
+        reponse: "La concaténation construit le tuple à cinq champs ; l'original reste intact.",
+        sortie: `>>> p1 = ("P001", 45, "O+")
+>>> ajouter_plus(p1, 75.5, 1.80)
+('P001', 45, 'O+', 75.5, 1.8)
+>>> p1
+('P001', 45, 'O+')`,
+        notes: ["**Nom de la fonction.** Elle s'appelle `ajouter_plus`, dans l'énoncé comme dans `probleme_tp1.py`. Le nom doit être repris **à la lettre** : un écart provoque un `NameError`, que les blocs `except` ne rattrapent pas, et toute la suite de tests s'interrompt sur-le-champ, sans afficher le moindre compte rendu.",
+                "La dernière ligne de la transcription est la raison d'être de la question : un patient immuable ne s'enrichit pas, il se **remplace**. Pour conserver le résultat, il faut l'affecter — à un nouveau nom, ou au même."],
+        solutions: [
+          { verdict: "retenue", nom: "Concaténation",
+            code: `def ajouter_plus(patient, poids, taille):
+    return patient + (poids, taille)`,
+            texte: "Les deux virgules sont indispensables : `(poids, taille)` est bien un tuple de deux éléments." },
+          { verdict: "ok", nom: "Par la liste intermédiaire",
+            code: `def ajouter_plus(patient, poids, taille):
+    return tuple(list(patient) + [poids, taille])`,
+            texte: "Juste, et inutilement coûteux : deux conversions pour une concaténation que le tuple sait faire seul." },
+          { verdict: "expert", nom: "Déplier le patient",
+            code: `def ajouter_plus(patient, poids, taille):
+    return (*patient, poids, taille)`,
+            texte: "L'étoile déplie le tuple dans le nouveau. Forme compacte, et qui s'étend sans peine à plusieurs tuples à fusionner." }
+        ],
+        erreurs: [
+          { titre: "Nommer la fonction autrement, même de peu",
+            cause: "`ajouter_constante`, `ajouter_plus_`, `AjouterPlus` : l'exécution s'arrête net, sans aucun des quatre comptes rendus habituels — ce qui donne l'impression que le fichier est cassé alors qu'il manque une lettre. Le `NameError` est levé **hors** du `try`, à l'appel de la fonction absente.",
+            sortie: `NameError: name 'ajouter_plus' is not defined` },
+          { titre: "Appeler `patient.append(poids)`",
+            cause: "`AttributeError: 'tuple' object has no attribute 'append'`. C'est la bonne erreur à rencontrer une fois : elle rappelle qu'un tuple n'a pas de méthode d'ajout, puisqu'ajouter n'a pas de sens sur lui." },
+          { titre: "Écrire `patient + (poids) + (taille)`",
+            cause: "Aucune virgule, donc aucun tuple : `(poids)` vaut le flottant. `TypeError: can only concatenate tuple (not \"float\") to tuple`." },
+          { titre: "Modifier le patient au lieu de rendre un nouveau tuple",
+            cause: "Impossible, et c'est voulu. Si la fonction doit « enrichir » un dossier, elle en rend une version augmentée ; l'appelant décide s'il remplace l'ancienne." }
+        ] }
+    ] },
+
+  { id: "p2", titre: "P2 — Analyse des symptômes",
+    enonce: "Pour établir des diagnostics différentiels, il faut comparer les symptômes des patients rapidement, sans se soucier des doublons ni de l'ordre d'apparition. Les tests de la **Partie 2** emploient deux relevés dont le premier porte un doublon :",
+    code: `symp1 = ["fièvre", "toux", "fatigue", "anosmie", "toux"]
+symp2 = ["fatigue", "maux de tête", "fièvre", "courbatures"]`,
+    questions: [
+      { ref: "2.1", texte: "Écrivez une fonction comparer_symptomes(symp1, symp2) qui retourne un tuple contenant exactement trois ensembles : les symptômes communs, ceux exclusifs au premier patient, et tous les symptômes uniques observés.",
+        reponse: "On convertit **une fois** les deux listes en ensembles, puis on applique les trois opérateurs.",
+        sortie: `>>> comparer_symptomes(symp1, symp2)
+({'fatigue', 'fièvre'}, {'anosmie', 'toux'}, {'anosmie', 'courbatures', 'fatigue', 'fièvre', 'maux de tête', 'toux'})`,
+        notes: ["Trois opérateurs, trois questions : `&` ce qu'ils ont en commun, `-` ce que le premier a en propre, `|` tout ce qui a été observé. Le doublon `\"toux\"` de `symp1` disparaît à la conversion, sans que personne n'ait eu à s'en occuper : c'est précisément ce qu'on vient chercher dans un ensemble.",
+                "La fonction rend un tuple de trois ensembles, que l'appelant décompose : `communs, exclusifs, total = comparer_symptomes(...)`. L'ordre des trois est imposé par l'énoncé et par les tests.",
+                "NB: dans tout le problème, les ensembles sont écrits ici **par ordre alphabétique**, pour que la page reste lisible. Votre machine les affichera dans un autre ordre, et un autre à chaque lancement — c'est l'exercice C4. Comparez les contenus, jamais les dispositions."],
+        solutions: [
+          { verdict: "retenue", nom: "Opérateurs ensemblistes",
+            code: `def comparer_symptomes(symp1, symp2):
+    s1, s2 = set(symp1), set(symp2)
+    return (s1 & s2, s1 - s2, s1 | s2)`,
+            texte: "Les deux conversions sont faites une fois pour trois usages. C'est la forme la plus courte qui reste lisible." },
+          { verdict: "ok", nom: "Méthodes nommées",
+            code: `def comparer_symptomes(symp1, symp2):
+    s1, s2 = set(symp1), set(symp2)
+    return (s1.intersection(s2), s1.difference(s2), s1.union(s2))`,
+            texte: "Identique, et plus explicite pour qui lit sans connaître les opérateurs. Les méthodes acceptent de surcroît une liste en argument, là où les opérateurs exigent deux ensembles." }
+        ],
+        erreurs: [
+          { titre: "Appliquer les opérateurs aux listes",
+            cause: "`symp1 & symp2` sur deux listes lève `TypeError: unsupported operand type(s) for &: 'list' and 'list'`. Les opérateurs ensemblistes n'existent que sur les ensembles — d'où la conversion en première ligne." },
+          { titre: "Confondre `-` et `^`",
+            cause: "`s1 ^ s2` est la différence **symétrique** : ce qui est dans l'un ou l'autre mais pas dans les deux, soit ici quatre symptômes. L'énoncé demande ce qui est dans `symp1` et pas dans `symp2`, donc `-`.",
+            sortie: `>>> set(symp1) ^ set(symp2)
+{'anosmie', 'courbatures', 'maux de tête', 'toux'}` },
+          { titre: "Rendre trois listes",
+            cause: "Le test compare à des ensembles littéraux : `{\"fièvre\", \"fatigue\"}`. Une liste de même contenu n'y est jamais égale, et l'ordre non spécifié d'un ensemble — exercice C4 — interdit de toute façon de comparer à une liste.",
+            sortie: `Échec ❌ -> Erreur Q2.1 : Intersection incorrecte.` },
+          { titre: "Rendre `s1 - s2` pour le troisième ensemble",
+            cause: "L'inversion de deux des trois sorties ne fait échouer que la première assertion rencontrée. Lire le numéro de question dans le message — `Erreur Q2.1` — et vérifier **les trois** valeurs rendues, non la seule qui a échoué." }
+        ] },
+
+      { ref: "2.2", texte: "Écrivez une fonction symptomes_communs_cluster(liste_globale) qui prend une liste de n listes de symptômes (une par patient) et retourne l'ensemble des symptômes présents chez tous les patients du cluster.",
+        reponse: "On part du **premier** relevé, puis on l'intersecte avec chacun des suivants.",
+        sortie: `>>> cluster = [["fièvre", "toux", "fatigue"],
+...            ["fatigue", "maux de tête", "fièvre"],
+...            ["fatigue", "fièvre", "courbatures"]]
+>>> symptomes_communs_cluster(cluster)
+{'fatigue', 'fièvre'}`,
+        notes: ["Le point délicat est **l'initialisation**. L'intersection n'a pas d'élément neutre accessible : partir de `set()` donne un résultat vide dès la première opération, puisque l'ensemble vide n'a rien en commun avec quoi que ce soit. Il faut donc partir du premier relevé et boucler sur `liste_globale[1:]`.",
+                "C'est l'exact symétrique de l'union, où l'on part légitimement de `set()`. Retenir le couple : **union, on part du vide ; intersection, on part du premier**.",
+                "NB: l'énoncé distribué comporte une coquille — « une liste contenant  listes de symptômes (pour  patients) », où les deux nombres manquent. Lire : *n* listes pour *n* patients, le nombre n'étant pas connu à l'avance."],
+        solutions: [
+          { verdict: "retenue", nom: "Accumulation depuis le premier relevé",
+            code: `def symptomes_communs_cluster(liste_globale):
+    if not liste_globale:
+        return set()
+    communs = set(liste_globale[0])
+    for symptomes in liste_globale[1:]:
+        communs &= set(symptomes)
+    return communs`,
+            texte: "La garde sur la liste vide évite une `IndexError` sur `liste_globale[0]`. Un cluster vide n'a pas de symptôme commun : rendre `set()` est la réponse juste." },
+          { verdict: "expert", nom: "Intersection multiple en un appel",
+            code: `def symptomes_communs_cluster(liste_globale):
+    if not liste_globale:
+        return set()
+    return set.intersection(*map(set, liste_globale))`,
+            texte: "`set.intersection` accepte autant d'ensembles qu'on lui en donne ; l'étoile déplie la liste et `map(set, ...)` convertit chaque relevé. Élégant, mais il faut connaître les trois mécanismes à la fois." },
+          { verdict: "expert", nom: "Par reduce",
+            code: `from functools import reduce
+
+def symptomes_communs_cluster(liste_globale):
+    if not liste_globale:
+        return set()
+    return reduce(set.intersection, map(set, liste_globale))`,
+            texte: "La forme canonique de l'accumulation. `reduce` applique l'opération de proche en proche, exactement comme la boucle retenue." }
+        ],
+        erreurs: [
+          { titre: "Partir d'un ensemble vide",
+            cause: "`communs = set()` puis `communs &= set(symptomes)` rend **toujours** `set()` : la première intersection vide tout, et rien ne peut plus y rentrer. L'erreur est silencieuse et le résultat plausible — un cluster peut légitimement n'avoir aucun symptôme commun.",
+            sortie: `Échec ❌ -> Erreur Q2.2 : Intersection multiple incorrecte.` },
+          { titre: "Employer l'union au lieu de l'intersection",
+            cause: "`|=` rend les symptômes observés **chez au moins un** patient, soit cinq ici au lieu de deux. Les deux opérateurs se ressemblent à l'écriture et disent le contraire : `&` c'est « et », `|` c'est « ou »." },
+          { titre: "Boucler sur `liste_globale` au lieu de `liste_globale[1:]`",
+            cause: "Sans conséquence sur le résultat — intersecter le premier relevé avec lui-même ne change rien — mais c'est une opération pour rien, et le signe qu'on n'a pas vu pourquoi l'initialisation posait problème." },
+          { titre: "Oublier `set()` autour de chaque relevé",
+            cause: "`communs &= symptomes` sur une liste lève `TypeError: unsupported operand type(s) for &=: 'set' and 'list'`. Noter que `communs.intersection_update(symptomes)` aurait accepté la liste : les méthodes sont plus tolérantes que les opérateurs." }
+        ] }
+    ] },
+
+  { id: "p3", titre: "P3 — Classification et statistiques",
+    enonce: "Le centre médical fournit un historique des diagnostics sous forme d'une liste de tuples `(id_patient, pathologie)`. Les tests de la **Partie 3** emploient :",
+    code: `hist = [
+    ("P1", "Grippe"), ("P2", "COVID"), ("P1", "Angine"),
+    ("P4", "Grippe"), ("P5", "Bronchite"), ("P2", "Grippe")
+]`,
+    questions: [
+      { ref: "3.1", texte: "Écrivez une fonction grouper_patients(historique) qui retourne un dictionnaire associant chaque pathologie à la liste des id_patient qui en sont atteints.",
+        reponse: "C'est l'exercice B4, appliqué à l'historique : `defaultdict(list)` et une boucle.",
+        sortie: `>>> dict(grouper_patients(hist))
+{'Grippe': ['P1', 'P4', 'P2'], 'COVID': ['P2'], 'Angine': ['P1'], 'Bronchite': ['P5']}`,
+        notes: ["Attention au sens du couple : l'historique livre `(id_patient, pathologie)`, et le dictionnaire demandé va de la **pathologie** vers les patients. La boucle inverse donc les deux termes au moment de l'écriture — `groupes[pathologie].append(id_patient)` —, et c'est là que se logent la plupart des échecs.",
+                "L'ordre des identifiants dans chaque liste est celui de l'historique : le test compare à `[\"P1\", \"P4\", \"P2\"]`, qui n'est ni l'ordre alphabétique ni l'ordre numérique. Une liste conserve l'ordre d'arrivée, et c'est ce qu'on lui demande ici."],
+        solutions: [
+          { verdict: "retenue", nom: "defaultdict(list)",
+            code: `from collections import defaultdict
+
+def grouper_patients(historique):
+    groupes = defaultdict(list)
+    for id_patient, pathologie in historique:
+        groupes[pathologie].append(id_patient)
+    return groupes`,
+            texte: "La forme que l'énoncé suggère. Le `defaultdict` rendu se comporte comme un dictionnaire pour toutes les opérations du problème, y compris le `.items()` de la question 3.3." },
+          { verdict: "ok", nom: "setdefault, sans import",
+            code: `def grouper_patients(historique):
+    groupes = {}
+    for id_patient, pathologie in historique:
+        groupes.setdefault(pathologie, []).append(id_patient)
+    return groupes`,
+            texte: "Même résultat, et rend un dictionnaire ordinaire — donc sans l'effet de bord du `defaultdict`, qui crée une clé à la moindre consultation." },
+          { verdict: "expert", nom: "Figer le résultat avant de le rendre",
+            code: `    return dict(groupes)`,
+            texte: "Une ligne de plus, et le dictionnaire rendu ne crée plus de clé quand on l'interroge. À faire dès qu'un dictionnaire construit par `defaultdict` sort de la fonction qui le remplit." }
+        ],
+        erreurs: [
+          { titre: "Inverser les deux termes du couple",
+            cause: "`for pathologie, id_patient in historique` nomme mal les deux champs : on obtient le dictionnaire patient → pathologies, qui est la réponse de la **question 3.3**. Rien n'est levé, et le résultat est si plausible qu'on peut le croire juste.",
+            sortie: `Échec ❌ -> Erreur Q3.1 : Groupement incorrect.` },
+          { titre: "Utiliser un dictionnaire ordinaire sans créer la liste",
+            cause: "`groupes[pathologie].append(...)` sur un `dict` nu lève `KeyError: 'Grippe'` au premier tour — c'est exactement l'exercice B4." },
+          { titre: "Accumuler dans un ensemble",
+            cause: "`defaultdict(set)` déduplique et perd l'ordre : le test, qui compare à une liste, échoue. L'ensemble est le bon choix à la question 3.3, pas ici — c'est l'énoncé qui dit lequel, en nommant le type attendu." }
+        ] },
+
+      { ref: "3.2", texte: "Écrivez une fonction rapport_top_maladies(historique, n) qui retourne une liste des n pathologies les plus fréquentes accompagnées de leur nombre de cas, sous forme de tuples (pathologie, compte).",
+        reponse: "`Counter` sur les seules pathologies, puis `most_common(n)`.",
+        sortie: `>>> rapport_top_maladies(hist, 1)
+[('Grippe', 3)]
+>>> rapport_top_maladies(hist, 3)
+[('Grippe', 3), ('COVID', 1), ('Angine', 1)]`,
+        notes: ["Le format demandé — une liste de tuples `(pathologie, compte)` — est **exactement** celui que rend `most_common`. C'est l'objet de la question B5.3 : la méthode ne rend pas un dictionnaire, mais une liste ordonnée, et c'est ce qui permet de parler de « les n plus fréquentes ».",
+                "L'extraction `patho for _, patho in historique` est le point à ne pas rater : on compte les pathologies, non les couples. Le souligné `_` est la convention pour un champ dont on n'a pas besoin."],
+        solutions: [
+          { verdict: "retenue", nom: "Counter sur une expression génératrice",
+            code: `from collections import Counter
+
+def rapport_top_maladies(historique, n):
+    return Counter(patho for _, patho in historique).most_common(n)`,
+            texte: "Une ligne, et chaque morceau se lit : on extrait les pathologies, on les compte, on prend les `n` premières." },
+          { verdict: "ok", nom: "En deux temps",
+            code: `def rapport_top_maladies(historique, n):
+    pathologies = [patho for _, patho in historique]
+    comptes = Counter(pathologies)
+    return comptes.most_common(n)`,
+            texte: "Identique, et plus facile à inspecter : on peut afficher `comptes` pour vérifier le comptage avant de trancher le classement." },
+          { verdict: "expert", nom: "Sans Counter",
+            code: `def rapport_top_maladies(historique, n):
+    comptes = {}
+    for _, patho in historique:
+        comptes[patho] = comptes.get(patho, 0) + 1
+    classement = sorted(comptes.items(), key=lambda couple: -couple[1])
+    return classement[:n]`,
+            texte: "Utile à écrire une fois pour voir ce que `Counter` fait : compter, puis trier par compte décroissant. Les égalités, ici, ne sont pas départagées dans le même ordre que par `most_common`." }
+        ],
+        erreurs: [
+          { titre: "Passer l'historique entier à `Counter`",
+            cause: "`Counter(historique)` compte les **couples**, tous distincts : chacun apparaît une fois. Le résultat est une liste d'un couple de couple, parfaitement absurde et pourtant sans erreur.",
+            sortie: `>>> Counter(hist).most_common(1)
+[(('P1', 'Grippe'), 1)]` },
+          { titre: "Écrire `most_common()[n]`",
+            cause: "Cela rend **le** `n`-ième couple, un seul, au lieu des `n` premiers. Pour `n = 1`, on obtient `('COVID', 1)` : le deuxième du classement. L'argument se passe à la méthode, pas après." },
+          { titre: "Rendre un dictionnaire",
+            cause: "`dict(compte.most_common(n))` perd le classement que la question demande, et le test, qui compare à `[('Grippe', 3)]`, échoue." }
+        ] },
+
+      { ref: "3.3", texte: "À partir du dictionnaire généré par la question 3.1, écrivez une fonction profil_maladies_patients(groupes_patho) qui l'inverse : chaque clé est un ID de patient, et la valeur est l'ensemble des maladies contractées par ce patient.",
+        reponse: "Deux boucles imbriquées et un `defaultdict(set)` : chaque patient accumule ses pathologies.",
+        sortie: `>>> groupes = grouper_patients(hist)
+>>> dict(profil_maladies_patients(groupes))
+{'P1': {'Angine', 'Grippe'}, 'P4': {'Grippe'}, 'P2': {'COVID', 'Grippe'}, 'P5': {'Bronchite'}}`,
+        notes: ["C'est l'inversion de l'exercice B2.3, mais **sans perte** : la valeur devient un ensemble, de sorte que P1, atteint de deux pathologies, les conserve toutes les deux. L'inversion naïve `{v: k for k, v in ...}` aurait écrasé l'une des deux — et ici elle ne s'écrit même pas, puisque les valeurs sont des listes, donc non hachables.",
+                "La boucle extérieure parcourt les pathologies, l'intérieure la liste des patients de chaque pathologie. Chaque identifiant rencontré reçoit la pathologie courante : `profils[id_patient].add(pathologie)`."],
+        solutions: [
+          { verdict: "retenue", nom: "defaultdict(set) et deux boucles",
+            code: `from collections import defaultdict
+
+def profil_maladies_patients(groupes_patho):
+    profils = defaultdict(set)
+    for pathologie, ids in groupes_patho.items():
+        for id_patient in ids:
+            profils[id_patient].add(pathologie)
+    return profils`,
+            texte: "La forme que l'indication de l'énoncé demande. `add` et non `append` : on garnit un ensemble." },
+          { verdict: "ok", nom: "Sans defaultdict",
+            code: `def profil_maladies_patients(groupes_patho):
+    profils = {}
+    for pathologie, ids in groupes_patho.items():
+        for id_patient in ids:
+            profils.setdefault(id_patient, set()).add(pathologie)
+    return profils`,
+            texte: "`setdefault(id_patient, set())` crée l'ensemble vide au premier passage. Même résultat, sans import." },
+          { verdict: "expert", nom: "Repartir de l'historique",
+            code: `def profil_depuis_historique(historique):
+    profils = defaultdict(set)
+    for id_patient, pathologie in historique:
+        profils[id_patient].add(pathologie)
+    return profils`,
+            texte: "Une seule boucle, parce que l'historique porte déjà les couples dans le bon sens. L'énoncé impose de partir du dictionnaire de la question 3.1 — c'est un exercice d'inversion —, mais il faut voir que la donnée d'origine était plus directe. **Inverser un dictionnaire coûte toujours plus que relire la source.**" }
+        ],
+        erreurs: [
+          { titre: "Accumuler dans une liste",
+            cause: "`defaultdict(list)` et `.append` : le profil de P1 devient `['Grippe', 'Angine']`. Le test compare à `{\"Grippe\", \"Angine\"}`, et une liste n'est jamais égale à un ensemble.",
+            sortie: `Échec ❌ -> Erreur Q3.3 : Profil P1 incorrect.` },
+          { titre: "Écrire `profils[id_patient] = pathologie`",
+            cause: "Chaque pathologie écrase la précédente : P1 finit avec une seule maladie, sous forme de chaîne de caractères. C'est la perte silencieuse de l'exercice B2.3, reproduite à l'identique." },
+          { titre: "Tenter `{ids: patho for patho, ids in groupes.items()}`",
+            cause: "`TypeError: unhashable type: 'list'` — on essaie d'utiliser une liste de patients comme clé, ce qu'interdit l'exercice B1. L'erreur est utile : elle signale que l'inversion n'est pas une simple permutation." },
+          { titre: "Appeler `.add` sur une seule boucle",
+            cause: "`profils[ids].add(pathologie)` oublie que `ids` est une **liste** d'identifiants, non un identifiant. Il faut la parcourir : une pathologie peut toucher plusieurs patients." }
+        ] }
+    ] },
+
+  { id: "p4", titre: "P4 — Synthèse et récursivité",
+    enonce: "On modélise les interactions sociales par un dictionnaire dont la clé est l'ID d'un patient et la valeur la liste des IDs des patients avec qui il a été en contact direct. Les tests de la **Partie 4** emploient ce réseau, qui comporte un cycle (`P1 → P3 → P1`) et une composante isolée (`P7 → P8`) :",
+    code: `reseau = {
+    "P1": ["P2", "P3"],
+    "P2": ["P4"],
+    "P3": ["P1", "P5"],
+    "P4": [],
+    "P5": ["P6"],
+    "P6": [],
+    "P7": ["P8"],
+    "P8": []
+}`,
+    questions: [
+      { ref: "4.1", texte: "Écrivez une fonction récursive tracer_contacts(patient_id, reseau, visites=None) qui retourne l'ensemble de tous les patients potentiellement exposés à partir d'un patient initial.",
+        reponse: "On marque le patient, puis on relance la fonction sur chacun de ses contacts non encore marqués.",
+        sortie: `>>> tracer_contacts("P1", reseau)
+{'P1', 'P2', 'P3', 'P4', 'P5', 'P6'}
+>>> tracer_contacts("P7", reseau)
+{'P7', 'P8'}`,
+        notes: ["Le patient initial **figure dans le résultat** : le test attend six identifiants, `P1` compris. C'est cohérent avec la question posée — « les patients potentiellement exposés » inclut celui par qui l'on commence —, et c'est aussi ce qui rend l'écriture régulière : chaque appel traite son propre patient de la même manière.",
+                "`visites` joue deux rôles à la fois : il mémorise ce qui est déjà traité, et il **est** le résultat. Il n'y a donc rien à fusionner au retour des appels — l'ensemble passé en argument est modifié sur place par tous les appels, puisqu'un ensemble est mutable.",
+                "Le cas de base n'est pas « plus de contacts » mais « patient déjà visité ». C'est ce qui arrête la récursion dans le cycle `P1 → P3 → P1` ; sans lui, la profondeur d'appel croît sans fin.",
+                "**Pourquoi `visites=None` et non `visites=set()`.** Une valeur par défaut est évaluée **une seule fois**, à la définition de la fonction. Avec `visites=set()`, tous les appels ultérieurs partageraient le même ensemble : la trace de `P7` contiendrait encore les contacts de `P1`. C'est le piège vu au TD 1, exercice A3, transposé à un ensemble."],
+        pile: { entetes: ["Appel", "Patient", "visites à l'entrée", "Effet"],
+          lignes: [
+            ["1", "`P1`", "`set()`", "marque `P1`, descend sur `P2`"],
+            ["2", "`P2`", "`{P1}`", "marque `P2`, descend sur `P4`"],
+            ["3", "`P4`", "`{P1, P2}`", "marque `P4`, aucun contact — remonte"],
+            ["4", "`P3`", "`{P1, P2, P4}`", "marque `P3`, descend sur `P1`"],
+            ["5", "`P1`", "`{P1, P2, P3, P4}`", "**déjà visité** — remonte aussitôt"],
+            ["6", "`P5`", "`{P1, P2, P3, P4}`", "marque `P5`, descend sur `P6`"],
+            ["7", "`P6`", "`{P1, …, P5}`", "marque `P6`, aucun contact — remonte"]
+          ] },
+        solutions: [
+          { verdict: "retenue", nom: "Accumulateur passé en argument",
+            code: `def tracer_contacts(patient_id, reseau, visites=None):
+    if visites is None:
+        visites = set()
+    if patient_id in visites:
+        return visites
+    visites.add(patient_id)
+    for contact in reseau.get(patient_id, []):
+        tracer_contacts(contact, reseau, visites)
+    return visites`,
+            texte: "Noter `reseau.get(patient_id, [])` : un identifiant absent du réseau rend une liste vide au lieu de lever une `KeyError` — exercice C1. Ici l'absence est normale, puisqu'un contact peut n'avoir aucune ligne à lui." },
+          { verdict: "ok", nom: "Par unions successives",
+            code: `def tracer_contacts(patient_id, reseau, visites=None):
+    if visites is None:
+        visites = set()
+    if patient_id in visites:
+        return visites
+    visites = visites | {patient_id}
+    for contact in reseau.get(patient_id, []):
+        visites = visites | tracer_contacts(contact, reseau, visites)
+    return visites`,
+            texte: "Juste, et plus coûteux : chaque union construit un nouvel ensemble. Elle a toutefois un mérite pédagogique — on voit où la valeur est rendue, là où la version retenue repose sur la modification sur place." },
+          { verdict: "expert", nom: "Sans récursion, avec une pile explicite",
+            code: `def tracer_contacts(patient_id, reseau, visites=None):
+    visites = set()
+    a_traiter = [patient_id]
+    while a_traiter:
+        patient = a_traiter.pop()
+        if patient in visites:
+            continue
+        visites.add(patient)
+        a_traiter.extend(reseau.get(patient, []))
+    return visites`,
+            texte: "La même exploration, la pile d'appels remplacée par une liste. L'énoncé demande une fonction récursive — c'est l'objet de l'exercice —, mais il faut savoir que tout parcours récursif a cette forme itérative, qui ne peut pas déborder la pile." }
+        ],
+        erreurs: [
+          { titre: "Omettre `visites` et la vérification d'appartenance",
+            cause: "Le cycle `P1 → P3 → P1` relance indéfiniment la fonction. Python interrompt au bout d'un millier d'appels. Toute exploration de graphe exige un marquage : c'est la différence entre un graphe et un arbre.",
+            sortie: `RecursionError: maximum recursion depth exceeded` },
+          { titre: "Écrire `visites=set()` comme valeur par défaut",
+            cause: "Le premier appel réussit, et c'est ce qui rend l'erreur redoutable. Au deuxième — `tracer_contacts(\"P7\", reseau)` —, l'ensemble contient encore les six patients du premier.",
+            sortie: `>>> tracer_contacts("P1", reseau)
+{'P1', 'P2', 'P3', 'P4', 'P5', 'P6'}
+>>> tracer_contacts("P7", reseau)
+{'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8'}` },
+          { titre: "Ne pas inclure le patient initial",
+            cause: "Marquer les contacts au lieu du patient courant **passe le test** sur ce réseau : le cycle `P3 → P1` finit par ramener `P1`. Mais `tracer_contacts(\"P7\", reseau)` rend alors `{'P8'}`, et `tracer_contacts(\"P4\", reseau)` rend `set()`. Un test qui passe n'est pas une démonstration : il faut vérifier sur un sommet sans cycle." },
+          { titre: "Écrire `reseau[patient_id]` au lieu de `reseau.get(...)`",
+            cause: "Fonctionne sur ce réseau, où tous les contacts ont leur propre entrée. Lève `KeyError` dès qu'un contact cité n'en a pas — ce qui est la situation normale d'un relevé incomplet." },
+          { titre: "Rendre `visites` depuis chaque appel sans le remonter",
+            cause: "Oublier le `return visites` final laisse la fonction rendre `None` à l'appelant, alors que l'ensemble est correctement rempli. L'erreur est déroutante : le calcul est juste, le résultat est perdu." }
+        ] },
+
+      { ref: "4.2", texte: "Écrivez une fonction récursive transmission_possible(p_source, p_cible, reseau, visites=None) qui retourne True s'il existe une chaîne de contacts menant de p_source à p_cible, et False sinon. L'algorithme doit s'arrêter dès que la cible est trouvée.",
+        reponse: "Même exploration qu'en 4.1, mais on remonte `True` dès la cible atteinte.",
+        sortie: `>>> transmission_possible("P1", "P6", reseau)
+True
+>>> transmission_possible("P1", "P8", reseau)
+False
+>>> transmission_possible("P4", "P1", reseau)
+False`,
+        notes: ["Le troisième essai est le plus instructif : `P1` atteint `P4`, mais `P4` n'atteint pas `P1`. Le réseau est **orienté** — chaque liste dit « qui cet patient a vu », non « qui l'a vu ». Un réseau de contacts réels serait symétrique ; celui-ci ne l'est pas, et les tests le vérifient explicitement.",
+                "« S'arrêter dès que la cible est trouvée » est une exigence de l'énoncé, et elle se traduit par un `return True` qui coupe la boucle, non par un parcours complet suivi d'un test. C'est la différence entre répondre à la question posée et explorer tout le réseau pour répondre ensuite.",
+                "Le `visites` reste indispensable, pour la même raison qu'en 4.1 : sans lui, le cycle fait tourner la recherche d'une cible inatteignable jusqu'au débordement de pile."],
+        solutions: [
+          { verdict: "retenue", nom: "Remontée immédiate du succès",
+            code: `def transmission_possible(p_source, p_cible, reseau, visites=None):
+    if visites is None:
+        visites = set()
+    if p_source == p_cible:
+        return True
+    visites.add(p_source)
+    for contact in reseau.get(p_source, []):
+        if contact == p_cible:
+            return True
+        if contact not in visites:
+            if transmission_possible(contact, p_cible, reseau, visites):
+                return True
+    return False`,
+            texte: "Trois sorties possibles : la source **est** la cible, un contact direct est la cible, ou un appel plus profond a réussi. Le `return False` final n'est atteint qu'après avoir épuisé toutes les branches." },
+          { verdict: "ok", nom: "Forme condensée par any()",
+            code: `def transmission_possible(p_source, p_cible, reseau, visites=None):
+    if visites is None:
+        visites = set()
+    if p_source == p_cible:
+        return True
+    if p_source in visites:
+        return False
+    visites.add(p_source)
+    return any(transmission_possible(c, p_cible, reseau, visites)
+               for c in reseau.get(p_source, []))`,
+            texte: "`any` sur une expression génératrice s'arrête au premier `True` : l'exigence d'arrêt anticipé est respectée. Plus court, et la condition d'arrêt y est moins visible." },
+          { verdict: "eviter", nom: "Réutiliser tracer_contacts",
+            code: `def transmission_possible(p_source, p_cible, reseau, visites=None):
+    return p_cible in tracer_contacts(p_source, reseau)`,
+            texte: "Les trois tests passent, et la fonction n'est pourtant pas celle qu'on demande : elle explore **tout** le réseau accessible avant de répondre, alors que l'énoncé exige l'arrêt dès la cible trouvée. Sur un réseau de grande taille, l'écart est celui entre quelques appels et des millions." }
+        ],
+        erreurs: [
+          { titre: "Omettre `visites`",
+            cause: "Le cycle `P1 → P3 → P1` relance la recherche sans fin dès que la cible n'est pas immédiatement accessible — par exemple `P8`. La récursion déborde avant de pouvoir rendre `False`.",
+            sortie: `RecursionError: maximum recursion depth exceeded` },
+          { titre: "Ne pas transmettre `visites` à l'appel récursif",
+            cause: "Chaque appel repart d'un ensemble vide : le marquage ne sert plus à rien, et le cycle reprend ses droits. Même `RecursionError`, pour une cause plus difficile à voir." },
+          { titre: "Écrire `transmission_possible(contact, ...)` sans examiner son résultat",
+            cause: "Appeler la fonction sans `if` devant ignore ce qu'elle rend : la boucle se termine, et le `return False` final s'exécute. La fonction rend alors `False` pour `P1 → P6`, qui est pourtant atteignable. **En récursion, un appel dont on ne lit pas la valeur est un appel perdu.**",
+            sortie: `Échec ❌ -> Erreur Q4.2 : P6 est bien atteignable depuis P1.` },
+          { titre: "Terminer la fonction sans `return False`",
+            cause: "Elle rend alors `None`, qui n'est pas `False` — `None == False` vaut `False` — mais se comporte comme lui dans un `if`. L'assertion du test, qui compare à `False`, échoue tandis que le programme paraît raisonner juste." },
+          { titre: "Explorer tout le réseau avant de répondre",
+            cause: "Le résultat est juste, l'exigence de l'énoncé ne l'est pas. Voir la proposition « à éviter » ci-dessus : c'est le même défaut, assumé." }
+        ] }
+    ] }
+] }
+];
+
+/* ------------------------------------------------------------------ *
+ *  Mémoire locale — simple confort de lecture, jamais indispensable.
+ * ------------------------------------------------------------------ */
+const CLE = "m235-tp1-corriges-vus";
+let vus = new Set();
+try {
+  const brut = localStorage.getItem(CLE);
+  if (brut) vus = new Set(JSON.parse(brut));
+} catch (e) { /* navigation privée, stockage bloqué : on continue sans */ }
+
+function memoriser() {
+  try { localStorage.setItem(CLE, JSON.stringify([...vus])); } catch (e) {}
+}
+
+/* ------------------------------------------------------------------ *
+ *  Rendu
+ * ------------------------------------------------------------------ */
+const rail = document.getElementById("rail");
+const travail = document.getElementById("travail");
+const tousExercices = TP.flatMap(p => p.exercices.map(e => ({ ...e, partie: p.partie })));
+
+function cleQuestion(ex, i) { return ex.id + "-" + i; }
+
+function exerciceVu(ex) {
+  return ex.questions.every((_, i) => vus.has(cleQuestion(ex, i)));
+}
+
+function construireRail() {
+  rail.innerHTML = TP.map(partie => `
+    <div class="rail-groupe">
+      <div class="rail-titre">${echapper(partie.partie.replace(/^Partie /, ""))}</div>
+      <div class="rail-liste">
+        ${partie.exercices.map(ex => `
+          <button class="onglet" type="button" data-cible="${ex.id}">
+            <span class="cle">${echapper(ex.titre.split(" — ")[0])}</span>
+            <span>${echapper(ex.titre.split(" — ")[1] || "")}</span>
+            <span class="pastille" aria-hidden="true"></span>
+          </button>`).join("")}
+      </div>
+    </div>`).join("");
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.addEventListener("click", () => afficher(b.dataset.cible, true)));
+}
+
+function fiche(item, estErreur) {
+  const classeVerdict = { retenue: "v-retenue", ok: "v-ok",
+                          eviter: "v-eviter", expert: "v-expert" }[item.verdict];
+  const libelle = { retenue: "à retenir", ok: "acceptable",
+                    eviter: "à éviter", expert: "pour aller plus loin" }[item.verdict];
+  return `
+    <article class="fiche${estErreur ? " erreur" : ""}">
+      <div class="fiche-tete">
+        <h4>${enrichir(item.nom || item.titre)}</h4>
+        ${estErreur
+          ? '<span class="verdict v-eviter">erreur fréquente</span>'
+          : (classeVerdict ? `<span class="verdict ${classeVerdict}">${libelle}</span>` : "")}
+      </div>
+      <div class="fiche-corps">
+        ${item.code ? bloc(item.code, false) : ""}
+        ${item.sortie ? bloc(item.sortie, true) : ""}
+        ${item.texte ? `<p>${enrichir(item.texte)}</p>` : ""}
+        ${item.cause ? `<dl class="ligne-diag"><dt>Pourquoi</dt><dd>${enrichir(item.cause)}</dd></dl>` : ""}
+      </div>
+    </article>`;
+}
+
+function tableau(p) {
+  return `<div class="table-enveloppe"><table class="pile">
+    <thead><tr>${p.entetes.map(h => `<th>${enrichir(h)}</th>`).join("")}</tr></thead>
+    <tbody>${p.lignes.map(l => `<tr>${l.map(c => `<td>${enrichir(c)}</td>`).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+function corpsCorrection(q) {
+  return `
+    <div class="reponse">
+      <span class="etiquette">Réponse</span>
+      <p>${enrichir(q.reponse)}</p>
+    </div>
+    ${q.sortie ? bloc(q.sortie, true) : ""}
+    ${q.pile ? tableau(q.pile) : ""}
+    ${(q.notes || []).map(n => `<p>${enrichir(n)}</p>`).join("")}
+    ${q.solutions && q.solutions.length ? `
+      <div class="sous-titre">Propositions de solution</div>
+      <div class="lot">${q.solutions.map(s => fiche(s, false)).join("")}</div>` : ""}
+    ${q.erreurs && q.erreurs.length ? `
+      <div class="sous-titre">Erreurs fréquentes</div>
+      <div class="lot">${q.erreurs.map(e => fiche(e, true)).join("")}</div>` : ""}`;
+}
+
+let courant = null;
+
+function afficher(id, deplacerFocus) {
+  const ex = tousExercices.find(e => e.id === id) || tousExercices[0];
+  courant = ex;
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.setAttribute("aria-current", String(b.dataset.cible === ex.id)));
+
+  travail.innerHTML = `
+    <div class="chapeau">
+      <div>
+        <span class="partie">${echapper(ex.partie)}</span>
+        <h2>${echapper(ex.titre)}</h2>
+      </div>
+      <button class="bouton-plat" type="button" id="tout">Tout afficher</button>
+    </div>
+    <div class="enonce">
+      <p>${enrichir(ex.enonce)}</p>
+      ${ex.code ? bloc(ex.code, false) : ""}
+    </div>
+    ${ex.questions.map((q, i) => {
+      const cle = cleQuestion(ex, i);
+      const ouvert = vus.has(cle);
+      return `
+      <article class="question" id="q-${cle}">
+        <div class="question-tete">
+          ${q.ref ? `<span class="ref">${echapper(q.ref)}</span>` : ""}
+          <div class="texte">${enrichir(q.texte)}</div>
+          <button class="devoiler" type="button" data-cle="${cle}"
+                  aria-expanded="${ouvert}" aria-controls="c-${cle}">
+            ${ouvert ? "Masquer" : "Afficher la correction"}
+          </button>
+        </div>
+        <div class="correction" id="c-${cle}" ${ouvert ? "" : "hidden"}>
+          ${corpsCorrection(q)}
+        </div>
+      </article>`;
+    }).join("")}`;
+
+  travail.querySelectorAll(".devoiler").forEach(b =>
+    b.addEventListener("click", () => basculer(b)));
+  document.getElementById("tout").addEventListener("click", toutAfficher);
+  majPastilles();
+  if (deplacerFocus) {
+    history.replaceState(null, "", "#" + ex.id);
+    travail.querySelector("h2").scrollIntoView({ block: "nearest" });
+  }
+}
+
+function basculer(bouton) {
+  const cle = bouton.dataset.cle;
+  const zone = document.getElementById("c-" + cle);
+  const ouvrir = zone.hidden;
+  zone.hidden = !ouvrir;
+  bouton.setAttribute("aria-expanded", String(ouvrir));
+  bouton.textContent = ouvrir ? "Masquer" : "Afficher la correction";
+  if (ouvrir) vus.add(cle); else vus.delete(cle);
+  memoriser();
+  majPastilles();
+}
+
+function toutAfficher() {
+  const boutons = [...travail.querySelectorAll(".devoiler")];
+  const toutOuvert = boutons.every(b => b.getAttribute("aria-expanded") === "true");
+  boutons.forEach(b => {
+    if ((b.getAttribute("aria-expanded") === "true") === toutOuvert) basculer(b);
+  });
+  document.getElementById("tout").textContent = toutOuvert ? "Tout afficher" : "Tout masquer";
+}
+
+function majPastilles() {
+  rail.querySelectorAll(".onglet").forEach(b => {
+    const ex = tousExercices.find(e => e.id === b.dataset.cible);
+    b.classList.toggle("vu", exerciceVu(ex));
+  });
+  const bouton = document.getElementById("tout");
+  if (bouton && courant) {
+    const boutons = [...travail.querySelectorAll(".devoiler")];
+    bouton.textContent = boutons.every(b => b.getAttribute("aria-expanded") === "true")
+      ? "Tout masquer" : "Tout afficher";
+  }
+}
+
+construireRail();
+const ancre = (location.hash || "").replace("#", "");
+afficher(tousExercices.some(e => e.id === ancre) ? ancre : tousExercices[0].id, false);
+</script>
+</body>
+</html>

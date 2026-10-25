@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Corrigé du TP 5 : les boucles imbriquées</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+/* Disposition : console à deux volets — rail des exercices à gauche, colonne de
+   travail à droite ; au format téléphone le rail devient une barre de pastilles. */
+:root {
+  --bleu:        #2A5B7F;   /* charte du module — titres, rail, filets        */
+  --sarcelle:    #2E8B79;   /* charte du module assombrie pour le texte       */
+  --vert:        #5E7A18;   /* charte du module assombrie — solution retenue  */
+  --prune:       #B03F60;   /* erreurs fréquentes                        */
+  --encre:       #16242E;
+  --encre-douce: #51616C;
+  --fond:        #FBFCFD;
+  --carte:       #FFFFFF;
+  --surface:     #F1F6F9;   /* neutre biaisé vers le bleu de la charte   */
+  --filet:       #D6E3EC;
+  --code-fond:   #F4F8FA;
+  --code-filet:  #DCE8F0;
+  --ombre:       0 1px 2px rgba(22, 36, 46, .06), 0 8px 24px rgba(22, 36, 46, .05);
+
+  --syn-mot:     #C0392B;
+  --syn-natif:   #6F42C1;
+  --syn-texte:   #0B4F8A;
+  --syn-note:    #67757F;
+  --syn-nombre:  #1A6FAF;
+
+  --titre: "Zilla Slab", Rockwell, Georgia, serif;
+  --corps: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: Consolas, "JetBrains Mono", ui-monospace, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+    --encre: #E6EDF2; --encre-douce: #9FB0BC;
+    --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+    --code-fond: #101E27; --code-filet: #263B49;
+    --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+    --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+    --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+  --encre: #E6EDF2; --encre-douce: #9FB0BC;
+  --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+  --code-fond: #101E27; --code-filet: #263B49;
+  --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+  --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0; background: var(--fond); color: var(--encre);
+  font-family: var(--corps); font-size: 16px; line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+h1, h2, h3, h4 { font-family: var(--titre); text-wrap: balance; margin: 0; }
+code, pre { font-family: var(--mono); }
+:focus-visible { outline: 2.5px solid var(--sarcelle); outline-offset: 2px; border-radius: 3px; }
+
+/* — bandeau — */
+.bandeau {
+  background: var(--bleu); color: #fff;
+  padding-block: 18px 16px; padding-inline: 16px;
+}
+.bandeau-interieur { max-width: 1180px; margin: 0 auto; display: flex;
+  flex-wrap: wrap; gap: 12px 24px; align-items: baseline; }
+.bandeau h1 { font-size: clamp(1.25rem, 1rem + 1.2vw, 1.7rem); font-weight: 600;
+  letter-spacing: .01em; }
+.bandeau p { margin: 0; font-size: .86rem; opacity: .82; }
+.bandeau .module { font-family: var(--mono); font-size: .76rem;
+  letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+
+/* — mise en page — */
+.page { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 20px 56px; display: grid; gap: 24px;
+  grid-template-columns: 236px minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .page { grid-template-columns: minmax(0, 1fr); } }
+
+/* — rail — */
+.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+@media (max-width: 860px) { .rail { position: static; } }
+.rail-groupe + .rail-groupe { margin-top: 18px; }
+.rail-titre { font-family: var(--mono); font-size: .68rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); margin-bottom: 7px; }
+.rail-liste { display: flex; flex-direction: column; gap: 3px; }
+@media (max-width: 860px) {
+  .rail-liste { flex-direction: row; flex-wrap: wrap; }
+  .rail-groupe + .rail-groupe { margin-top: 10px; }
+}
+.onglet {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  font: inherit; font-size: .91rem; text-align: left; cursor: pointer;
+  background: none; border: 1px solid transparent; border-radius: 7px;
+  padding: 6px 10px; color: var(--encre);
+}
+.onglet:hover { background: var(--surface); }
+.onglet[aria-current="true"] { background: var(--bleu); color: #fff;
+  border-color: var(--bleu); }
+.onglet .cle { font-family: var(--mono); font-size: .78rem; font-weight: 600;
+  min-width: 1.6em; }
+.onglet .pastille { margin-left: auto; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--vert); opacity: 0; flex: none; }
+.onglet.vu .pastille { opacity: 1; }
+@media (max-width: 860px) { .onglet { width: auto; } .onglet .pastille { margin-left: 4px; } }
+
+/* — colonne de travail — */
+.travail { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.chapeau { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: baseline;
+  justify-content: space-between; }
+.chapeau h2 { font-size: clamp(1.15rem, 1rem + .9vw, 1.5rem); color: var(--bleu);
+  font-weight: 600; }
+.chapeau .partie { font-family: var(--mono); font-size: .72rem; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--encre-douce); display: block;
+  margin-bottom: 2px; }
+
+.bouton-plat { font: inherit; font-size: .84rem; cursor: pointer;
+  background: var(--carte); color: var(--bleu); border: 1px solid var(--filet);
+  border-radius: 7px; padding: 5px 12px; }
+.bouton-plat:hover { background: var(--surface); }
+
+.enonce { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 10px; padding: 14px 16px; }
+.enonce p { margin: 0 0 10px; }
+.enonce p:last-child { margin-bottom: 0; }
+
+.question { background: var(--carte); border: 1px solid var(--filet);
+  border-radius: 10px; box-shadow: var(--ombre); overflow: hidden; }
+.question-tete { display: flex; gap: 12px; align-items: flex-start;
+  padding: 13px 16px; }
+.question-tete .ref { font-family: var(--mono); font-weight: 600;
+  color: var(--sarcelle); flex: none; padding-top: 1px; }
+.question-tete .texte { min-width: 0; flex: 1; }
+.devoiler { font: inherit; font-size: .84rem; cursor: pointer; flex: none;
+  background: var(--bleu); color: #fff; border: 1px solid var(--bleu);
+  border-radius: 7px; padding: 5px 12px; white-space: nowrap; }
+.devoiler[aria-expanded="true"] { background: var(--carte); color: var(--bleu); }
+@media (max-width: 560px) {
+  .question-tete { flex-wrap: wrap; }
+  .devoiler { width: 100%; }
+}
+.correction { border-top: 1px solid var(--filet); padding: 14px 16px 16px;
+  display: flex; flex-direction: column; gap: 14px; }
+@media (prefers-reduced-motion: no-preference) {
+  .correction { animation: apparait .22s ease-out; }
+  @keyframes apparait { from { opacity: 0; transform: translateY(-3px); } }
+}
+
+.reponse { border-left: 3px solid var(--vert); padding-left: 13px; }
+.reponse .etiquette { font-family: var(--mono); font-size: .68rem;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--vert);
+  font-weight: 600; display: block; margin-bottom: 4px; }
+.reponse p { margin: 0 0 8px; }
+.reponse p:last-child { margin-bottom: 0; }
+
+.sous-titre { font-family: var(--mono); font-size: .7rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); font-weight: 600;
+  display: flex; align-items: center; gap: 9px; }
+.sous-titre::after { content: ""; flex: 1; height: 1px; background: var(--filet); }
+
+.lot { display: flex; flex-direction: column; gap: 10px; }
+.fiche { border: 1px solid var(--filet); border-radius: 9px; overflow: hidden;
+  background: var(--carte); }
+.fiche-tete { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center;
+  padding: 9px 13px; background: var(--surface);
+  border-bottom: 1px solid var(--filet); }
+.fiche-tete h4 { font-size: .95rem; font-weight: 600; min-width: 0; }
+.verdict { font-family: var(--mono); font-size: .66rem; letter-spacing: .07em;
+  text-transform: uppercase; font-weight: 600; padding: 2px 8px;
+  border-radius: 999px; border: 1px solid currentColor; flex: none; }
+.v-retenue  { color: var(--vert); }
+.v-ok       { color: var(--sarcelle); }
+.v-eviter   { color: var(--prune); }
+.v-expert   { color: var(--bleu); }
+.fiche-corps { padding: 11px 13px; display: flex; flex-direction: column; gap: 9px; }
+.fiche-corps p { margin: 0; }
+.fiche.erreur { border-color: color-mix(in srgb, var(--prune) 38%, var(--filet)); }
+.fiche.erreur .fiche-tete { background: color-mix(in srgb, var(--prune) 8%, var(--carte)); }
+
+.ligne-diag { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px;
+  font-size: .91rem; }
+.ligne-diag dt { font-family: var(--mono); font-size: .72rem; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--encre-douce); padding-top: 3px; }
+.ligne-diag dd { margin: 0; min-width: 0; }
+
+pre.code { margin: 0; background: var(--code-fond); border: 1px solid var(--code-filet);
+  border-radius: 7px; padding: 10px 12px; overflow-x: auto;
+  font-size: .845rem; line-height: 1.55; tab-size: 4; }
+pre.code.sortie { background: var(--surface); color: var(--encre-douce); }
+.k { color: var(--syn-mot); } .n { color: var(--syn-natif); }
+.s { color: var(--syn-texte); } .c { color: var(--syn-note); font-style: italic; }
+.d { color: var(--syn-nombre); }
+code.ligne { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 4px; padding: .5px 5px; font-size: .88em; }
+
+table.pile { width: 100%; border-collapse: collapse; font-size: .88rem; }
+table.pile th, table.pile td { border: 1px solid var(--filet); padding: 6px 10px;
+  text-align: left; }
+table.pile th { background: var(--surface); font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--encre-douce); font-weight: 600; }
+table.pile td:first-child, table.pile td:last-child { font-family: var(--mono);
+  font-variant-numeric: tabular-nums; }
+.table-enveloppe { overflow-x: auto; }
+
+.pied { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 0 40px; color: var(--encre-douce); font-size: .82rem; }
+.pied p { margin: 0; }
+</style>
+</head>
+<body>
+
+<header class="bandeau">
+  <div class="bandeau-interieur">
+    <div>
+      <span class="module">L3 MGB — Programmation Python</span>
+      <h1>TP 5 — Les boucles imbriquées</h1>
+    </div>
+    <p>Choisissez un exercice, cherchez, puis dévoilez la correction.</p>
+  </div>
+</header>
+
+<main class="page">
+  <nav class="rail" id="rail" aria-label="Exercices du TP"></nav>
+  <section class="travail" id="travail" aria-live="polite"></section>
+</main>
+
+<footer class="pied">
+  <p>École Supérieure Mohammed VI d'Ingénieurs en Sciences de la Santé — UM6SS. Toutes les sorties affichées ici ont été exécutées sous Python&nbsp;3.</p>
+</footer>
+
+<script>
+/* ------------------------------------------------------------------ *
+ *  Coloration syntaxique Python — segmentation puis échappement.
+ *  On tokenise la chaîne brute, puis on échappe chaque segment : faire
+ *  l'inverse ferait correspondre les motifs à l'intérieur des entités.
+ * ------------------------------------------------------------------ */
+const MOTS = new Set(("False None True and as assert async await break class " +
+  "continue def del elif else except finally for from global if import in is " +
+  "lambda nonlocal not or pass raise return try while with yield").split(" "));
+const NATIFS = new Set(("abs all any bool dict enumerate filter float frozenset " +
+  "int isinstance len list map max min print range repr reversed round set " +
+  "sorted str sum tuple type zip").split(" "));
+const JETON = /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|"[^"\n]*"|'[^'\n]*')|(\b\d+\.?\d*\b)|([A-Za-z_]\w*)/g;
+
+function echapper(t) {
+  return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function colorer(source) {
+  let sortie = "", position = 0, m;
+  JETON.lastIndex = 0;
+  while ((m = JETON.exec(source)) !== null) {
+    sortie += echapper(source.slice(position, m.index));
+    const [tout, note, texte, nombre, mot] = m;
+    if (note !== undefined)        sortie += '<span class="c">' + echapper(tout) + "</span>";
+    else if (texte !== undefined)  sortie += '<span class="s">' + echapper(tout) + "</span>";
+    else if (nombre !== undefined) sortie += '<span class="d">' + echapper(tout) + "</span>";
+    else if (MOTS.has(mot))        sortie += '<span class="k">' + echapper(tout) + "</span>";
+    else if (NATIFS.has(mot))      sortie += '<span class="n">' + echapper(tout) + "</span>";
+    else                           sortie += echapper(tout);
+    position = m.index + tout.length;
+  }
+  return sortie + echapper(source.slice(position));
+}
+
+/* Texte enrichi minimal : `code` et **gras**, échappés. */
+function enrichir(t) {
+  return echapper(t)
+    .replace(/`([^`]+)`/g, '<code class="ligne">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+}
+
+const bloc = (src, sortie) =>
+  '<pre class="code' + (sortie ? " sortie" : "") + '">' +
+  (sortie ? echapper(src) : colorer(src)) + "</pre>";
+
+/* ------------------------------------------------------------------ *
+ *  Le TP, tel qu'il a été distribué.
+ * ------------------------------------------------------------------ */
+const CORRIGE = [
+ {
+  "partie": "Partie A — Lire une imbrication",
+  "exercices": [
+   {
+    "id": "a1",
+    "titre": "A.1 — Prédire, puis exécuter",
+    "enonce": "",
+    "code": "for i in range(1, 3):\n    for j in range(1, 4):\n        print(i, j)",
+    "questions": [
+     {
+      "ref": "a)",
+      "texte": "Qu'affiche le programme ?",
+      "reponse": "Six lignes : toutes les paires possibles, `i` variant lentement et `j` rapidement.",
+      "sortie": "1 1\n1 2\n1 3\n2 1\n2 2\n2 3",
+      "notes": [
+       "La boucle intérieure effectue **tous** ses tours avant que la boucle extérieure n'avance d'un cran. C'est pourquoi `j` défile de 1 à 3 pendant que `i` reste à 1."
+      ],
+      "erreurs": [
+       {
+        "titre": "Annoncer `1 1`, `2 2`, `3 3`",
+        "cause": "On fait avancer les deux variables en même temps, comme si les boucles étaient parallèles. Elles sont **imbriquées** : l'une est le bloc de l'autre."
+       },
+       {
+        "titre": "Annoncer trois lignes",
+        "cause": "On compte les tours de la boucle intérieure seule. Le bloc le plus profond s'exécute autant de fois que le **produit** des deux."
+       }
+      ]
+     },
+     {
+      "ref": "b)",
+      "texte": "Combien de lignes, et à partir de quels deux nombres ce total se calcule-t-il ?",
+      "reponse": "Six lignes : 2 × 3, le nombre de tours extérieurs multiplié par le nombre de tours intérieurs.",
+      "notes": [
+       "Ce produit est la règle générale : un bloc imbriqué dans deux boucles de `p` et `q` tours s'exécute `p × q` fois. C'est aussi ce qui explique qu'une imbrication coûte vite cher."
+      ]
+     }
+    ]
+   },
+   {
+    "id": "a2",
+    "titre": "A.2 — Une ligne déplacée d'un niveau",
+    "enonce": "Deux versions, qui ne diffèrent que par l'indentation de la dernière ligne.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Combien de fois `fin de ligne` apparaît-il dans chaque version ?",
+      "reponse": "Trois fois dans la version 1, neuf fois dans la version 2.",
+      "pile": {
+       "entetes": [
+        "Version",
+        "Indentation du print",
+        "Appartient à",
+        "Apparitions"
+       ],
+       "lignes": [
+        [
+         "1",
+         "4 espaces",
+         "la boucle extérieure",
+         "3"
+        ],
+        [
+         "2",
+         "8 espaces",
+         "la boucle intérieure",
+         "9"
+        ]
+       ]
+      },
+      "sortie": "1\n2\n3\nfin de ligne\n2\n4\n6\nfin de ligne\n3\n6\n9\nfin de ligne",
+      "notes": [
+       "La sortie ci-dessus est celle de la version 1 : le message sépare bien les trois lignes de la table.",
+       "Dans la version 2, il s'intercale entre chaque produit et le suivant — le programme ne sépare plus rien du tout.",
+       "Aucune des deux ne lève d'erreur. L'indentation n'est pas une question de présentation : elle change ce que le programme calcule."
+      ],
+      "erreurs": [
+       {
+        "titre": "Répondre que les deux versions font la même chose",
+        "cause": "C'est le réflexe de qui lit l'indentation comme une décoration. En Python, elle est la syntaxe de l'appartenance à un bloc."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "a3",
+    "titre": "A.3 — Compter les passages",
+    "enonce": "",
+    "code": "passages = 0\nfor i in range(7):\n    for j in range(3):\n        # à compléter\nprint(\"Passages :\", passages)",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Complétez, et vérifiez par le calcul avant d'exécuter.",
+      "reponse": "21 passages : 7 × 3.",
+      "sortie": "Passages : 21",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Incrémenter au plus profond",
+        "code": "passages = 0\nfor i in range(7):\n    for j in range(3):\n        passages = passages + 1\nprint(\"Passages :\", passages)"
+       }
+      ],
+      "notes": [
+       "L'accumulateur est déclaré **avant les deux** boucles : c'est ce qui lui permet de totaliser l'ensemble. Déclaré entre les deux, il serait remis à zéro à chaque tour extérieur et finirait à 3."
+      ],
+      "erreurs": [
+       {
+        "titre": "Répondre 10",
+        "cause": "On additionne les deux nombres de tours au lieu de les multiplier. L'imbrication multiplie — c'est précisément ce qui la distingue de deux boucles successives, qui, elles, additionnent."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "a4",
+    "titre": "A.4 — Les tables de multiplication",
+    "enonce": "Afficher les tables de 1 à 5, séparées par une ligne de tirets.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Écrivez le programme.",
+      "reponse": "Vingt-cinq lignes de produits et cinq séparateurs.",
+      "sortie": "1 x 1 = 1\n1 x 2 = 2\n1 x 3 = 3\n1 x 4 = 4\n1 x 5 = 5\n-----\n2 x 1 = 2\n2 x 2 = 4\n…\n5 x 5 = 25\n-----",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Une table par tour extérieur",
+        "code": "for i in range(1, 6):\n    for j in range(1, 6):\n        print(i, \"x\", j, \"=\", i * j)\n    print(\"-----\")"
+       },
+       {
+        "verdict": "ok",
+        "nom": "Avec une f-string",
+        "code": "for i in range(1, 6):\n    for j in range(1, 6):\n        print(f\"{i} x {j} = {i * j}\")\n    print(\"-----\")",
+        "texte": "Plus lisible dès que la ligne mêle texte et calculs, et c'est la forme à préférer quand il faudra aligner les colonnes."
+       }
+      ],
+      "notes": [
+       "Le séparateur est indenté au niveau de la boucle **extérieure** : un tiret après chaque table, non après chaque produit. C'est exactement le choix d'indentation de A.2."
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "partie": "Partie B — Construire des lignes",
+  "exercices": [
+   {
+    "id": "b1",
+    "titre": "B.1 — Une ligne d'étoiles",
+    "enonce": "Afficher une ligne de `n` étoiles, sans employer `*` entre une chaîne et un nombre.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Écrivez le programme.",
+      "reponse": "On construit la chaîne par accumulation, puis on l'affiche une seule fois.",
+      "sortie": "Combien ? 5\n*****",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Accumuler, puis afficher",
+        "code": "n = int(input(\"Combien ? \"))\nligne = \"\"\nfor i in range(n):\n    ligne = ligne + \"*\"\nprint(ligne)"
+       },
+       {
+        "verdict": "expert",
+        "nom": "Ce que l'énoncé interdit, et qui existe pourtant",
+        "code": "print(\"*\" * n)",
+        "texte": "Python sait répéter une chaîne. L'exercice l'écarte volontairement : une fois qu'on a écrit la boucle, l'opérateur cesse d'être une formule magique."
+       }
+      ],
+      "notes": [
+       "L'accumulateur de chaîne suit le même schéma que l'accumulateur numérique : initialisation à `\"\"` avant la boucle, mise à jour dedans, lecture après."
+      ],
+      "erreurs": [
+       {
+        "titre": "Appeler `print` dans la boucle",
+        "cause": "On obtiendrait `n` lignes d'une étoile, au lieu d'une ligne de `n` étoiles. L'accumulateur se lit **après** la boucle — ici, c'est visible à l'œil nu."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "b2",
+    "titre": "B.2 — Un triangle",
+    "enonce": "",
+    "questions": [
+     {
+      "ref": "a)",
+      "texte": "Écrivez le programme.",
+      "reponse": "La boucle extérieure parcourt les lignes, l'intérieure les étoiles d'une ligne.",
+      "sortie": "*\n**\n***\n****\n*****",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Une ligne par tour extérieur",
+        "code": "for i in range(1, 6):\n    ligne = \"\"\n    for j in range(i):\n        ligne = ligne + \"*\"\n    print(ligne)"
+       }
+      ],
+      "notes": [
+       "`range(i)` est la clé : le nombre de tours de la boucle intérieure **dépend** de la variable extérieure. C'est ce qui donne au triangle sa forme — avec `range(5)`, on obtiendrait un carré."
+      ]
+     },
+     {
+      "ref": "b)",
+      "texte": "Où avez-vous placé l'initialisation de la ligne, et pourquoi à cet endroit ?",
+      "reponse": "**Entre les deux boucles** : `ligne` doit être remise à vide au début de chaque ligne.",
+      "pile": {
+       "entetes": [
+        "`ligne = \"\"` placé…",
+        "Résultat"
+       ],
+       "lignes": [
+        [
+         "avant les deux boucles",
+         "les lignes se concatènent : `*`, `***`, `******`, …"
+        ],
+        [
+         "entre les deux boucles",
+         "le triangle attendu"
+        ],
+        [
+         "dans la boucle intérieure",
+         "chaque ligne ne contient qu'une étoile"
+        ]
+       ]
+      },
+      "notes": [
+       "Les trois positions sont syntaxiquement correctes. C'est le tableau de la présentation, vérifié à la main : la place de l'initialisation décide de ce que le programme calcule."
+      ]
+     }
+    ]
+   },
+   {
+    "id": "b3",
+    "titre": "B.3 — Le triangle inversé",
+    "enonce": "Partir de cinq étoiles et descendre jusqu'à une.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Quelle est la seule chose qui change ?",
+      "reponse": "Le sens de parcours de la boucle **extérieure**.",
+      "sortie": "*****\n****\n***\n**\n*",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Pas négatif sur la boucle extérieure",
+        "code": "for i in range(5, 0, -1):\n    ligne = \"\"\n    for j in range(i):\n        ligne = ligne + \"*\"\n    print(ligne)"
+       }
+      ],
+      "notes": [
+       "La boucle intérieure n'est pas touchée : elle produit toujours `i` étoiles. Seul l'ordre dans lequel `i` prend ses valeurs est inversé.",
+       "`range(5, 0, -1)` donne 5, 4, 3, 2, 1 : la borne 0 est exclue, et c'est heureux — une ligne de zéro étoile serait une ligne vide."
+      ],
+      "erreurs": [
+       {
+        "titre": "Inverser la boucle intérieure",
+        "cause": "`range(i, 0, -1)` produit le même nombre d'étoiles : la forme ne change pas du tout. C'est l'ordre des **lignes** qu'il faut renverser, non celui des caractères d'une ligne."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "b4",
+    "titre": "B.4 — Une grille de nombres",
+    "enonce": "Quatre lignes, six colonnes, chaque case portant le produit de ses deux numéros, les cases d'une ligne séparées par un espace.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Écrivez le programme.",
+      "reponse": "Même structure que le triangle, avec un séparateur à poser entre les cases.",
+      "sortie": "1 2 3 4 5 6\n2 4 6 8 10 12\n3 6 9 12 15 18\n4 8 12 16 20 24",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Séparateur à partir de la deuxième case",
+        "code": "for i in range(1, 5):\n    ligne = \"\"\n    for j in range(1, 7):\n        if ligne != \"\":\n            ligne = ligne + \" \"\n        ligne = ligne + str(i * j)\n    print(ligne)"
+       },
+       {
+        "verdict": "ok",
+        "nom": "Espace systématique, retiré à la fin",
+        "code": "for i in range(1, 5):\n    ligne = \"\"\n    for j in range(1, 7):\n        ligne = ligne + str(i * j) + \" \"\n    print(ligne)",
+        "texte": "L'espace final est invisible à l'affichage, ce qui rend la version acceptable ici. Elle ne le serait pas si le séparateur était une virgule."
+       }
+      ],
+      "notes": [
+       "`str(i * j)` est obligatoire : on construit une **chaîne**, et `\"\" + 12` lèverait `TypeError`.",
+       "C'est le même problème de séparateur qu'au C.3 du TP 4 — avec cette fois un séparateur par ligne, donc le test de premier élément doit être remis à zéro à chaque ligne. Il l'est, puisqu'il porte sur `ligne`."
+      ]
+     }
+    ]
+   },
+   {
+    "id": "b5",
+    "titre": "B.5 — Accumuler à travers les deux boucles",
+    "enonce": "Somme de tous les produits `i * j` pour `i` et `j` de 1 à 4.",
+    "questions": [
+     {
+      "ref": "a)",
+      "texte": "Écrivez le programme.",
+      "reponse": "Seize produits, dont la somme vaut 100.",
+      "sortie": "Total : 100",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Un accumulateur avant les deux boucles",
+        "code": "total = 0\nfor i in range(1, 5):\n    for j in range(1, 5):\n        total = total + i * j\nprint(\"Total :\", total)"
+       }
+      ],
+      "notes": [
+       "Vérification sans programme : la somme de tous les `i * j` vaut (1+2+3+4) × (1+2+3+4) = 10 × 10 = 100. Un contrôle de ce genre vaut mieux qu'une confiance aveugle dans l'affichage."
+      ]
+     },
+     {
+      "ref": "b)",
+      "texte": "Qu'obtiendrait-on en initialisant la somme entre les deux boucles ?",
+      "reponse": "**40** — la somme de la dernière ligne seulement, soit 4 × 10.",
+      "sortie": "Initialisé entre les deux : 40",
+      "notes": [
+       "L'accumulateur serait remis à zéro à chaque tour extérieur : il ne retiendrait que les quatre produits du dernier `i`, c'est-à-dire 4 + 8 + 12 + 16.",
+       "C'est exactement le choix inverse de celui du triangle : là, la remise à zéro par ligne était voulue ; ici, elle détruit le calcul. La même ligne de code est juste ou fausse selon ce qu'on cherche."
+      ],
+      "erreurs": [
+       {
+        "titre": "Répondre 0",
+        "cause": "Ce serait le cas si l'initialisation était dans la boucle **intérieure**, et encore : `total` vaudrait alors 16, le dernier produit."
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+];
+
+/* ------------------------------------------------------------------ *
+ *  Mémoire locale — simple confort de lecture, jamais indispensable.
+ * ------------------------------------------------------------------ */
+const CLE = "m355-tp5-corriges-vus";
+let vus = new Set();
+try {
+  const brut = localStorage.getItem(CLE);
+  if (brut) vus = new Set(JSON.parse(brut));
+} catch (e) { /* navigation privée, stockage bloqué : on continue sans */ }
+
+function memoriser() {
+  try { localStorage.setItem(CLE, JSON.stringify([...vus])); } catch (e) {}
+}
+
+/* ------------------------------------------------------------------ *
+ *  Rendu
+ * ------------------------------------------------------------------ */
+const rail = document.getElementById("rail");
+const travail = document.getElementById("travail");
+const tousExercices = CORRIGE.flatMap(p => p.exercices.map(e => ({ ...e, partie: p.partie })));
+
+function cleQuestion(ex, i) { return ex.id + "-" + i; }
+
+function exerciceVu(ex) {
+  return ex.questions.every((_, i) => vus.has(cleQuestion(ex, i)));
+}
+
+function construireRail() {
+  rail.innerHTML = CORRIGE.map(partie => `
+    <div class="rail-groupe">
+      <div class="rail-titre">${echapper(partie.partie.replace(/^Partie /, ""))}</div>
+      <div class="rail-liste">
+        ${partie.exercices.map(ex => `
+          <button class="onglet" type="button" data-cible="${ex.id}">
+            <span class="cle">${echapper(ex.titre.split(" — ")[0])}</span>
+            <span>${echapper(ex.titre.split(" — ")[1] || "")}</span>
+            <span class="pastille" aria-hidden="true"></span>
+          </button>`).join("")}
+      </div>
+    </div>`).join("");
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.addEventListener("click", () => afficher(b.dataset.cible, true)));
+}
+
+function fiche(item, estErreur) {
+  const classeVerdict = { retenue: "v-retenue", ok: "v-ok",
+                          eviter: "v-eviter", expert: "v-expert" }[item.verdict];
+  const libelle = { retenue: "à retenir", ok: "acceptable",
+                    eviter: "à éviter", expert: "pour aller plus loin" }[item.verdict];
+  return `
+    <article class="fiche${estErreur ? " erreur" : ""}">
+      <div class="fiche-tete">
+        <h4>${enrichir(item.nom || item.titre)}</h4>
+        ${estErreur
+          ? '<span class="verdict v-eviter">erreur fréquente</span>'
+          : (classeVerdict ? `<span class="verdict ${classeVerdict}">${libelle}</span>` : "")}
+      </div>
+      <div class="fiche-corps">
+        ${item.code ? bloc(item.code, false) : ""}
+        ${item.sortie ? bloc(item.sortie, true) : ""}
+        ${item.texte ? `<p>${enrichir(item.texte)}</p>` : ""}
+        ${item.cause ? `<dl class="ligne-diag"><dt>Pourquoi</dt><dd>${enrichir(item.cause)}</dd></dl>` : ""}
+      </div>
+    </article>`;
+}
+
+function tableau(p) {
+  return `<div class="table-enveloppe"><table class="pile">
+    <thead><tr>${p.entetes.map(h => `<th>${echapper(h)}</th>`).join("")}</tr></thead>
+    <tbody>${p.lignes.map(l => `<tr>${l.map(c => `<td>${enrichir(c)}</td>`).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+function corpsCorrection(q) {
+  return `
+    <div class="reponse">
+      <span class="etiquette">Réponse</span>
+      <p>${enrichir(q.reponse)}</p>
+    </div>
+    ${q.sortie ? bloc(q.sortie, true) : ""}
+    ${q.pile ? tableau(q.pile) : ""}
+    ${(q.notes || []).map(n => `<p>${enrichir(n)}</p>`).join("")}
+    ${q.solutions && q.solutions.length ? `
+      <div class="sous-titre">Propositions de solution</div>
+      <div class="lot">${q.solutions.map(s => fiche(s, false)).join("")}</div>` : ""}
+    ${q.erreurs && q.erreurs.length ? `
+      <div class="sous-titre">Erreurs fréquentes</div>
+      <div class="lot">${q.erreurs.map(e => fiche(e, true)).join("")}</div>` : ""}`;
+}
+
+let courant = null;
+
+function afficher(id, deplacerFocus) {
+  const ex = tousExercices.find(e => e.id === id) || tousExercices[0];
+  courant = ex;
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.setAttribute("aria-current", String(b.dataset.cible === ex.id)));
+
+  travail.innerHTML = `
+    <div class="chapeau">
+      <div>
+        <span class="partie">${echapper(ex.partie)}</span>
+        <h2>${echapper(ex.titre)}</h2>
+      </div>
+      <button class="bouton-plat" type="button" id="tout">Tout afficher</button>
+    </div>
+    <div class="enonce">
+      <p>${enrichir(ex.enonce)}</p>
+      ${ex.code ? bloc(ex.code, false) : ""}
+    </div>
+    ${ex.questions.map((q, i) => {
+      const cle = cleQuestion(ex, i);
+      const ouvert = vus.has(cle);
+      return `
+      <article class="question" id="q-${cle}">
+        <div class="question-tete">
+          ${q.ref ? `<span class="ref">${echapper(q.ref)}</span>` : ""}
+          <div class="texte">${enrichir(q.texte)}</div>
+          <button class="devoiler" type="button" data-cle="${cle}"
+                  aria-expanded="${ouvert}" aria-controls="c-${cle}">
+            ${ouvert ? "Masquer" : "Afficher la correction"}
+          </button>
+        </div>
+        <div class="correction" id="c-${cle}" ${ouvert ? "" : "hidden"}>
+          ${corpsCorrection(q)}
+        </div>
+      </article>`;
+    }).join("")}`;
+
+  travail.querySelectorAll(".devoiler").forEach(b =>
+    b.addEventListener("click", () => basculer(b)));
+  document.getElementById("tout").addEventListener("click", toutAfficher);
+  majPastilles();
+  if (deplacerFocus) {
+    history.replaceState(null, "", "#" + ex.id);
+    travail.querySelector("h2").scrollIntoView({ block: "nearest" });
+  }
+}
+
+function basculer(bouton) {
+  const cle = bouton.dataset.cle;
+  const zone = document.getElementById("c-" + cle);
+  const ouvrir = zone.hidden;
+  zone.hidden = !ouvrir;
+  bouton.setAttribute("aria-expanded", String(ouvrir));
+  bouton.textContent = ouvrir ? "Masquer" : "Afficher la correction";
+  if (ouvrir) vus.add(cle); else vus.delete(cle);
+  memoriser();
+  majPastilles();
+}
+
+function toutAfficher() {
+  const boutons = [...travail.querySelectorAll(".devoiler")];
+  const toutOuvert = boutons.every(b => b.getAttribute("aria-expanded") === "true");
+  boutons.forEach(b => {
+    if ((b.getAttribute("aria-expanded") === "true") === toutOuvert) basculer(b);
+  });
+  document.getElementById("tout").textContent = toutOuvert ? "Tout afficher" : "Tout masquer";
+}
+
+function majPastilles() {
+  rail.querySelectorAll(".onglet").forEach(b => {
+    const ex = tousExercices.find(e => e.id === b.dataset.cible);
+    b.classList.toggle("vu", exerciceVu(ex));
+  });
+  const bouton = document.getElementById("tout");
+  if (bouton && courant) {
+    const boutons = [...travail.querySelectorAll(".devoiler")];
+    bouton.textContent = boutons.every(b => b.getAttribute("aria-expanded") === "true")
+      ? "Tout masquer" : "Tout afficher";
+  }
+}
+
+construireRail();
+const ancre = (location.hash || "").replace("#", "");
+afficher(tousExercices.some(e => e.id === ancre) ? ancre : tousExercices[0].id, false);
+</script>
+</script>
+</body>
+</html>

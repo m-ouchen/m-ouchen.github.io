@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Corrigé du TP 4 : l'accumulateur</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+/* Disposition : console à deux volets — rail des exercices à gauche, colonne de
+   travail à droite ; au format téléphone le rail devient une barre de pastilles. */
+:root {
+  --bleu:        #2A5B7F;   /* charte du module — titres, rail, filets        */
+  --sarcelle:    #2E8B79;   /* charte du module assombrie pour le texte       */
+  --vert:        #5E7A18;   /* charte du module assombrie — solution retenue  */
+  --prune:       #B03F60;   /* erreurs fréquentes                        */
+  --encre:       #16242E;
+  --encre-douce: #51616C;
+  --fond:        #FBFCFD;
+  --carte:       #FFFFFF;
+  --surface:     #F1F6F9;   /* neutre biaisé vers le bleu de la charte   */
+  --filet:       #D6E3EC;
+  --code-fond:   #F4F8FA;
+  --code-filet:  #DCE8F0;
+  --ombre:       0 1px 2px rgba(22, 36, 46, .06), 0 8px 24px rgba(22, 36, 46, .05);
+
+  --syn-mot:     #C0392B;
+  --syn-natif:   #6F42C1;
+  --syn-texte:   #0B4F8A;
+  --syn-note:    #67757F;
+  --syn-nombre:  #1A6FAF;
+
+  --titre: "Zilla Slab", Rockwell, Georgia, serif;
+  --corps: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: Consolas, "JetBrains Mono", ui-monospace, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+    --encre: #E6EDF2; --encre-douce: #9FB0BC;
+    --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+    --code-fond: #101E27; --code-filet: #263B49;
+    --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+    --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+    --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+  --encre: #E6EDF2; --encre-douce: #9FB0BC;
+  --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+  --code-fond: #101E27; --code-filet: #263B49;
+  --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+  --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0; background: var(--fond); color: var(--encre);
+  font-family: var(--corps); font-size: 16px; line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+h1, h2, h3, h4 { font-family: var(--titre); text-wrap: balance; margin: 0; }
+code, pre { font-family: var(--mono); }
+:focus-visible { outline: 2.5px solid var(--sarcelle); outline-offset: 2px; border-radius: 3px; }
+
+/* — bandeau — */
+.bandeau {
+  background: var(--bleu); color: #fff;
+  padding-block: 18px 16px; padding-inline: 16px;
+}
+.bandeau-interieur { max-width: 1180px; margin: 0 auto; display: flex;
+  flex-wrap: wrap; gap: 12px 24px; align-items: baseline; }
+.bandeau h1 { font-size: clamp(1.25rem, 1rem + 1.2vw, 1.7rem); font-weight: 600;
+  letter-spacing: .01em; }
+.bandeau p { margin: 0; font-size: .86rem; opacity: .82; }
+.bandeau .module { font-family: var(--mono); font-size: .76rem;
+  letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+
+/* — mise en page — */
+.page { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 20px 56px; display: grid; gap: 24px;
+  grid-template-columns: 236px minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .page { grid-template-columns: minmax(0, 1fr); } }
+
+/* — rail — */
+.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+@media (max-width: 860px) { .rail { position: static; } }
+.rail-groupe + .rail-groupe { margin-top: 18px; }
+.rail-titre { font-family: var(--mono); font-size: .68rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); margin-bottom: 7px; }
+.rail-liste { display: flex; flex-direction: column; gap: 3px; }
+@media (max-width: 860px) {
+  .rail-liste { flex-direction: row; flex-wrap: wrap; }
+  .rail-groupe + .rail-groupe { margin-top: 10px; }
+}
+.onglet {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  font: inherit; font-size: .91rem; text-align: left; cursor: pointer;
+  background: none; border: 1px solid transparent; border-radius: 7px;
+  padding: 6px 10px; color: var(--encre);
+}
+.onglet:hover { background: var(--surface); }
+.onglet[aria-current="true"] { background: var(--bleu); color: #fff;
+  border-color: var(--bleu); }
+.onglet .cle { font-family: var(--mono); font-size: .78rem; font-weight: 600;
+  min-width: 1.6em; }
+.onglet .pastille { margin-left: auto; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--vert); opacity: 0; flex: none; }
+.onglet.vu .pastille { opacity: 1; }
+@media (max-width: 860px) { .onglet { width: auto; } .onglet .pastille { margin-left: 4px; } }
+
+/* — colonne de travail — */
+.travail { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.chapeau { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: baseline;
+  justify-content: space-between; }
+.chapeau h2 { font-size: clamp(1.15rem, 1rem + .9vw, 1.5rem); color: var(--bleu);
+  font-weight: 600; }
+.chapeau .partie { font-family: var(--mono); font-size: .72rem; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--encre-douce); display: block;
+  margin-bottom: 2px; }
+
+.bouton-plat { font: inherit; font-size: .84rem; cursor: pointer;
+  background: var(--carte); color: var(--bleu); border: 1px solid var(--filet);
+  border-radius: 7px; padding: 5px 12px; }
+.bouton-plat:hover { background: var(--surface); }
+
+.enonce { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 10px; padding: 14px 16px; }
+.enonce p { margin: 0 0 10px; }
+.enonce p:last-child { margin-bottom: 0; }
+
+.question { background: var(--carte); border: 1px solid var(--filet);
+  border-radius: 10px; box-shadow: var(--ombre); overflow: hidden; }
+.question-tete { display: flex; gap: 12px; align-items: flex-start;
+  padding: 13px 16px; }
+.question-tete .ref { font-family: var(--mono); font-weight: 600;
+  color: var(--sarcelle); flex: none; padding-top: 1px; }
+.question-tete .texte { min-width: 0; flex: 1; }
+.devoiler { font: inherit; font-size: .84rem; cursor: pointer; flex: none;
+  background: var(--bleu); color: #fff; border: 1px solid var(--bleu);
+  border-radius: 7px; padding: 5px 12px; white-space: nowrap; }
+.devoiler[aria-expanded="true"] { background: var(--carte); color: var(--bleu); }
+@media (max-width: 560px) {
+  .question-tete { flex-wrap: wrap; }
+  .devoiler { width: 100%; }
+}
+.correction { border-top: 1px solid var(--filet); padding: 14px 16px 16px;
+  display: flex; flex-direction: column; gap: 14px; }
+@media (prefers-reduced-motion: no-preference) {
+  .correction { animation: apparait .22s ease-out; }
+  @keyframes apparait { from { opacity: 0; transform: translateY(-3px); } }
+}
+
+.reponse { border-left: 3px solid var(--vert); padding-left: 13px; }
+.reponse .etiquette { font-family: var(--mono); font-size: .68rem;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--vert);
+  font-weight: 600; display: block; margin-bottom: 4px; }
+.reponse p { margin: 0 0 8px; }
+.reponse p:last-child { margin-bottom: 0; }
+
+.sous-titre { font-family: var(--mono); font-size: .7rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); font-weight: 600;
+  display: flex; align-items: center; gap: 9px; }
+.sous-titre::after { content: ""; flex: 1; height: 1px; background: var(--filet); }
+
+.lot { display: flex; flex-direction: column; gap: 10px; }
+.fiche { border: 1px solid var(--filet); border-radius: 9px; overflow: hidden;
+  background: var(--carte); }
+.fiche-tete { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center;
+  padding: 9px 13px; background: var(--surface);
+  border-bottom: 1px solid var(--filet); }
+.fiche-tete h4 { font-size: .95rem; font-weight: 600; min-width: 0; }
+.verdict { font-family: var(--mono); font-size: .66rem; letter-spacing: .07em;
+  text-transform: uppercase; font-weight: 600; padding: 2px 8px;
+  border-radius: 999px; border: 1px solid currentColor; flex: none; }
+.v-retenue  { color: var(--vert); }
+.v-ok       { color: var(--sarcelle); }
+.v-eviter   { color: var(--prune); }
+.v-expert   { color: var(--bleu); }
+.fiche-corps { padding: 11px 13px; display: flex; flex-direction: column; gap: 9px; }
+.fiche-corps p { margin: 0; }
+.fiche.erreur { border-color: color-mix(in srgb, var(--prune) 38%, var(--filet)); }
+.fiche.erreur .fiche-tete { background: color-mix(in srgb, var(--prune) 8%, var(--carte)); }
+
+.ligne-diag { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px;
+  font-size: .91rem; }
+.ligne-diag dt { font-family: var(--mono); font-size: .72rem; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--encre-douce); padding-top: 3px; }
+.ligne-diag dd { margin: 0; min-width: 0; }
+
+pre.code { margin: 0; background: var(--code-fond); border: 1px solid var(--code-filet);
+  border-radius: 7px; padding: 10px 12px; overflow-x: auto;
+  font-size: .845rem; line-height: 1.55; tab-size: 4; }
+pre.code.sortie { background: var(--surface); color: var(--encre-douce); }
+.k { color: var(--syn-mot); } .n { color: var(--syn-natif); }
+.s { color: var(--syn-texte); } .c { color: var(--syn-note); font-style: italic; }
+.d { color: var(--syn-nombre); }
+code.ligne { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 4px; padding: .5px 5px; font-size: .88em; }
+
+table.pile { width: 100%; border-collapse: collapse; font-size: .88rem; }
+table.pile th, table.pile td { border: 1px solid var(--filet); padding: 6px 10px;
+  text-align: left; }
+table.pile th { background: var(--surface); font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--encre-douce); font-weight: 600; }
+table.pile td:first-child, table.pile td:last-child { font-family: var(--mono);
+  font-variant-numeric: tabular-nums; }
+.table-enveloppe { overflow-x: auto; }
+
+.pied { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 0 40px; color: var(--encre-douce); font-size: .82rem; }
+.pied p { margin: 0; }
+</style>
+</head>
+<body>
+
+<header class="bandeau">
+  <div class="bandeau-interieur">
+    <div>
+      <span class="module">L3 MGB — Programmation Python</span>
+      <h1>TP 4 — Le schéma de l'accumulateur</h1>
+    </div>
+    <p>Choisissez un exercice, cherchez, puis dévoilez la correction.</p>
+  </div>
+</header>
+
+<main class="page">
+  <nav class="rail" id="rail" aria-label="Exercices du TP"></nav>
+  <section class="travail" id="travail" aria-live="polite"></section>
+</main>
+
+<footer class="pied">
+  <p>École Supérieure Mohammed VI d'Ingénieurs en Sciences de la Santé — UM6SS. Toutes les sorties affichées ici ont été exécutées sous Python&nbsp;3.</p>
+</footer>
+
+<script>
+/* ------------------------------------------------------------------ *
+ *  Coloration syntaxique Python — segmentation puis échappement.
+ *  On tokenise la chaîne brute, puis on échappe chaque segment : faire
+ *  l'inverse ferait correspondre les motifs à l'intérieur des entités.
+ * ------------------------------------------------------------------ */
+const MOTS = new Set(("False None True and as assert async await break class " +
+  "continue def del elif else except finally for from global if import in is " +
+  "lambda nonlocal not or pass raise return try while with yield").split(" "));
+const NATIFS = new Set(("abs all any bool dict enumerate filter float frozenset " +
+  "int isinstance len list map max min print range repr reversed round set " +
+  "sorted str sum tuple type zip").split(" "));
+const JETON = /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|"[^"\n]*"|'[^'\n]*')|(\b\d+\.?\d*\b)|([A-Za-z_]\w*)/g;
+
+function echapper(t) {
+  return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function colorer(source) {
+  let sortie = "", position = 0, m;
+  JETON.lastIndex = 0;
+  while ((m = JETON.exec(source)) !== null) {
+    sortie += echapper(source.slice(position, m.index));
+    const [tout, note, texte, nombre, mot] = m;
+    if (note !== undefined)        sortie += '<span class="c">' + echapper(tout) + "</span>";
+    else if (texte !== undefined)  sortie += '<span class="s">' + echapper(tout) + "</span>";
+    else if (nombre !== undefined) sortie += '<span class="d">' + echapper(tout) + "</span>";
+    else if (MOTS.has(mot))        sortie += '<span class="k">' + echapper(tout) + "</span>";
+    else if (NATIFS.has(mot))      sortie += '<span class="n">' + echapper(tout) + "</span>";
+    else                           sortie += echapper(tout);
+    position = m.index + tout.length;
+  }
+  return sortie + echapper(source.slice(position));
+}
+
+/* Texte enrichi minimal : `code` et **gras**, échappés. */
+function enrichir(t) {
+  return echapper(t)
+    .replace(/`([^`]+)`/g, '<code class="ligne">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+}
+
+const bloc = (src, sortie) =>
+  '<pre class="code' + (sortie ? " sortie" : "") + '">' +
+  (sortie ? echapper(src) : colorer(src)) + "</pre>";
+
+/* ------------------------------------------------------------------ *
+ *  Le TP, tel qu'il a été distribué.
+ * ------------------------------------------------------------------ */
+const CORRIGE = [
+ {
+  "partie": "Partie A — Reconnaître le schéma",
+  "exercices": [
+   {
+    "id": "a1",
+    "titre": "A.1 — Prédire, puis exécuter",
+    "enonce": "",
+    "code": "n = 0\ncompte = 0\nwhile n < 6:\n    if n % 2 == 0:\n        compte = compte + 1\n    n = n + 1\nprint(\"compte =\", compte)",
+    "questions": [
+     {
+      "ref": "a)",
+      "texte": "Qu'affiche le programme ?",
+      "reponse": "Le nombre d'entiers pairs parmi 0, 1, 2, 3, 4, 5.",
+      "sortie": "compte = 3",
+      "notes": [
+       "La boucle fait six tours, pour `n` valant 0 à 5. Trois de ces valeurs sont paires — 0, 2 et 4 — et 0 en fait partie : c'est un multiple de 2 comme un autre."
+      ],
+      "erreurs": [
+       {
+        "titre": "Répondre 2, en oubliant que 0 est pair",
+        "cause": "`0 % 2` vaut 0, donc la condition est vraie. C'est une erreur d'arithmétique, pas de programmation, mais elle fausse le résultat tout autant."
+       },
+       {
+        "titre": "Répondre 6",
+        "cause": "On compte les tours au lieu de compter les cas. Le compteur est **dans** le `if` : il ne s'incrémente que lorsque la condition est vraie."
+       }
+      ]
+     },
+     {
+      "ref": "b)",
+      "texte": "Deux variables changent à chaque tour. Laquelle est l'accumulateur ?",
+      "reponse": "`compte` est l'accumulateur ; `n` est la variable de contrôle.",
+      "pile": {
+       "entetes": [
+        "",
+        "n",
+        "compte"
+       ],
+       "lignes": [
+        [
+         "Rôle",
+         "contrôler l'arrêt",
+         "construire le résultat"
+        ],
+        [
+         "Apparaît dans la condition",
+         "oui",
+         "non"
+        ],
+        [
+         "Modifiée à chaque tour",
+         "oui",
+         "seulement si la condition est vraie"
+        ],
+        [
+         "Lue après la boucle",
+         "non",
+         "oui"
+        ]
+       ]
+      },
+      "notes": [
+       "Le test décisif est la dernière ligne : un accumulateur est une variable qu'on lit **après** la boucle. La variable de contrôle, elle, a fini son office à la sortie."
+      ]
+     }
+    ]
+   },
+   {
+    "id": "a2",
+    "titre": "A.2 — Les trois temps",
+    "enonce": "",
+    "code": "phrase = input(\"Une phrase : \")\nlettres = 0\nfor c in phrase:\n    if c != \" \":\n        lettres = lettres + 1\nprint(\"Lettres :\", lettres)",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Reportez chaque ligne dans la case qui convient.",
+      "reponse": "Les trois temps encadrent la boucle.",
+      "pile": {
+       "entetes": [
+        "Temps",
+        "Ligne"
+       ],
+       "lignes": [
+        [
+         "Avant la boucle — initialiser",
+         "`lettres = 0`"
+        ],
+        [
+         "Dans la boucle — mettre à jour",
+         "`lettres = lettres + 1`"
+        ],
+        [
+         "Après la boucle — utiliser",
+         "`print(\"Lettres :\", lettres)`"
+        ]
+       ]
+      },
+      "notes": [
+       "La ligne `for c in phrase:` n'appartient à aucun des trois temps : elle organise le parcours, elle ne touche pas à l'accumulateur.",
+       "Le `if` non plus : il décide *quand* mettre à jour, non *comment*."
+      ]
+     }
+    ]
+   },
+   {
+    "id": "a3",
+    "titre": "A.3 — Déplacer l'initialisation",
+    "enonce": "Trois versions du même calcul, qui ne diffèrent que par la place de deux lignes.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Que produit chacune des trois versions ?",
+      "reponse": "Aucune ne provoque d'erreur ; deux donnent autre chose que la somme attendue.",
+      "pile": {
+       "entetes": [
+        "Version",
+        "Initialisation",
+        "print",
+        "Affichage"
+       ],
+       "lignes": [
+        [
+         "1",
+         "avant la boucle",
+         "après",
+         "`10`"
+        ],
+        [
+         "2",
+         "dans la boucle",
+         "après",
+         "`4`"
+        ],
+        [
+         "3",
+         "dans la boucle",
+         "dans la boucle",
+         "`1` `2` `3` `4`"
+        ]
+       ]
+      },
+      "notes": [
+       "**Version 1** — la seule correcte : 1 + 2 + 3 + 4 = 10.",
+       "**Version 2** — `total` est remis à 0 au début de chaque tour, puis reçoit `k`. Il ne retient donc que la dernière valeur, 4. Le programme ressemble à une somme et n'en est pas une.",
+       "**Version 3** — même défaut, mais le `print` dans la boucle le rend visible : on voit passer 1, 2, 3, 4 au lieu de 1, 3, 6, 10."
+      ],
+      "erreurs": [
+       {
+        "titre": "Attendre une erreur de la version 2",
+        "cause": "Rien n'est illégal : réaffecter une variable dans une boucle est courant et parfois voulu. C'est une **erreur logique** — le programme fonctionne, mais il calcule autre chose que ce qu'on voulait."
+       },
+       {
+        "titre": "Croire que la version 3 affiche les sommes partielles",
+        "cause": "Elle les afficherait si l'initialisation était avant la boucle. Déplacer le `print` ne corrige pas l'initialisation."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "a4",
+    "titre": "A.4 — Écrire",
+    "enonce": "Somme des multiples de 7 strictement inférieurs à 100.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Écrivez le programme.",
+      "reponse": "Les multiples vont de 7 à 98 ; leur somme vaut 735.",
+      "sortie": "Somme : 735",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Par le pas",
+        "code": "somme = 0\nfor n in range(7, 100, 7):\n    somme = somme + n\nprint(\"Somme :\", somme)"
+       },
+       {
+        "verdict": "ok",
+        "nom": "Par le test de divisibilité",
+        "code": "somme = 0\nfor n in range(1, 100):\n    if n % 7 == 0:\n        somme = somme + n\nprint(\"Somme :\", somme)"
+       }
+      ],
+      "notes": [
+       "« Strictement inférieurs à 100 » tombe bien : 100 est la borne de fin de `range`, donc déjà exclue. Le dernier multiple retenu est 98."
+      ],
+      "erreurs": [
+       {
+        "titre": "Partir de 0",
+        "cause": "`range(0, 100, 7)` ajoute 0 à la somme. Le résultat ne change pas — 0 est neutre pour l'addition — mais le programme ne dit plus ce qu'il fait : 0 n'est pas un multiple de 7 au sens de l'énoncé."
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "partie": "Partie B — Les quatre accumulateurs",
+  "exercices": [
+   {
+    "id": "b1",
+    "titre": "B.1 — Un compte",
+    "enonce": "Compter les espaces d'une phrase, et en déduire le nombre de mots.",
+    "questions": [
+     {
+      "ref": "a)",
+      "texte": "Écrivez le programme.",
+      "reponse": "Un compte sous condition, suivi d'une déduction.",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Compter les espaces",
+        "code": "phrase = input(\"Une phrase : \")\nespaces = 0\nfor c in phrase:\n    if c == \" \":\n        espaces = espaces + 1\nprint(\"Espaces :\", espaces)\nprint(\"Mots :\", espaces + 1)"
+       }
+      ]
+     },
+     {
+      "ref": "b)",
+      "texte": "Dans quel cas le nombre de mots annoncé serait-il faux ?",
+      "reponse": "Dès que les espaces ne séparent pas exactement deux mots.",
+      "pile": {
+       "entetes": [
+        "Saisie",
+        "Espaces",
+        "Mots annoncés",
+        "Mots réels"
+       ],
+       "lignes": [
+        [
+         "`bonjour le monde`",
+         "2",
+         "3",
+         "3"
+        ],
+        [
+         "`bonjour  le monde` (double espace)",
+         "3",
+         "4",
+         "3"
+        ],
+        [
+         "` bonjour`",
+         "1",
+         "2",
+         "1"
+        ],
+        [
+         "`bonjour `",
+         "1",
+         "2",
+         "1"
+        ],
+        [
+         "`` (vide)",
+         "0",
+         "1",
+         "0"
+        ]
+       ]
+      },
+      "notes": [
+       "La déduction « mots = espaces + 1 » suppose un espace et un seul entre chaque paire de mots, et aucun aux extrémités. Rien dans le programme ne le garantit.",
+       "C'est le genre d'hypothèse implicite qu'il faut apprendre à repérer : elle tient sur les exemples qu'on essaie, et tombe sur la première saisie réelle."
+      ],
+      "erreurs": [
+       {
+        "titre": "Ne citer que le cas du double espace",
+        "cause": "La chaîne vide est le cas le plus net : zéro espace, et pourtant zéro mot et non un."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "b2",
+    "titre": "B.2 — Un produit",
+    "enonce": "Calculer 2 à la puissance `n` sans l'opérateur de puissance.",
+    "questions": [
+     {
+      "ref": "a)",
+      "texte": "Écrivez le programme.",
+      "reponse": "Un produit accumulé sur `n` tours.",
+      "sortie": "Combien ? 10\n1024",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Multiplier n fois par 2",
+        "code": "n = int(input(\"Combien ? \"))\nP = 1\nfor k in range(n):\n    P = P * 2\nprint(P)"
+       }
+      ],
+      "notes": [
+       "`range(n)` donne exactement `n` tours ; la variable `k` ne sert pas, seul le nombre de tours compte.",
+       "Pour `n = 0`, la boucle ne tourne pas et le programme affiche 1 — ce qui est juste : 2⁰ vaut 1. L'initialisation à l'élément neutre donne gratuitement le bon résultat sur le cas limite."
+      ]
+     },
+     {
+      "ref": "b)",
+      "texte": "Par quelle valeur avez-vous initialisé l'accumulateur, et pourquoi pas 0 ?",
+      "reponse": "Par **1**, l'élément neutre de la multiplication.",
+      "notes": [
+       "Initialisé à 0, l'accumulateur resterait à 0 : `0 * 2` vaut 0, et aucun tour ultérieur ne peut le relever.",
+       "La règle vaut pour tous les accumulateurs : on part de la valeur qui **laisse le résultat inchangé**. 0 pour une somme, 1 pour un produit, `\"\"` pour une concaténation, `False` pour un témoin."
+      ]
+     }
+    ]
+   },
+   {
+    "id": "b3",
+    "titre": "B.3 — Un extremum",
+    "enonce": "Afficher la plus petite de `n` mesures saisies.",
+    "questions": [
+     {
+      "ref": "a)",
+      "texte": "Écrivez le programme.",
+      "reponse": "La première mesure est lue avant la boucle et sert de valeur de départ.",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Initialiser à la première mesure",
+        "code": "n = int(input(\"Combien de mesures ? \"))\nmini = float(input(\"Mesure 1 : \"))\nfor i in range(n - 1):\n    m = float(input(\"Mesure suivante : \"))\n    if m < mini:\n        mini = m\nprint(\"Minimum :\", mini)"
+       },
+       {
+        "verdict": "ok",
+        "nom": "Avec un témoin de premier tour",
+        "code": "n = int(input(\"Combien de mesures ? \"))\npremier = True\nfor i in range(n):\n    m = float(input(\"Mesure : \"))\n    if premier or m < mini:\n        mini = m\n        premier = False\nprint(\"Minimum :\", mini)",
+        "texte": "Évite de dupliquer la ligne de saisie. Le `or` est court-circuité : quand `premier` est vrai, `m < mini` n'est pas évalué, et `mini` peut donc ne pas exister encore."
+       }
+      ]
+     },
+     {
+      "ref": "b)",
+      "texte": "Que se passerait-il avec une initialisation à 0, si toutes les mesures sont positives ?",
+      "reponse": "Le programme annoncerait **0** comme minimum, alors qu'aucune mesure ne vaut 0.",
+      "notes": [
+       "Aucune mesure positive ne peut passer sous 0 : la condition `m < mini` n'est jamais vraie et l'accumulateur garde sa valeur de départ.",
+       "L'inverse est tout aussi vrai pour un maximum initialisé à 0 sur des valeurs négatives. Un extremum n'a pas d'élément neutre : la seule initialisation juste est une valeur de la série."
+      ],
+      "erreurs": [
+       {
+        "titre": "Initialiser à une très grande valeur, par exemple 999999",
+        "cause": "Cela fonctionne tant que les mesures restent en dessous. C'est un choix fragile, qui dépend d'une hypothèse sur les données que rien ne garantit."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "b4",
+    "titre": "B.4 — Un témoin",
+    "enonce": "Annoncer si un mot de passe contient au moins un chiffre.",
+    "questions": [
+     {
+      "ref": "a)",
+      "texte": "Écrivez le programme.",
+      "reponse": "Un booléen initialisé à `False`, mis à `True` à la première rencontre.",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Avec un témoin",
+        "code": "mdp = input(\"Mot de passe : \")\nchiffre = False\nfor c in mdp:\n    if c in \"0123456789\":\n        chiffre = True\n\nif chiffre:\n    print(\"Contient au moins un chiffre.\")\nelse:\n    print(\"Aucun chiffre.\")"
+       },
+       {
+        "verdict": "ok",
+        "nom": "Avec un break",
+        "code": "for c in mdp:\n    if c in \"0123456789\":\n        chiffre = True\n        break",
+        "texte": "Inutile de poursuivre une fois le chiffre trouvé. Le `break` fait gagner des tours ; le témoin reste indispensable pour transmettre la réponse à la suite du programme."
+       }
+      ]
+     },
+     {
+      "ref": "b)",
+      "texte": "Pourquoi le témoin ne doit-il jamais être remis à `False` dans la boucle ?",
+      "reponse": "Parce qu'il répond à « **au moins un** », non à « le dernier ».",
+      "notes": [
+       "Avec un `else: chiffre = False`, le mot de passe `a1b` donnerait `False` : le `b` final effacerait la rencontre du `1`. Le programme ne répondrait plus à la question posée.",
+       "Un témoin est **monotone** : il part de `False` et ne peut que passer à `True`. Une seule flèche, jamais de retour."
+      ],
+      "erreurs": [
+       {
+        "titre": "Écrire `if c in \"0123456789\": chiffre = True else: chiffre = False`",
+        "cause": "C'est l'erreur type. Le témoin ne retient plus que le dernier caractère examiné, et le programme répond en réalité à « le mot de passe finit-il par un chiffre ? »."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "b5",
+    "titre": "B.5 — Deux accumulateurs dans la même boucle",
+    "enonce": "Somme des pairs et somme des impairs de 1 à 50, en une seule boucle.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Écrivez le programme.",
+      "reponse": "Deux accumulateurs, deux initialisations, une seule boucle.",
+      "sortie": "Pairs : 650 - Impairs : 625",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Un if / else",
+        "code": "pairs = 0\nimpairs = 0\nfor n in range(1, 51):\n    if n % 2 == 0:\n        pairs = pairs + n\n    else:\n        impairs = impairs + n\nprint(\"Pairs :\", pairs, \"- Impairs :\", impairs)"
+       }
+      ],
+      "notes": [
+       "Ici `if` / `else` est le bon choix : un entier est pair **ou** impair, jamais les deux. Deux `if` indépendants, comme en C.3 du TP 3, conviendraient à des conditions qui peuvent être vraies ensemble.",
+       "Vérification : 650 + 625 = 1275, qui est bien la somme des entiers de 1 à 50. Un total de contrôle de ce genre coûte une ligne et révèle beaucoup d'erreurs."
+      ],
+      "erreurs": [
+       {
+        "titre": "Deux boucles successives",
+        "cause": "Le résultat serait juste, mais l'énoncé demande une seule boucle — et sur des données saisies, un second parcours serait de toute façon impossible."
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "partie": "Partie C — Cas avancés et pièges",
+  "exercices": [
+   {
+    "id": "c1",
+    "titre": "C.1 — La moyenne calculée trop tôt",
+    "enonce": "",
+    "code": "n = int(input(\"Combien de mesures ? \"))\ntotal = 0\nfor i in range(n):\n    total = total + float(input(\"Mesure : \"))\n    moyenne = total / n\nprint(\"Moyenne :\", moyenne)",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Pourquoi le résultat est-il juste malgré tout ? Qu'est-ce qui le rendrait faux ?",
+      "reponse": "Parce que la **dernière** valeur calculée est la bonne : au dernier tour, `total` est complet et `n` est le bon diviseur.",
+      "notes": [
+       "Le calcul est refait `n` fois, et les `n - 1` premiers résultats sont écrasés. Le programme fait donc inutilement du travail faux, et ne doit sa justesse qu'au fait que le dernier tour est le bon.",
+       "Il devient faux dès qu'on modifie quoi que ce soit autour : un `break` dans la boucle, un tour où la saisie est rejetée, ou un diviseur qui serait le nombre de mesures **retenues** plutôt que le nombre de tours."
+      ],
+      "pile": {
+       "entetes": [
+        "Modification",
+        "Conséquence"
+       ],
+       "lignes": [
+        [
+         "Ajouter un `break` avant la fin",
+         "`moyenne` correspond à un total partiel divisé par `n`"
+        ],
+        [
+         "`n = 0`",
+         "`ZeroDivisionError` — mais seulement si la boucle tourne, donc jamais : le `print` final échoue sur `NameError`"
+        ],
+        [
+         "Diviser par un compteur de mesures retenues",
+         "le compteur n'est pas encore complet au moment du calcul"
+        ]
+       ]
+      },
+      "erreurs": [
+       {
+        "titre": "Répondre qu'il n'y a aucun problème puisque le résultat est bon",
+        "cause": "Un programme juste par accident est un programme qui cassera à la première modification. L'accumulateur se **lit après** la boucle — c'est le troisième temps du schéma, et il a sa place."
+       },
+       {
+        "titre": "Croire que `n = 0` provoque une division par zéro",
+        "cause": "Avec `n = 0` la boucle ne tourne pas, donc la division n'a jamais lieu. L'erreur est ailleurs : `moyenne` n'existe pas, et le `print` final lève `NameError`."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "c2",
+    "titre": "C.2 — Le compte qui compte un de trop",
+    "enonce": "",
+    "code": "compte = 1\nfor c in \"Python\":\n    compte = compte + 1\nprint(\"Caractères :\", compte)",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Combien le programme affiche-t-il, combien devrait-il afficher, où est l'erreur ?",
+      "reponse": "Il affiche 7 ; `\"Python\"` en compte 6. L'initialisation est fautive.",
+      "sortie": "Caractères : 7",
+      "notes": [
+       "La boucle incrémente bien six fois, une par caractère. Mais elle part de 1 au lieu de 0 : le résultat dépasse systématiquement de un.",
+       "Un compte part de 0, pas de 1 — pour la même raison qu'un produit part de 1 : c'est la valeur du résultat **avant tout tour**. Avant d'avoir compté quoi que ce soit, on a compté zéro chose."
+      ],
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Partir de zéro",
+        "code": "compte = 0\nfor c in \"Python\":\n    compte = compte + 1\nprint(\"Caractères :\", compte)"
+       }
+      ],
+      "erreurs": [
+       {
+        "titre": "Corriger en écrivant `print(compte - 1)`",
+        "cause": "Le résultat devient juste, mais la faute reste : la variable ne contient plus ce que son nom annonce. Toute réutilisation ultérieure retombera dans l'erreur."
+       },
+       {
+        "titre": "Chercher la faute dans la boucle",
+        "cause": "La boucle est irréprochable. Sur un compte qui dépasse ou manque de un, c'est presque toujours l'initialisation — ou une borne de `range` — qu'il faut regarder."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "c3",
+    "titre": "C.3 — Accumuler une chaîne",
+    "enonce": "Construire et afficher la chaîne `1-2-3-4-5`.",
+    "questions": [
+     {
+      "ref": "a)",
+      "texte": "Écrivez le programme.",
+      "reponse": "La version naïve produit un tiret de trop.",
+      "sortie": "naïf  : 1-2-3-4-5-\njuste : 1-2-3-4-5",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Ne poser le séparateur qu'à partir du second",
+        "code": "texte = \"\"\nfor n in range(1, 6):\n    if texte != \"\":\n        texte = texte + \"-\"\n    texte = texte + str(n)\nprint(texte)",
+        "texte": "La condition `texte != \"\"` distingue le premier tour des suivants sans variable supplémentaire."
+       },
+       {
+        "verdict": "ok",
+        "nom": "Avec un témoin de premier tour",
+        "code": "texte = \"\"\npremier = True\nfor n in range(1, 6):\n    if not premier:\n        texte = texte + \"-\"\n    texte = texte + str(n)\n    premier = False\nprint(texte)"
+       },
+       {
+        "verdict": "ok",
+        "nom": "Retirer le tiret final",
+        "code": "texte = \"\"\nfor n in range(1, 6):\n    texte = texte + str(n) + \"-\"\nprint(texte[:-1])",
+        "texte": "Correct et bref, mais `texte[:-1]` suppose qu'il y a quelque chose à retirer : sur une suite vide, il faudrait s'en assurer."
+       }
+      ],
+      "notes": [
+       "`str(n)` est indispensable : `texte + n` lèverait `TypeError: can only concatenate str (not \"int\") to str`. La concaténation n'additionne pas, elle met bout à bout."
+      ]
+     },
+     {
+      "ref": "b)",
+      "texte": "Comment avez-vous évité le tiret final ?",
+      "reponse": "En traitant le premier élément à part — c'est le propre de tout assemblage avec séparateur.",
+      "notes": [
+       "Le motif revient partout : une liste d'éléments séparés par des virgules, une phrase, un fichier CSV. Il y a toujours **un séparateur de moins que d'éléments**, et c'est le premier ou le dernier tour qui fait exception."
+      ]
+     }
+    ]
+   },
+   {
+    "id": "c4",
+    "titre": "C.4 — Accumulateur et break",
+    "enonce": "Annoncer la position de la première valeur négative parmi `n` mesures, ou qu'il n'y en a aucune.",
+    "questions": [
+     {
+      "ref": "a)",
+      "texte": "Écrivez le programme.",
+      "reponse": "Un compteur de position et un témoin de rencontre.",
+      "solutions": [
+       {
+        "verdict": "retenue",
+        "nom": "Compteur et témoin",
+        "code": "n = int(input(\"Combien de mesures ? \"))\nposition = 0\ntrouvee = False\n\nfor i in range(n):\n    m = float(input(\"Mesure : \"))\n    position = position + 1\n    if m < 0:\n        trouvee = True\n        break\n\nif trouvee:\n    print(\"Première valeur négative en position\", position)\nelse:\n    print(\"Aucune valeur négative.\")"
+       },
+       {
+        "verdict": "ok",
+        "nom": "En se servant de la variable de boucle",
+        "code": "for i in range(n):\n    m = float(input(\"Mesure : \"))\n    if m < 0:\n        trouvee = True\n        break\n\nif trouvee:\n    print(\"Première valeur négative en position\", i + 1)",
+        "texte": "`i` conserve sa dernière valeur après la boucle, et `i + 1` donne la position en comptant à partir de 1. Plus court, mais il faut se souvenir que `i` part de 0 — et que sur une boucle qui n'a pas tourné, `i` n'existe pas."
+       }
+      ]
+     },
+     {
+      "ref": "b)",
+      "texte": "Pourquoi le témoin est-il indispensable, alors que le compteur existe déjà ?",
+      "reponse": "Parce que le compteur ne dit pas **pourquoi** la boucle s'est arrêtée.",
+      "notes": [
+       "Une boucle qui s'arrête par `break` et une boucle qui va jusqu'au bout laissent le compteur dans le même état : il vaut `n` dans les deux cas si la dernière mesure est la négative.",
+       "Le témoin est la seule variable qui distingue les deux sorties. Dès qu'une boucle peut s'arrêter pour **deux raisons**, il faut de quoi savoir laquelle a joué."
+      ],
+      "erreurs": [
+       {
+        "titre": "Tester `if position < n` pour savoir si le break a eu lieu",
+        "cause": "Cela échoue précisément quand la valeur négative est la dernière : `position` vaut alors `n`, comme si la boucle était allée au bout."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "c5",
+    "titre": "C.5 — Un calcul que vous ne pouvez pas encore faire",
+    "enonce": "Compter combien, parmi `n` mesures saisies, dépassent la moyenne de ces mêmes mesures.",
+    "questions": [
+     {
+      "ref": "",
+      "texte": "Pourquoi ce calcul est-il impossible avec une seule boucle et ce que vous savez aujourd'hui ?",
+      "reponse": "Parce qu'il demande **deux parcours** des mêmes données, et que rien ne permet encore de les conserver.",
+      "notes": [
+       "La moyenne n'est connue qu'une fois la dernière mesure saisie. Or la comparaison de la première mesure à cette moyenne devrait avoir lieu au premier tour, c'est-à-dire avant que la moyenne existe.",
+       "On ne peut pas non plus redemander les mesures : ce serait une autre saisie, donc d'autres valeurs. Et une variable `m` réécrite à chaque tour n'en garde aucune."
+      ],
+      "pile": {
+       "entetes": [
+        "Ce qu'il faudrait",
+        "Ce dont on dispose"
+       ],
+       "lignes": [
+        [
+         "Parcourir les mesures une première fois pour la moyenne",
+         "possible"
+        ],
+        [
+         "Les reparcourir pour les comparer",
+         "**impossible** : elles n'existent plus"
+        ],
+        [
+         "Conserver `n` valeurs sous un seul nom",
+         "pas encore vu"
+        ]
+       ]
+      },
+      "solutions": [
+       {
+        "verdict": "expert",
+        "nom": "Ce que les listes permettront, en séance 8",
+        "code": "mesures = []\nfor i in range(n):\n    mesures.append(float(input(\"Mesure : \")))\n\nmoyenne = sum(mesures) / n\n\nau_dessus = 0\nfor m in mesures:\n    if m > moyenne:\n        au_dessus = au_dessus + 1",
+        "texte": "Une liste retient les valeurs ; la boucle peut alors être relancée autant de fois qu'il le faut. Ce code n'est pas à produire aujourd'hui — il est donné pour montrer ce qui manque exactement."
+       }
+      ],
+      "erreurs": [
+       {
+        "titre": "Proposer de redemander les mesures à l'utilisateur",
+        "cause": "Techniquement possible, mais ce n'est pas le même calcul : rien ne garantit que l'utilisateur saisisse les mêmes valeurs, et l'énoncé parle des mesures déjà saisies."
+       },
+       {
+        "titre": "Proposer de comparer chaque mesure à la moyenne des précédentes",
+        "cause": "C'est un autre calcul, dont le résultat dépend de l'ordre de saisie. Une moyenne glissante n'est pas la moyenne de la série."
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+];
+
+/* ------------------------------------------------------------------ *
+ *  Mémoire locale — simple confort de lecture, jamais indispensable.
+ * ------------------------------------------------------------------ */
+const CLE = "m355-tp4-corriges-vus";
+let vus = new Set();
+try {
+  const brut = localStorage.getItem(CLE);
+  if (brut) vus = new Set(JSON.parse(brut));
+} catch (e) { /* navigation privée, stockage bloqué : on continue sans */ }
+
+function memoriser() {
+  try { localStorage.setItem(CLE, JSON.stringify([...vus])); } catch (e) {}
+}
+
+/* ------------------------------------------------------------------ *
+ *  Rendu
+ * ------------------------------------------------------------------ */
+const rail = document.getElementById("rail");
+const travail = document.getElementById("travail");
+const tousExercices = CORRIGE.flatMap(p => p.exercices.map(e => ({ ...e, partie: p.partie })));
+
+function cleQuestion(ex, i) { return ex.id + "-" + i; }
+
+function exerciceVu(ex) {
+  return ex.questions.every((_, i) => vus.has(cleQuestion(ex, i)));
+}
+
+function construireRail() {
+  rail.innerHTML = CORRIGE.map(partie => `
+    <div class="rail-groupe">
+      <div class="rail-titre">${echapper(partie.partie.replace(/^Partie /, ""))}</div>
+      <div class="rail-liste">
+        ${partie.exercices.map(ex => `
+          <button class="onglet" type="button" data-cible="${ex.id}">
+            <span class="cle">${echapper(ex.titre.split(" — ")[0])}</span>
+            <span>${echapper(ex.titre.split(" — ")[1] || "")}</span>
+            <span class="pastille" aria-hidden="true"></span>
+          </button>`).join("")}
+      </div>
+    </div>`).join("");
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.addEventListener("click", () => afficher(b.dataset.cible, true)));
+}
+
+function fiche(item, estErreur) {
+  const classeVerdict = { retenue: "v-retenue", ok: "v-ok",
+                          eviter: "v-eviter", expert: "v-expert" }[item.verdict];
+  const libelle = { retenue: "à retenir", ok: "acceptable",
+                    eviter: "à éviter", expert: "pour aller plus loin" }[item.verdict];
+  return `
+    <article class="fiche${estErreur ? " erreur" : ""}">
+      <div class="fiche-tete">
+        <h4>${enrichir(item.nom || item.titre)}</h4>
+        ${estErreur
+          ? '<span class="verdict v-eviter">erreur fréquente</span>'
+          : (classeVerdict ? `<span class="verdict ${classeVerdict}">${libelle}</span>` : "")}
+      </div>
+      <div class="fiche-corps">
+        ${item.code ? bloc(item.code, false) : ""}
+        ${item.sortie ? bloc(item.sortie, true) : ""}
+        ${item.texte ? `<p>${enrichir(item.texte)}</p>` : ""}
+        ${item.cause ? `<dl class="ligne-diag"><dt>Pourquoi</dt><dd>${enrichir(item.cause)}</dd></dl>` : ""}
+      </div>
+    </article>`;
+}
+
+function tableau(p) {
+  return `<div class="table-enveloppe"><table class="pile">
+    <thead><tr>${p.entetes.map(h => `<th>${echapper(h)}</th>`).join("")}</tr></thead>
+    <tbody>${p.lignes.map(l => `<tr>${l.map(c => `<td>${enrichir(c)}</td>`).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+function corpsCorrection(q) {
+  return `
+    <div class="reponse">
+      <span class="etiquette">Réponse</span>
+      <p>${enrichir(q.reponse)}</p>
+    </div>
+    ${q.sortie ? bloc(q.sortie, true) : ""}
+    ${q.pile ? tableau(q.pile) : ""}
+    ${(q.notes || []).map(n => `<p>${enrichir(n)}</p>`).join("")}
+    ${q.solutions && q.solutions.length ? `
+      <div class="sous-titre">Propositions de solution</div>
+      <div class="lot">${q.solutions.map(s => fiche(s, false)).join("")}</div>` : ""}
+    ${q.erreurs && q.erreurs.length ? `
+      <div class="sous-titre">Erreurs fréquentes</div>
+      <div class="lot">${q.erreurs.map(e => fiche(e, true)).join("")}</div>` : ""}`;
+}
+
+let courant = null;
+
+function afficher(id, deplacerFocus) {
+  const ex = tousExercices.find(e => e.id === id) || tousExercices[0];
+  courant = ex;
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.setAttribute("aria-current", String(b.dataset.cible === ex.id)));
+
+  travail.innerHTML = `
+    <div class="chapeau">
+      <div>
+        <span class="partie">${echapper(ex.partie)}</span>
+        <h2>${echapper(ex.titre)}</h2>
+      </div>
+      <button class="bouton-plat" type="button" id="tout">Tout afficher</button>
+    </div>
+    <div class="enonce">
+      <p>${enrichir(ex.enonce)}</p>
+      ${ex.code ? bloc(ex.code, false) : ""}
+    </div>
+    ${ex.questions.map((q, i) => {
+      const cle = cleQuestion(ex, i);
+      const ouvert = vus.has(cle);
+      return `
+      <article class="question" id="q-${cle}">
+        <div class="question-tete">
+          ${q.ref ? `<span class="ref">${echapper(q.ref)}</span>` : ""}
+          <div class="texte">${enrichir(q.texte)}</div>
+          <button class="devoiler" type="button" data-cle="${cle}"
+                  aria-expanded="${ouvert}" aria-controls="c-${cle}">
+            ${ouvert ? "Masquer" : "Afficher la correction"}
+          </button>
+        </div>
+        <div class="correction" id="c-${cle}" ${ouvert ? "" : "hidden"}>
+          ${corpsCorrection(q)}
+        </div>
+      </article>`;
+    }).join("")}`;
+
+  travail.querySelectorAll(".devoiler").forEach(b =>
+    b.addEventListener("click", () => basculer(b)));
+  document.getElementById("tout").addEventListener("click", toutAfficher);
+  majPastilles();
+  if (deplacerFocus) {
+    history.replaceState(null, "", "#" + ex.id);
+    travail.querySelector("h2").scrollIntoView({ block: "nearest" });
+  }
+}
+
+function basculer(bouton) {
+  const cle = bouton.dataset.cle;
+  const zone = document.getElementById("c-" + cle);
+  const ouvrir = zone.hidden;
+  zone.hidden = !ouvrir;
+  bouton.setAttribute("aria-expanded", String(ouvrir));
+  bouton.textContent = ouvrir ? "Masquer" : "Afficher la correction";
+  if (ouvrir) vus.add(cle); else vus.delete(cle);
+  memoriser();
+  majPastilles();
+}
+
+function toutAfficher() {
+  const boutons = [...travail.querySelectorAll(".devoiler")];
+  const toutOuvert = boutons.every(b => b.getAttribute("aria-expanded") === "true");
+  boutons.forEach(b => {
+    if ((b.getAttribute("aria-expanded") === "true") === toutOuvert) basculer(b);
+  });
+  document.getElementById("tout").textContent = toutOuvert ? "Tout afficher" : "Tout masquer";
+}
+
+function majPastilles() {
+  rail.querySelectorAll(".onglet").forEach(b => {
+    const ex = tousExercices.find(e => e.id === b.dataset.cible);
+    b.classList.toggle("vu", exerciceVu(ex));
+  });
+  const bouton = document.getElementById("tout");
+  if (bouton && courant) {
+    const boutons = [...travail.querySelectorAll(".devoiler")];
+    bouton.textContent = boutons.every(b => b.getAttribute("aria-expanded") === "true")
+      ? "Tout masquer" : "Tout afficher";
+  }
+}
+
+construireRail();
+const ancre = (location.hash || "").replace("#", "");
+afficher(tousExercices.some(e => e.id === ancre) ? ancre : tousExercices[0].id, false);
+</script>
+</script>
+</body>
+</html>

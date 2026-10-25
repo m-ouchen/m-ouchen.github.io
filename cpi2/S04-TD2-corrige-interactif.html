@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Corrigé du TD 2 : Notions de complexité</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+/* Disposition : console à deux volets — rail des exercices à gauche, colonne de
+   travail à droite ; au format téléphone le rail devient une barre de pastilles. */
+:root {
+  --bleu:        #2A5B7F;   /* charte M235 — titres, rail, filets        */
+  --sarcelle:    #2E8B79;   /* charte M235 assombrie pour le texte       */
+  --vert:        #5E7A18;   /* charte M235 assombrie — solution retenue  */
+  --prune:       #B03F60;   /* erreurs fréquentes                        */
+  --encre:       #16242E;
+  --encre-douce: #51616C;
+  --fond:        #FBFCFD;
+  --carte:       #FFFFFF;
+  --surface:     #F1F6F9;   /* neutre biaisé vers le bleu de la charte   */
+  --filet:       #D6E3EC;
+  --code-fond:   #F4F8FA;
+  --code-filet:  #DCE8F0;
+  --ombre:       0 1px 2px rgba(22, 36, 46, .06), 0 8px 24px rgba(22, 36, 46, .05);
+
+  --syn-mot:     #C0392B;
+  --syn-natif:   #6F42C1;
+  --syn-texte:   #0B4F8A;
+  --syn-note:    #67757F;
+  --syn-nombre:  #1A6FAF;
+
+  --titre: "Zilla Slab", Rockwell, Georgia, serif;
+  --corps: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: Consolas, "JetBrains Mono", ui-monospace, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+    --encre: #E6EDF2; --encre-douce: #9FB0BC;
+    --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+    --code-fond: #101E27; --code-filet: #263B49;
+    --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+    --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+    --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+  --encre: #E6EDF2; --encre-douce: #9FB0BC;
+  --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+  --code-fond: #101E27; --code-filet: #263B49;
+  --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+  --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0; background: var(--fond); color: var(--encre);
+  font-family: var(--corps); font-size: 16px; line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+h1, h2, h3, h4 { font-family: var(--titre); text-wrap: balance; margin: 0; }
+code, pre { font-family: var(--mono); }
+:focus-visible { outline: 2.5px solid var(--sarcelle); outline-offset: 2px; border-radius: 3px; }
+
+/* — bandeau — */
+.bandeau {
+  background: var(--bleu); color: #fff;
+  padding-block: 18px 16px; padding-inline: 16px;
+}
+.bandeau-interieur { max-width: 1180px; margin: 0 auto; display: flex;
+  flex-wrap: wrap; gap: 12px 24px; align-items: baseline; }
+.bandeau h1 { font-size: clamp(1.25rem, 1rem + 1.2vw, 1.7rem); font-weight: 600;
+  letter-spacing: .01em; }
+.bandeau p { margin: 0; font-size: .86rem; opacity: .82; }
+.bandeau .module { font-family: var(--mono); font-size: .76rem;
+  letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+
+/* — mise en page — */
+.page { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 20px 56px; display: grid; gap: 24px;
+  grid-template-columns: 236px minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .page { grid-template-columns: minmax(0, 1fr); } }
+
+/* — rail — */
+.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+@media (max-width: 860px) { .rail { position: static; } }
+.rail-groupe + .rail-groupe { margin-top: 18px; }
+.rail-titre { font-family: var(--mono); font-size: .68rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); margin-bottom: 7px; }
+.rail-liste { display: flex; flex-direction: column; gap: 3px; }
+@media (max-width: 860px) {
+  .rail-liste { flex-direction: row; flex-wrap: wrap; }
+  .rail-groupe + .rail-groupe { margin-top: 10px; }
+}
+.onglet {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  font: inherit; font-size: .91rem; text-align: left; cursor: pointer;
+  background: none; border: 1px solid transparent; border-radius: 7px;
+  padding: 6px 10px; color: var(--encre);
+}
+.onglet:hover { background: var(--surface); }
+.onglet[aria-current="true"] { background: var(--bleu); color: #fff;
+  border-color: var(--bleu); }
+.onglet .cle { font-family: var(--mono); font-size: .78rem; font-weight: 600;
+  min-width: 1.6em; }
+.onglet .pastille { margin-left: auto; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--vert); opacity: 0; flex: none; }
+.onglet.vu .pastille { opacity: 1; }
+@media (max-width: 860px) { .onglet { width: auto; } .onglet .pastille { margin-left: 4px; } }
+
+/* — colonne de travail — */
+.travail { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.chapeau { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: baseline;
+  justify-content: space-between; }
+.chapeau h2 { font-size: clamp(1.15rem, 1rem + .9vw, 1.5rem); color: var(--bleu);
+  font-weight: 600; }
+.chapeau .partie { font-family: var(--mono); font-size: .72rem; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--encre-douce); display: block;
+  margin-bottom: 2px; }
+
+.bouton-plat { font: inherit; font-size: .84rem; cursor: pointer;
+  background: var(--carte); color: var(--bleu); border: 1px solid var(--filet);
+  border-radius: 7px; padding: 5px 12px; }
+.bouton-plat:hover { background: var(--surface); }
+
+.enonce { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 10px; padding: 14px 16px; }
+.enonce p { margin: 0 0 10px; }
+.enonce p:last-child { margin-bottom: 0; }
+
+.question { background: var(--carte); border: 1px solid var(--filet);
+  border-radius: 10px; box-shadow: var(--ombre); overflow: hidden; }
+.question-tete { display: flex; gap: 12px; align-items: flex-start;
+  padding: 13px 16px; }
+.question-tete .ref { font-family: var(--mono); font-weight: 600;
+  color: var(--sarcelle); flex: none; padding-top: 1px; }
+.question-tete .texte { min-width: 0; flex: 1; }
+.devoiler { font: inherit; font-size: .84rem; cursor: pointer; flex: none;
+  background: var(--bleu); color: #fff; border: 1px solid var(--bleu);
+  border-radius: 7px; padding: 5px 12px; white-space: nowrap; }
+.devoiler[aria-expanded="true"] { background: var(--carte); color: var(--bleu); }
+@media (max-width: 560px) {
+  .question-tete { flex-wrap: wrap; }
+  .devoiler { width: 100%; }
+}
+.correction { border-top: 1px solid var(--filet); padding: 14px 16px 16px;
+  display: flex; flex-direction: column; gap: 14px; }
+@media (prefers-reduced-motion: no-preference) {
+  .correction { animation: apparait .22s ease-out; }
+  @keyframes apparait { from { opacity: 0; transform: translateY(-3px); } }
+}
+
+.reponse { border-left: 3px solid var(--vert); padding-left: 13px; }
+.reponse .etiquette { font-family: var(--mono); font-size: .68rem;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--vert);
+  font-weight: 600; display: block; margin-bottom: 4px; }
+.reponse p { margin: 0 0 8px; }
+.reponse p:last-child { margin-bottom: 0; }
+
+.sous-titre { font-family: var(--mono); font-size: .7rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); font-weight: 600;
+  display: flex; align-items: center; gap: 9px; }
+.sous-titre::after { content: ""; flex: 1; height: 1px; background: var(--filet); }
+
+.lot { display: flex; flex-direction: column; gap: 10px; }
+.fiche { border: 1px solid var(--filet); border-radius: 9px; overflow: hidden;
+  background: var(--carte); }
+.fiche-tete { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center;
+  padding: 9px 13px; background: var(--surface);
+  border-bottom: 1px solid var(--filet); }
+.fiche-tete h4 { font-size: .95rem; font-weight: 600; min-width: 0; }
+.verdict { font-family: var(--mono); font-size: .66rem; letter-spacing: .07em;
+  text-transform: uppercase; font-weight: 600; padding: 2px 8px;
+  border-radius: 999px; border: 1px solid currentColor; flex: none; }
+.v-retenue  { color: var(--vert); }
+.v-ok       { color: var(--sarcelle); }
+.v-eviter   { color: var(--prune); }
+.v-expert   { color: var(--bleu); }
+.fiche-corps { padding: 11px 13px; display: flex; flex-direction: column; gap: 9px; }
+.fiche-corps p { margin: 0; }
+.fiche.erreur { border-color: color-mix(in srgb, var(--prune) 38%, var(--filet)); }
+.fiche.erreur .fiche-tete { background: color-mix(in srgb, var(--prune) 8%, var(--carte)); }
+
+.ligne-diag { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px;
+  font-size: .91rem; }
+.ligne-diag dt { font-family: var(--mono); font-size: .72rem; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--encre-douce); padding-top: 3px; }
+.ligne-diag dd { margin: 0; min-width: 0; }
+
+pre.code { margin: 0; background: var(--code-fond); border: 1px solid var(--code-filet);
+  border-radius: 7px; padding: 10px 12px; overflow-x: auto;
+  font-size: .845rem; line-height: 1.55; tab-size: 4; }
+pre.code.sortie { background: var(--surface); color: var(--encre-douce); }
+.k { color: var(--syn-mot); } .n { color: var(--syn-natif); }
+.s { color: var(--syn-texte); } .c { color: var(--syn-note); font-style: italic; }
+.d { color: var(--syn-nombre); }
+code.ligne { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 4px; padding: .5px 5px; font-size: .88em; }
+
+table.pile { width: 100%; border-collapse: collapse; font-size: .88rem; }
+table.pile th, table.pile td { border: 1px solid var(--filet); padding: 6px 10px;
+  text-align: left; }
+table.pile th { background: var(--surface); font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--encre-douce); font-weight: 600; }
+table.pile td:first-child, table.pile td:last-child { font-family: var(--mono);
+  font-variant-numeric: tabular-nums; }
+.table-enveloppe { overflow-x: auto; }
+
+.pied { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 0 40px; color: var(--encre-douce); font-size: .82rem; }
+.pied p { margin: 0; }
+</style>
+</head>
+<body>
+
+<header class="bandeau">
+  <div class="bandeau-interieur">
+    <div>
+      <span class="module">Programmation avancée en Python</span>
+      <h1>TD 2 — Notions de complexité</h1>
+    </div>
+    <p>Choisissez un exercice, cherchez, puis dévoilez la correction.</p>
+  </div>
+</header>
+
+<main class="page">
+  <nav class="rail" id="rail" aria-label="Exercices du TD"></nav>
+  <section class="travail" id="travail" aria-live="polite"></section>
+</main>
+
+<footer class="pied">
+  <p>École Supérieure Mohammed VI d'Ingénieurs en Sciences de la Santé — UM6SS.
+     Toutes les sorties affichées ici ont été exécutées sous Python&nbsp;3.11.</p>
+</footer>
+
+<script>
+/* ------------------------------------------------------------------ *
+ *  Coloration syntaxique Python — segmentation puis échappement.
+ *  On tokenise la chaîne brute, puis on échappe chaque segment : faire
+ *  l'inverse ferait correspondre les motifs à l'intérieur des entités.
+ * ------------------------------------------------------------------ */
+const MOTS = new Set(("False None True and as assert async await break class " +
+  "continue def del elif else except finally for from global if import in is " +
+  "lambda nonlocal not or pass raise return try while with yield").split(" "));
+const NATIFS = new Set(("abs all any bool dict enumerate filter float frozenset " +
+  "hash int isinstance len list map max min print range repr reversed round set " +
+  "sorted str sum tuple type zip").split(" "));
+const JETON = /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|"[^"\n]*"|'[^'\n]*')|(\b\d+\.?\d*\b)|([A-Za-z_]\w*)/g;
+
+function echapper(t) {
+  return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function colorer(source) {
+  let sortie = "", position = 0, m;
+  JETON.lastIndex = 0;
+  while ((m = JETON.exec(source)) !== null) {
+    sortie += echapper(source.slice(position, m.index));
+    const [tout, note, texte, nombre, mot] = m;
+    if (note !== undefined)        sortie += '<span class="c">' + echapper(tout) + "</span>";
+    else if (texte !== undefined)  sortie += '<span class="s">' + echapper(tout) + "</span>";
+    else if (nombre !== undefined) sortie += '<span class="d">' + echapper(tout) + "</span>";
+    else if (MOTS.has(mot))        sortie += '<span class="k">' + echapper(tout) + "</span>";
+    else if (NATIFS.has(mot))      sortie += '<span class="n">' + echapper(tout) + "</span>";
+    else                           sortie += echapper(tout);
+    position = m.index + tout.length;
+  }
+  return sortie + echapper(source.slice(position));
+}
+
+/* Texte enrichi minimal : `code` et **gras**, échappés. */
+function enrichir(t) {
+  return echapper(t)
+    .replace(/`([^`]+)`/g, '<code class="ligne">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+}
+
+const bloc = (src, sortie) =>
+  '<pre class="code' + (sortie ? " sortie" : "") + '">' +
+  (sortie ? echapper(src) : colorer(src)) + "</pre>";
+
+/* ------------------------------------------------------------------ *
+ *  Le TD, tel qu'il a été distribué.
+ * ------------------------------------------------------------------ */
+const TD = [
+{ partie: "Partie A — Prise en main", exercices: [
+
+  { id: "a1", titre: "A1 — Compter les opérations",
+    enonce: "On dispose d'une liste `L` de `n` nombres.",
+    code: `# Programme 1
+total = 0
+for x in L:
+    total = total + x
+
+# Programme 2
+grands = 0
+for x in L:
+    for y in L:
+        if x > y:
+            grands = grands + 1`,
+    questions: [
+      { ref: "1.", texte: "Combien d'additions le programme 1 exécute-t-il, en fonction de n ?",
+        reponse: "**n additions** : une par tour, et la boucle fait `n` tours.",
+        notes: ["Le corps de la boucle ne contient qu'une addition, et rien dont le coût dépende de la taille de `L`. Une boucle coûte le nombre de ses tours **multiplié par** le coût d'un tour : ici `n × 1`."],
+        solutions: [
+          { verdict: "expert", nom: "Le vérifier en instrumentant",
+            code: `L = [4, 7, 9, 6]
+operations = 0
+total = 0
+for x in L:
+    total = total + x
+    operations = operations + 1
+print(operations)        # Affiche 4`,
+            sortie: `4`,
+            texte: "Quand un comptage résiste, on l'instrumente sur quatre éléments avant de le généraliser." }
+        ],
+        erreurs: [
+          { titre: "Compter aussi l'affectation initiale et s'arrêter là",
+            cause: "`total = 0` fait bien une opération de plus : le comptage exact est `n + 1`. Ce n'est pas faux, c'est seulement plus précis que la question ne le demande — et le `+ 1` disparaîtra de toute façon au passage à la classe." }
+        ] },
+
+      { ref: "2.", texte: "Combien de comparaisons le programme 2 réalise-t-il ?",
+        reponse: "**n² comparaisons**.",
+        sortie: `>>> L = [4, 7, 9, 6]          # n = 4
+>>> sum(1 for x in L for y in L)
+16`,
+        notes: ["La boucle intérieure fait `n` tours **pour chacun** des `n` tours de la boucle extérieure. Les tours ne s'ajoutent pas, ils se multiplient.",
+                "`if x > y` est évalué à chaque tour intérieur, qu'il soit vrai ou faux. On compte les comparaisons **faites**, non celles qui réussissent."],
+        erreurs: [
+          { titre: "Répondre `2n`",
+            cause: "L'erreur attendue : on voit « deux boucles ». Deux boucles **côte à côte** donnent `n + n = 2n` ; deux boucles **imbriquées** donnent `n × n`. Le critère n'est pas le nombre de `for`, c'est leur imbrication." },
+          { titre: "Répondre `n(n-1)/2`",
+            cause: "Ce serait juste si la boucle intérieure démarrait après `x`, comme dans `a_des_doublons` en B3. Ici `for y in L` repart du début à chaque fois." }
+        ] },
+
+      { ref: "3.", texte: "Pour n = 1000, donnez les deux nombres. Commentez.",
+        reponse: "**1 000** additions contre **1 000 000** de comparaisons.",
+        notes: ["Mille fois plus, pour deux programmes qui tiennent tous deux en quatre lignes. La longueur du code ne dit rien de son coût.",
+                "Un million d'opérations s'exécute encore en une fraction de seconde. Mais à `n = 100 000` — la taille d'un relevé d'une journée — le second en demanderait **dix milliards**."]
+      }
+    ] },
+
+  { id: "a2", titre: "A2 — Simplifier en O",
+    enonce: "On a compté les opérations de cinq fonctions. Voici les résultats.",
+    code: `fonction 1 ► 3n + 7          fonction 2 ► 4n³ - 2n + 5      fonction 3 ► 55
+fonction 4 ► 7n²             fonction 5 ► 5,2n + 3n² - 1`,
+    questions: [
+      { ref: "1.", texte: "Écrivez la notation O de chacune des cinq.",
+        reponse: "On supprime les **facteurs constants**, puis les **termes dominés**.",
+        pile: { entetes: ["Comptage", "Classe", "Ce qu'on a retiré"],
+          lignes: [
+            ["`3n + 7`", "`O(n)`", "le facteur 3, puis le terme constant 7"],
+            ["`4n³ - 2n + 5`", "`O(n³)`", "le facteur 4, puis `-2n` et `5`, dominés par `n³`"],
+            ["`55`", "`O(1)`", "rien — un coût qui ne dépend pas de `n` est constant"],
+            ["`7n²`", "`O(n²)`", "le facteur 7"],
+            ["`5,2n + 3n² - 1`", "`O(n²)`", "le facteur 3, puis `5,2n` et `-1`, dominés par `n²`"]
+          ] },
+        erreurs: [
+          { titre: "Garder les deux termes de la cinquième",
+            cause: "`O(5,2n + 3n²)` n'est pas une classe. Dès que `n` dépasse 2, `3n²` l'emporte sur `5,2n`, et l'écart ne cesse de croître : le terme linéaire est **dominé**." },
+          { titre: "Écrire `O(55)` pour la troisième",
+            cause: "`55` est un facteur constant devant `1`. Toute quantité qui ne dépend pas de `n` s'écrit `O(1)`, qu'elle vaille 1 ou un million." }
+        ] },
+
+      { ref: "2.", texte: "Quelle est la plus lente d'entre elles ?",
+        reponse: "La **fonction 2**, seule en `O(n³)`.",
+        sortie: `>>> n = 1000
+>>> 4*n**3 - 2*n + 5, 7*n**2, 3*n + 7
+(3999998005, 7000000, 3007)`,
+        notes: ["À `n = 1000`, la fonction 2 demande quatre milliards d'opérations, la fonction 4 sept millions, la fonction 1 trois mille. Un cube écrase un carré aussi sûrement qu'un carré écrase une droite.",
+                "Noter que la question porte sur le comportement **asymptotique** : à `n = 2`, la fonction 2 vaut 33 et la fonction 3 en vaut 55. L'ordre s'inverse pour les petites entrées — c'est l'objet du piège C4."],
+        erreurs: [
+          { titre: "Désigner la fonction 5, « parce qu'elle a le plus de termes »",
+            cause: "Le nombre de termes ne décide de rien : seul compte le terme **dominant**. La fonction 5 est en `O(n²)`, comme la fonction 4 qui n'en a qu'un." }
+        ] }
+    ] },
+
+  { id: "a3", titre: "A3 — Reconnaître la classe",
+    enonce: "On dispose d'une liste `banques` contenant `n` éléments.",
+    code: `premiere = banques[0]                                      # fragment a
+derniere = banques[len(banques) - 1]                       # fragment b
+doublons = [b for b in banques if banques.count(b) > 1]    # fragment c`,
+    questions: [
+      { ref: "1.", texte: "Donnez la complexité en temps (notation O) de chaque fragment.",
+        reponse: "`a` et `b` sont en `O(1)` ; `c` est en `O(n²)`.",
+        pile: { entetes: ["Fragment", "Classe", "Pourquoi"],
+          lignes: [
+            ["`a`", "`O(1)`", "une liste calcule l'adresse d'une position, elle ne la cherche pas"],
+            ["`b`", "`O(1)`", "`len` lit un compteur que la liste tient à jour, puis l'accès est celui de `a`"],
+            ["`c`", "`O(n²)`", "la compréhension fait `n` tours, et `count` reparcourt toute la liste à chaque tour"]
+          ] },
+        notes: ["Le fragment `c` est le plus instructif : **une seule boucle visible**, et pourtant un coût quadratique. Le second parcours est caché dans l'appel à `count`, qui n'a pas l'air d'une boucle."],
+        solutions: [
+          { verdict: "expert", nom: "Le fragment c, en O(n)",
+            code: `from collections import Counter
+
+compte = Counter(banques)
+doublons = [b for b in banques if compte[b] > 1]`,
+            texte: "`Counter` fait un seul parcours, puis chaque consultation coûte `O(1)`. Le total passe à `O(n)` — c'est le mécanisme du piège C1, appliqué au comptage." }
+        ],
+        erreurs: [
+          { titre: "Classer `b` en `O(n)`",
+            cause: "On suppose que `len` parcourt la liste pour la compter. C'est le cas dans d'autres langages — `strlen` en C parcourt la chaîne — mais une liste Python **retient** sa longueur et `len` se contente de la lire." },
+          { titre: "Classer `c` en `O(n)`",
+            cause: "On compte les tours de la compréhension et l'on s'arrête là. Une boucle de `n` tours n'est en `O(n)` que si **chaque tour** coûte un temps constant." }
+        ] }
+    ] }
+] },
+{ partie: "Partie B — Extension", exercices: [
+
+  { id: "b1", titre: "B1 — Recherche séquentielle",
+    enonce: "On cherche une valeur cible dans une liste de `n` éléments.",
+    code: `def contient_valeur(L, cible):
+    for x in L:
+        if x == cible:
+            return True
+    return False`,
+    questions: [
+      { ref: "1.", texte: "Quel est le meilleur cas ? Donnez T_best(n).",
+        reponse: "La cible est en **première position** : une seule comparaison, donc `T_best(n) = O(1)`.",
+        sortie: `>>> L = list(range(1000))
+>>> contient_valeur(L, 0)      # 1 comparaison
+True`,
+        notes: ["C'est le `return True` à l'intérieur de la boucle qui rend ce cas possible : il **interrompt** le parcours. Sans lui, la fonction ferait toujours `n` tours."],
+        erreurs: [
+          { titre: "Répondre `O(n)` au motif que « la boucle est écrite »",
+            cause: "Une boucle écrite n'est pas une boucle parcourue en entier. Le meilleur cas décrit l'entrée la plus favorable, et ici elle fait sortir au premier tour." }
+        ] },
+
+      { ref: "2.", texte: "Quel est le pire cas ? Donnez T_worst(n).",
+        reponse: "La cible est en **dernière position, ou absente** : `n` comparaisons, donc `T_worst(n) = O(n)`.",
+        notes: ["Les deux situations coûtent exactement la même chose : dans les deux cas la boucle va jusqu'au bout. C'est ce qui arrive le plus souvent en pratique, les recherches infructueuses étant les plus coûteuses.",
+                "**A retenir : sans précision, « la complexité » désigne le pire cas.** C'est la seule garantie que l'on puisse donner."]
+      },
+
+      { ref: "3.", texte: "Quelle est la complexité spatiale S(n) ?",
+        reponse: "`S(n) = O(1)` : la fonction ne crée aucune structure.",
+        notes: ["Une variable de boucle, quelle que soit la taille de l'entrée. Rien n'est alloué, rien ne grandit.",
+                "La complexité spatiale compte la mémoire **supplémentaire**. La liste reçue en argument existait avant l'appel et n'en fait pas partie."],
+        erreurs: [
+          { titre: "Répondre `O(n)` parce que la fonction reçoit une liste de `n` éléments",
+            cause: "L'erreur attendue, et elle revient à chaque fois. On compte ce que la fonction **ajoute**, pas ce qu'elle reçoit. Sinon aucune fonction ne serait jamais en `O(1)` en espace." }
+        ] }
+    ] },
+
+  { id: "b2", titre: "B2 — Recherche dichotomique",
+    enonce: "La liste `T` est **triée**. La fonction rend le résultat de la recherche et le nombre de tours effectués.",
+    code: `def chercher(T, cible):
+    debut, fin = 0, len(T) - 1
+    tours = 0
+    while debut <= fin:
+        tours = tours + 1
+        milieu = (debut + fin) // 2
+        if T[milieu] == cible:
+            return True, tours
+        if T[milieu] < cible:
+            debut = milieu + 1
+        else:
+            fin = milieu - 1
+    return False, tours`,
+    questions: [
+      { ref: "1.", texte: "Quel est le meilleur cas de cette fonction ? Quelle est sa complexité T_best(n) ?",
+        reponse: "La cible se trouve **au milieu** de la liste : un seul tour, donc `T_best(n) = O(1)`.",
+        sortie: `>>> chercher(list(range(1000)), 499)
+(True, 1)`,
+        notes: ["`milieu = (debut + fin) // 2` vaut 499 au premier tour pour une liste de mille éléments indicés de 0 à 999. La fonction sort aussitôt."]
+      },
+
+      { ref: "2.", texte: "Identifiez le pire cas, puis dites comment change l'intervalle de recherche à chaque itération.",
+        reponse: "Le pire cas est celui d'une cible **absente** ; à chaque tour l'intervalle est **divisé par deux**.",
+        notes: ["La boucle ne s'arrête que lorsque `debut > fin`, c'est-à-dire quand l'intervalle est vide. Une cible absente oblige donc à aller jusque-là.",
+                "`debut = milieu + 1` ou `fin = milieu - 1` : dans les deux cas, la moitié de l'intervalle est écartée d'un coup, **sans que ses éléments soient lus**. C'est ce que le tri de la liste achète."],
+        erreurs: [
+          { titre: "Désigner comme pire cas « la cible en dernière position »",
+            cause: "C'est le pire cas de la recherche **séquentielle**. Ici la dernière position est atteinte en quelques tours ; c'est l'absence qui coûte le plus." }
+        ] },
+
+      { ref: "3.", texte: "Remplissez le tableau avec la valeur de tours au pire cas.",
+        reponse: "Chaque doublement de `n` ajoute **un** tour, et un seul.",
+        pile: { entetes: ["`n`", "1", "2", "4", "8", "16", "100"],
+          lignes: [["`tours`", "1", "2", "3", "4", "5", "**7**"]] },
+        sortie: `>>> for n in (1, 2, 4, 8, 16, 100):
+...     T = list(range(n))
+...     print(n, max(chercher(T, c)[1] for c in range(-1, n + 1)))
+...
+1 1
+2 2
+4 3
+8 4
+16 5
+100 7`,
+        notes: ["On essaie **toutes** les cibles, y compris `-1` et `n` qui sont absentes : le pire cas est celui d'une cible qui n'existe pas.",
+                "Pour `n = 100`, sept tours seulement. La prédiction spontanée est « 50 », issue du réflexe « la moitié de `n` » — lequel décrit correctement **un seul** tour."],
+        erreurs: [
+          { titre: "Remplir la ligne en doublant les tours avec `n` : 1, 2, 4, 8, 16",
+            cause: "On recopie la progression de la ligne du haut au lieu de la dérouler. C'est l'inverse : `n` double, les tours **augmentent de un**." },
+          { titre: "Répondre 50 pour `n = 100`",
+            cause: "On applique « diviser par deux » une fois, et l'on s'arrête. La boucle, elle, recommence sur ce qui reste : après deux tours il n'en reste que 25, après trois 12." }
+        ] },
+
+      { ref: "4.", texte: "En déduire T_worst(n). Que dire de son efficacité comparée à la recherche séquentielle ?",
+        reponse: "`T_worst(n) = O(log n)` — et l'écart avec la recherche séquentielle est considérable.",
+        pile: { entetes: ["`n`", "séquentielle", "dichotomique"],
+          lignes: [
+            ["100", "100 comparaisons", "7 tours"],
+            ["1 000", "1 000", "10"],
+            ["1 000 000", "1 000 000", "20"]
+          ] },
+        notes: ["Le nombre de tours est le nombre de fois qu'on peut diviser `n` par deux avant d'atteindre 1, c'est-à-dire `log₂ n`. Multiplier la taille par mille coûte dix tours de plus.",
+                "**La contrepartie** : la liste doit être **triée**, et le tri coûte `O(n log n)` — plus cher qu'un simple parcours. La dichotomie n'est donc rentable que si l'on cherche **plusieurs fois** dans la même liste."],
+        solutions: [
+          { verdict: "retenue", nom: "La règle de décision",
+            texte: "Trier puis chercher `q` fois coûte de l'ordre de `n log n + q log n` ; chercher `q` fois sans trier coûte `q n`. Le tri devient rentable dès que `q` dépasse l'ordre de `log n` — soit une dizaine de recherches sur mille éléments." }
+        ],
+        erreurs: [
+          { titre: "Écrire `O(n log n)`",
+            cause: "Confusion avec le coût du **tri**. Trier est en `O(n log n)` ; chercher dans une liste déjà triée est en `O(log n)`." },
+          { titre: "Conclure qu'il faut toujours trier",
+            cause: "Pour une seule recherche, trier coûte plus cher que parcourir. La dichotomie s'amortit sur le **nombre d'interrogations**, pas sur la taille." }
+        ] }
+    ] },
+
+  { id: "b3", titre: "B3 — Recherche de doublon",
+    enonce: "La fonction cherche si une liste `L` de taille `n` contient au moins un doublon.",
+    code: `def a_des_doublons(L):
+    n = len(L)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if L[i] == L[j]:
+                return True
+    return False`,
+    questions: [
+      { ref: "1.", texte: "Dans quel scénario atteint-on le pire cas ?",
+        reponse: "Quand la liste **ne contient aucun doublon**.",
+        notes: ["Aucun `return True` anticipé : les deux boucles vont jusqu'au bout. Un doublon formé par les deux **derniers** éléments donne le même coût.",
+                "C'est contre-intuitif, et c'est tout l'objet de la question : un `return` dans une boucle rend toujours le meilleur cas rapide et le pire cas complet."],
+        erreurs: [
+          { titre: "Répondre « quand il y a beaucoup de doublons »",
+            cause: "L'erreur attendue. C'est l'inverse : un doublon **précoce** fait sortir la fonction au bout de quelques comparaisons. Beaucoup de doublons, c'est le meilleur cas." }
+        ] },
+
+      { ref: "2.", texte: "Dans le pire cas, combien de comparaisons L[i] == L[j] sont effectuées en fonction de n ?",
+        reponse: "`n(n-1)/2` comparaisons.",
+        sortie: `>>> for n in (4, 10, 100):
+...     print(n, a_des_doublons_instrumentee(list(range(n))))
+...
+4 6
+10 45
+100 4950`,
+        notes: ["La boucle intérieure fait `n - 1` tours, puis `n - 2`, et ainsi de suite jusqu'à 1. Le total vaut `1 + 2 + … + (n-1) = n(n-1)/2`.",
+                "C'est exactement la moitié des `n²` comparaisons du programme 2 de A1, parce que `range(i + 1, n)` ne regarde chaque paire qu'une fois."],
+        solutions: [
+          { verdict: "expert", nom: "Le même travail en O(n)",
+            code: `def a_des_doublons(L):
+    vus = set()
+    for x in L:
+        if x in vus:
+            return True
+        vus.add(x)
+    return False`,
+            texte: "Un seul parcours, un test en `O(1)` par élément : `O(n)` en temps, au prix de `O(n)` en espace. C'est l'arbitrage de l'exercice B4, et la question 2.2 du devoir libre." }
+        ] },
+
+      { ref: "3.", texte: "En déduire la complexité asymptotique temporelle au pire cas, puis la complexité spatiale.",
+        reponse: "`T_worst(n) = O(n²)` et `S(n) = O(1)`.",
+        notes: ["`n(n-1)/2` développé vaut `n²/2 - n/2` : on supprime le facteur 1/2, puis le terme linéaire dominé. Il reste `n²`.",
+                "Aucune structure n'est créée : deux indices et rien d'autre, quelle que soit la taille."],
+        erreurs: [
+          { titre: "Écrire `O(n²/2)`",
+            cause: "Juste comme comptage, inutile comme classe : le facteur 1/2 est une constante, et `O(n²/2)` désigne exactement `O(n²)`. C'est la règle de A2." }
+        ] }
+    ] },
+
+  { id: "b4", titre: "B4 — Temps contre mémoire",
+    enonce: "Pour vérifier la présence d'éléments communs entre deux listes de taille `n`, un développeur propose deux versions. La **version 1** compare chaque élément de la première à chaque élément de la seconde, sans créer de variable. La **version 2** convertit la première en `set` — une structure de taille `n` en mémoire —, puis teste chaque élément de la seconde, l'accès dans un ensemble coûtant `O(1)` en moyenne.",
+    questions: [
+      { ref: "1.", texte: "Quelle est la complexité temporelle asymptotique de la version 1 ? Et sa complexité spatiale ?",
+        reponse: "`O(n²)` en temps, `O(1)` en espace.",
+        code: `communs = []
+for x in liste_1:          # n tours
+    for y in liste_2:      # n tours pour chacun
+        if x == y:
+            communs.append(x)`,
+        notes: ["Deux boucles imbriquées sur `n` éléments chacune. Aucune structure créée en dehors du résultat lui-même, que les deux versions produisent de la même manière."]
+      },
+
+      { ref: "2.", texte: "Mêmes questions pour la version 2.",
+        reponse: "`O(n)` en temps, `O(n)` en espace.",
+        code: `connus = set(liste_1)      # O(n) une fois, et O(n) en mémoire
+communs = [y for y in liste_2 if y in connus]   # n tests à O(1)`,
+        notes: ["La conversion coûte `O(n)` une seule fois, puis chaque test coûte `O(1)` : le total est `O(n) + O(n) = O(n)`.",
+                "Le prix est en mémoire : l'ensemble occupe `O(n)` de plus. **C'est l'arbitrage central de la séance — on échange de la mémoire contre du temps.**"],
+        erreurs: [
+          { titre: "Oublier le coût de la conversion",
+            cause: "`set(liste_1)` n'est pas gratuit : il parcourt la liste. Il reste en `O(n)`, donc la classe ne change pas — mais le raisonnement doit l'inclure." },
+          { titre: "Annoncer `O(1)` en espace pour la version 2",
+            cause: "L'ensemble est précisément la structure supplémentaire que la question signale. L'oublier, c'est passer à côté de ce qui distingue les deux versions." }
+        ] },
+
+      { ref: "3.", texte: "Quelle version privilégier pour n = 100 000, si la mémoire vive n'est pas un souci ?",
+        reponse: "La **version 2**, sans discussion.",
+        pile: { entetes: ["", "Temps", "Espace", "Pour `n = 100 000`"],
+          lignes: [
+            ["Version 1", "`O(n²)`", "`O(1)`", "**10 000 000 000** comparaisons"],
+            ["Version 2", "`O(n)`", "`O(n)`", "100 000 tests, et 100 000 éléments en mémoire"]
+          ] },
+        notes: ["Dix milliards de comparaisons contre cent mille : l'écart est de cinq ordres de grandeur. Cent mille identifiants en mémoire, c'est quelques mégaoctets.",
+                "Noter la forme de la question : elle **précise** que la mémoire ne limite pas. C'est cette précision qui tranche — sur un système embarqué à mémoire comptée, la réponse pourrait être l'inverse."],
+        erreurs: [
+          { titre: "Choisir la version 2 sans mentionner la condition",
+            cause: "Le bon réflexe n'est pas « l'ensemble gagne toujours », c'est « l'ensemble gagne du temps **contre** de la mémoire ». Un arbitrage se justifie par ses deux termes." }
+        ] }
+    ] }
+] },
+{ partie: "Partie C — Pièges", exercices: [
+
+  { id: "c1", titre: "C1 — Le in qui coûte cher",
+    enonce: "On cherche les patients d'un relevé qui figurent dans un registre. Un étudiant a estimé que la complexité est `O(n)`.",
+    code: `communs = []
+for identifiant in releve:        # n identifiants
+    if identifiant in registre:   # registre est une LISTE de m éléments
+        communs.append(identifiant)`,
+    questions: [
+      { ref: "a)", texte: "Cette réponse est-elle correcte ?",
+        reponse: "**Non.** La complexité est `O(n × m)`.",
+        notes: ["La boucle visible fait bien `n` tours — mais chaque tour en cache `m`. Sur un relevé de mille patients et un registre de mille dossiers, cela fait un million de comparaisons pour une opération qu'on décrirait volontiers comme « vérifier mille identifiants »."],
+        erreurs: [
+          { titre: "Valider la réponse de l'étudiant",
+            cause: "Elle est le résultat du comptage le plus naturel : une boucle, `n` tours, `O(n)`. C'est précisément pour cela que l'exercice la met dans la bouche de quelqu'un d'autre — il est plus facile de contredire un tiers que soi-même." }
+        ] },
+
+      { ref: "b)", texte: "Quelle ligne en est la cause ? Donnez la complexité correcte, puis corrigez.",
+        reponse: "La ligne `if identifiant in registre`. La complexité correcte est **O(n × m)**.",
+        notes: ["L'opérateur `in` sur une **liste** parcourt jusqu'à trouver, ou jusqu'au bout s'il ne trouve pas. Il n'a pas l'air d'une boucle : c'est tout le piège.",
+                "Un `for` s'indente et se voit. Un `in`, un `count`, un `sum`, un `max`, une tranche `L[:i]` : tous parcourent, et tous tiennent sur une ligne. **A retenir : ce qui s'écrit court ne coûte pas forcément peu.**"],
+        solutions: [
+          { verdict: "retenue", nom: "Convertir une fois, avant la boucle",
+            code: `connus = set(registre)            # O(m), une fois pour toutes
+communs = []
+for identifiant in releve:
+    if identifiant in connus:     # O(1) désormais
+        communs.append(identifiant)`,
+            sortie: `>>> releve   = ["P12", "P33", "P07", "P33", "P50"]
+>>> registre = ["P50", "P12", "P07"]
+>>> [i for i in releve if i in set(registre)]
+['P12', 'P07', 'P50']`,
+            texte: "Le total passe à `O(n + m)`, et l'ordre du relevé est préservé puisqu'on le parcourt toujours. L'ensemble ne sert qu'au **test**." },
+          { verdict: "expert", nom: "Le mesurer",
+            code: `import timeit
+for n in (1_000, 2_000):
+    liste = min(timeit.repeat("[x for x in rel if x in reg]",
+        setup=f"rel = list(range({n})); reg = list(range({n}))",
+        repeat=3, number=5)) / 5
+    ens = min(timeit.repeat("c = set(reg)\\n[x for x in rel if x in c]",
+        setup=f"rel = list(range({n})); reg = list(range({n}))",
+        repeat=3, number=200)) / 200
+    print(n, round(liste * 1e3, 2), "ms |", round(ens * 1e6, 1), "µs")`,
+            sortie: `1000 4.35 ms | 52.1 µs
+2000 17.88 ms | 107.7 µs`,
+            texte: "Doubler les deux tailles multiplie la version liste par **4,1** — quadratique — et la version ensemble par **2,1** — linéaire. Au passage, 17,88 ms contre 108 µs : un facteur 166." }
+        ],
+        erreurs: [
+          { titre: "Convertir **dans** la boucle",
+            cause: "`if identifiant in set(registre)` reconstruit l'ensemble à chaque tour, ce qui coûte `O(m)` par tour. Le code est aussi lent qu'avant, et il alloue en plus. La conversion doit sortir de la boucle." },
+          { titre: "Convertir le **relevé** au lieu du registre",
+            cause: "`for identifiant in set(releve)` fait disparaître les répétitions et l'ordre, donc change le résultat. On convertit ce qu'on **interroge**, jamais ce qu'on parcourt." }
+        ] }
+    ] },
+
+  { id: "c2", titre: "C2 — Retirer par le début",
+    enonce: "On retire les mesures une à une, par le début. La fonction `traiter` est en `O(1)`.",
+    code: `while L:
+    premiere = L[0]
+    del L[0]
+    traiter(premiere)`,
+    questions: [
+      { ref: "a)", texte: "Que coûte del L[0] sur une liste de k éléments ?",
+        reponse: "**O(k)** : tous les éléments suivants sont décalés d'un cran vers la gauche.",
+        notes: ["Une liste garantit l'accès par indice en `O(1)`, ce qui impose que ses éléments occupent des cases **contiguës**. Retirer la première laisse un trou qu'il faut combler : les `k - 1` suivants bougent.",
+                "Par symétrie, `L.insert(0, x)` coûte aussi `O(k)`. Seules les opérations **en fin de liste** sont bon marché : `append` et `pop()` sans argument."],
+        erreurs: [
+          { titre: "Répondre `O(1)`, « puisqu'on ne retire qu'un élément »",
+            cause: "C'est le nombre d'éléments **touchés** qui compte, non le nombre d'éléments retirés. Retirer en fin de liste n'en touche aucun autre ; retirer en tête les touche tous." }
+        ] },
+
+      { ref: "b)", texte: "Quelle est alors la complexité de la boucle entière ?",
+        reponse: "**O(n²)** : `n + (n-1) + … + 1` décalages, soit `n(n+1)/2`.",
+        notes: ["La boucle a l'air de faire `n` tours à coût constant ; elle fait `n` tours dont le coût décroît de `n` à 1.",
+                "`traiter` étant en `O(1)`, elle ne change pas la classe : `n × O(1) = O(n)`, dominé par le `O(n²)` des décalages."],
+        solutions: [
+          { verdict: "expert", nom: "Le mesurer",
+            code: `import timeit
+for n in (10_000, 20_000):
+    liste = min(timeit.repeat("while L: del L[0]",
+        setup=f"L = list(range({n}))", repeat=3, number=1))
+    file = min(timeit.repeat("while f: f.popleft()",
+        setup=f"from collections import deque; f = deque(range({n}))",
+        repeat=3, number=1))
+    print(n, round(liste * 1e3, 2), "ms |", round(file * 1e3, 2), "ms")`,
+            sortie: `10000 6.66 ms | 0.42 ms
+20000 28.01 ms | 0.87 ms`,
+            texte: "Rapports de **4,2** pour la liste et **2,1** pour la file : quadratique contre linéaire. Vingt mille retraits, et déjà un facteur 32." }
+        ],
+        erreurs: [
+          { titre: "Répondre `O(n)` parce que la boucle fait `n` tours",
+            cause: "La même erreur qu'en A3 et en C1, sous une troisième forme. Compter les tours ne suffit jamais : il faut compter ce que coûte **un** tour." }
+        ] },
+
+      { ref: "c)", texte: "Comment obtenir une complexité en O(n) ?",
+        reponse: "En changeant de **structure** : `collections.deque` est conçue pour les deux bouts.",
+        sortie: `>>> from collections import deque
+>>> file = deque([1, 2, 3])
+>>> file.popleft()
+1
+>>> list(file)
+[2, 3]`,
+        solutions: [
+          { verdict: "retenue", nom: "La boucle corrigée",
+            code: `from collections import deque
+
+file = deque(L)
+while file:
+    traiter(file.popleft())       # O(1)`,
+            texte: "La conversion coûte `O(n)` une fois, et chaque retrait `O(1)`. Le total passe à `O(n)`." },
+          { verdict: "expert", nom: "Ce qu'une deque échange contre cela",
+            texte: "Elle n'offre pas l'accès par indice en temps constant : `file[k]` coûte `O(k)` au milieu. C'est le troc habituel — on ne gagne jamais sur tous les tableaux à la fois, on choisit celui qui compte pour l'usage prévu." }
+        ],
+        erreurs: [
+          { titre: "Remplacer `del L[0]` par `L.pop(0)`",
+            cause: "L'erreur attendue, et elle ne change **rien** : `pop(0)` décale exactement de la même manière. Changer de méthode ne change pas la structure ; seul changer de **structure** change la classe." },
+          { titre: "Parcourir la liste au lieu de la vider",
+            cause: "`for x in L: traiter(x)` est bien en `O(n)` — mais ne vide pas `L`. Si le programme a besoin que la file se consomme, la solution n'en est pas une." }
+        ] }
+    ] },
+
+  { id: "c3", titre: "C3 — Les totaux partiels",
+    enonce: "On veut les totaux partiels d'un relevé.",
+    code: `cumuls = []
+for i in range(len(mesures)):
+    cumuls.append(sum(mesures[:i + 1]))`,
+    questions: [
+      { ref: "a)", texte: "Combien d'additions réalise sum(mesures[:i + 1]) ? En déduire la complexité totale.",
+        reponse: "`i + 1` additions au tour `i`, soit `n(n+1)/2` en tout : **O(n²)**.",
+        sortie: `>>> n = 100
+>>> sum(i + 1 for i in range(n))
+5050`,
+        notes: ["Pour `n = 100` : **5 050** additions au lieu de 100.",
+                "Et ce n'est pas tout : la tranche `mesures[:i+1]` **recopie** elle aussi `i + 1` éléments avant que `sum` ne les lise. Le coût réel est le double, ce qui ne change pas la classe.",
+                "Le travail est entièrement **refait** à chaque tour : le tour `i` recalcule la somme que le tour `i-1` venait d'établir, à un terme près."],
+        erreurs: [
+          { titre: "Répondre `n`",
+            cause: "On compte les tours. `sum` est lui-même une boucle, et le piège tient tout entier dans le fait qu'elle ne s'indente pas." },
+          { titre: "Accuser `append`",
+            cause: "`append` est en `O(1)` amorti : il n'est pour rien dans le problème." }
+        ] },
+
+      { ref: "b)", texte: "Réécrivez un programme qui fait le même travail en O(n).",
+        reponse: "On conserve le total d'un tour à l'autre.",
+        sortie: `>>> mesures = [4, 7, 9, 6]
+>>> cumuls = []
+>>> cumul = 0
+>>> for m in mesures:
+...     cumul = cumul + m
+...     cumuls.append(cumul)
+...
+>>> cumuls
+[4, 11, 20, 26]`,
+        solutions: [
+          { verdict: "retenue", nom: "L'accumulateur",
+            code: `cumuls = []
+cumul = 0
+for m in mesures:
+    cumul = cumul + m             # une seule addition par tour
+    cumuls.append(cumul)`,
+            texte: "`n` additions au lieu de `n(n+1)/2`. Le résultat est identique." },
+          { verdict: "expert", nom: "La version de la bibliothèque",
+            code: `from itertools import accumulate
+print(list(accumulate([4, 7, 9, 6])))`,
+            sortie: `[4, 11, 20, 26]`,
+            texte: "`accumulate` fait exactement cela. Hors programme, mais à connaître : c'est le même mécanisme, nommé." }
+        ],
+        erreurs: [
+          { titre: "Remplacer `sum` par une boucle écrite à la main",
+            cause: "L'erreur attendue : le code devient plus long et coûte autant. La correction ne consiste pas à éviter `sum`, elle consiste à ne pas **recalculer** ce qu'on avait déjà." },
+          { titre: "Écrire `cumuls.append(cumuls[-1] + m)`",
+            cause: "Juste, et plus fragile : le premier tour lève `IndexError` sur une liste vide. L'accumulateur explicite n'a pas ce cas particulier." }
+        ] }
+    ] },
+
+  { id: "c4", titre: "C4 — Quand l'ordre s'inverse",
+    enonce: "Un tri en `O(n log n)` s'avère plus lent qu'un tri en `O(n²)` sur les données de test.",
+    questions: [
+      { ref: "a)", texte: "Est-ce possible ?",
+        reponse: "Oui, et cela arrive couramment.",
+        notes: ["Pour les petites entrées, le tri par insertion bat le tri fusion sur la plupart des machines. Ce n'est pas une anomalie de mesure : c'est le comportement normal des deux algorithmes à cette taille."],
+        erreurs: [
+          { titre: "Répondre « non, donc la mesure est fausse »",
+            cause: "Réflexe compréhensible — on vient d'établir une hiérarchie. Mais une mesure qui contredit une prédiction n'est pas nécessairement fausse : encore faut-il examiner ce que la prédiction affirmait vraiment." }
+        ] },
+
+      { ref: "b)", texte: "Que cache la notation O qui justifie ce résultat ? Quand la complexité asymptotique devient-elle vraiment significative ?",
+        reponse: "Elle cache les **facteurs constants**, et elle est **asymptotique**. Elle devient significative au-delà du point où les deux courbes se croisent.",
+        notes: ["Un `O(n log n)` peut s'écrire `50 n log n` et un `O(n²)` s'écrire `0,5 n²` : pour `n = 20`, le premier vaut environ 4 300 et le second 200. Le tri fusion paie des allocations de listes, des appels récursifs et une fusion à chaque niveau ; le tri par insertion ne fait que décaler des éléments en place.",
+                "Le point de croisement ne se **calcule** pas depuis la notation `O` — elle a justement jeté les constantes. On le **mesure** : on chronomètre les deux implémentations à des tailles croissantes et l'on relève où elles s'inversent.",
+                "**A retenir : `O` répond à « que se passe-t-il quand l'entrée grandit », et à rien d'autre.**"],
+        pile: { entetes: ["`n`", "insertion — `O(n²)`", "fusion — `O(n log n)`"],
+          lignes: [
+            ["20", "7,3 µs", "17,5 µs"],
+            ["40", "25,0 µs", "40,4 µs"],
+            ["80", "75,8 µs", "88,6 µs"],
+            ["160", "308,3 µs", "**193,6 µs**"],
+            ["320", "1 379,5 µs", "**421,3 µs**"]
+          ] },
+        solutions: [
+          { verdict: "retenue", nom: "Lire le tableau",
+            texte: "Le croisement se situe entre 80 et 160 éléments sur cette machine : à 80 l'insertion gagne encore, à 160 elle a perdu. Au-delà, l'écart se creuse — à 320, le tri fusion est déjà trois fois plus rapide, et le rapport continue de grandir." },
+          { verdict: "expert", nom: "Ce que fait la bibliothèque standard",
+            texte: "`list.sort()` emploie Timsort, qui **combine les deux** : il découpe la liste en tronçons, les trie par insertion tant qu'ils sont courts, puis les fusionne. Le seuil de bascule est fixé par la mesure, exactement comme ci-dessus. C'est la réponse d'ingénieur : on ne choisit pas un algorithme, on choisit où basculer de l'un à l'autre." }
+        ],
+        erreurs: [
+          { titre: "Conclure que la notation `O` est trompeuse",
+            cause: "Elle répond exactement à la question qu'elle pose, et elle n'en pose aucune autre. L'erreur n'est pas dans l'outil, elle est dans l'usage qu'on en fait sur vingt éléments." },
+          { titre: "Généraliser le seuil trouvé",
+            cause: "« Le croisement est à 100 » n'est vrai que pour ces deux implémentations, sur cette machine, avec ces données. Sur une liste déjà presque triée, l'insertion reste gagnante bien au-delà." }
+        ] }
+    ] }
+] }
+];
+
+/* ------------------------------------------------------------------ *
+ *  Mémoire locale — simple confort de lecture, jamais indispensable.
+ * ------------------------------------------------------------------ */
+const CLE = "m235-td2-corriges-vus";
+let vus = new Set();
+try {
+  const brut = localStorage.getItem(CLE);
+  if (brut) vus = new Set(JSON.parse(brut));
+} catch (e) { /* navigation privée, stockage bloqué : on continue sans */ }
+
+function memoriser() {
+  try { localStorage.setItem(CLE, JSON.stringify([...vus])); } catch (e) {}
+}
+
+/* ------------------------------------------------------------------ *
+ *  Rendu
+ * ------------------------------------------------------------------ */
+const rail = document.getElementById("rail");
+const travail = document.getElementById("travail");
+const tousExercices = TD.flatMap(p => p.exercices.map(e => ({ ...e, partie: p.partie })));
+
+function cleQuestion(ex, i) { return ex.id + "-" + i; }
+
+function exerciceVu(ex) {
+  return ex.questions.every((_, i) => vus.has(cleQuestion(ex, i)));
+}
+
+function construireRail() {
+  rail.innerHTML = TD.map(partie => `
+    <div class="rail-groupe">
+      <div class="rail-titre">${echapper(partie.partie.replace(/^Partie /, ""))}</div>
+      <div class="rail-liste">
+        ${partie.exercices.map(ex => `
+          <button class="onglet" type="button" data-cible="${ex.id}">
+            <span class="cle">${echapper(ex.titre.split(" — ")[0])}</span>
+            <span>${echapper(ex.titre.split(" — ")[1] || "")}</span>
+            <span class="pastille" aria-hidden="true"></span>
+          </button>`).join("")}
+      </div>
+    </div>`).join("");
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.addEventListener("click", () => afficher(b.dataset.cible, true)));
+}
+
+function fiche(item, estErreur) {
+  const classeVerdict = { retenue: "v-retenue", ok: "v-ok",
+                          eviter: "v-eviter", expert: "v-expert" }[item.verdict];
+  const libelle = { retenue: "à retenir", ok: "acceptable",
+                    eviter: "à éviter", expert: "pour aller plus loin" }[item.verdict];
+  return `
+    <article class="fiche${estErreur ? " erreur" : ""}">
+      <div class="fiche-tete">
+        <h4>${enrichir(item.nom || item.titre)}</h4>
+        ${estErreur
+          ? '<span class="verdict v-eviter">erreur fréquente</span>'
+          : (classeVerdict ? `<span class="verdict ${classeVerdict}">${libelle}</span>` : "")}
+      </div>
+      <div class="fiche-corps">
+        ${item.code ? bloc(item.code, false) : ""}
+        ${item.sortie ? bloc(item.sortie, true) : ""}
+        ${item.texte ? `<p>${enrichir(item.texte)}</p>` : ""}
+        ${item.cause ? `<dl class="ligne-diag"><dt>Pourquoi</dt><dd>${enrichir(item.cause)}</dd></dl>` : ""}
+      </div>
+    </article>`;
+}
+
+function tableau(p) {
+  return `<div class="table-enveloppe"><table class="pile">
+    <thead><tr>${p.entetes.map(h => `<th>${enrichir(h)}</th>`).join("")}</tr></thead>
+    <tbody>${p.lignes.map(l => `<tr>${l.map(c => `<td>${enrichir(c)}</td>`).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+function corpsCorrection(q) {
+  return `
+    <div class="reponse">
+      <span class="etiquette">Réponse</span>
+      <p>${enrichir(q.reponse)}</p>
+    </div>
+    ${q.sortie ? bloc(q.sortie, true) : ""}
+    ${q.pile ? tableau(q.pile) : ""}
+    ${(q.notes || []).map(n => `<p>${enrichir(n)}</p>`).join("")}
+    ${q.solutions && q.solutions.length ? `
+      <div class="sous-titre">Propositions de solution</div>
+      <div class="lot">${q.solutions.map(s => fiche(s, false)).join("")}</div>` : ""}
+    ${q.erreurs && q.erreurs.length ? `
+      <div class="sous-titre">Erreurs fréquentes</div>
+      <div class="lot">${q.erreurs.map(e => fiche(e, true)).join("")}</div>` : ""}`;
+}
+
+let courant = null;
+
+function afficher(id, deplacerFocus) {
+  const ex = tousExercices.find(e => e.id === id) || tousExercices[0];
+  courant = ex;
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.setAttribute("aria-current", String(b.dataset.cible === ex.id)));
+
+  travail.innerHTML = `
+    <div class="chapeau">
+      <div>
+        <span class="partie">${echapper(ex.partie)}</span>
+        <h2>${echapper(ex.titre)}</h2>
+      </div>
+      <button class="bouton-plat" type="button" id="tout">Tout afficher</button>
+    </div>
+    <div class="enonce">
+      <p>${enrichir(ex.enonce)}</p>
+      ${ex.code ? bloc(ex.code, false) : ""}
+    </div>
+    ${ex.questions.map((q, i) => {
+      const cle = cleQuestion(ex, i);
+      const ouvert = vus.has(cle);
+      return `
+      <article class="question" id="q-${cle}">
+        <div class="question-tete">
+          ${q.ref ? `<span class="ref">${echapper(q.ref)}</span>` : ""}
+          <div class="texte">${enrichir(q.texte)}</div>
+          <button class="devoiler" type="button" data-cle="${cle}"
+                  aria-expanded="${ouvert}" aria-controls="c-${cle}">
+            ${ouvert ? "Masquer" : "Afficher la correction"}
+          </button>
+        </div>
+        <div class="correction" id="c-${cle}" ${ouvert ? "" : "hidden"}>
+          ${corpsCorrection(q)}
+        </div>
+      </article>`;
+    }).join("")}`;
+
+  travail.querySelectorAll(".devoiler").forEach(b =>
+    b.addEventListener("click", () => basculer(b)));
+  document.getElementById("tout").addEventListener("click", toutAfficher);
+  majPastilles();
+  if (deplacerFocus) {
+    history.replaceState(null, "", "#" + ex.id);
+    travail.querySelector("h2").scrollIntoView({ block: "nearest" });
+  }
+}
+
+function basculer(bouton) {
+  const cle = bouton.dataset.cle;
+  const zone = document.getElementById("c-" + cle);
+  const ouvrir = zone.hidden;
+  zone.hidden = !ouvrir;
+  bouton.setAttribute("aria-expanded", String(ouvrir));
+  bouton.textContent = ouvrir ? "Masquer" : "Afficher la correction";
+  if (ouvrir) vus.add(cle); else vus.delete(cle);
+  memoriser();
+  majPastilles();
+}
+
+function toutAfficher() {
+  const boutons = [...travail.querySelectorAll(".devoiler")];
+  const toutOuvert = boutons.every(b => b.getAttribute("aria-expanded") === "true");
+  boutons.forEach(b => {
+    if ((b.getAttribute("aria-expanded") === "true") === toutOuvert) basculer(b);
+  });
+  document.getElementById("tout").textContent = toutOuvert ? "Tout afficher" : "Tout masquer";
+}
+
+function majPastilles() {
+  rail.querySelectorAll(".onglet").forEach(b => {
+    const ex = tousExercices.find(e => e.id === b.dataset.cible);
+    b.classList.toggle("vu", exerciceVu(ex));
+  });
+  const bouton = document.getElementById("tout");
+  if (bouton && courant) {
+    const boutons = [...travail.querySelectorAll(".devoiler")];
+    bouton.textContent = boutons.every(b => b.getAttribute("aria-expanded") === "true")
+      ? "Tout masquer" : "Tout afficher";
+  }
+}
+
+construireRail();
+const ancre = (location.hash || "").replace("#", "");
+afficher(tousExercices.some(e => e.id === ancre) ? ancre : tousExercices[0].id, false);
+</script>
+</body>
+</html>
