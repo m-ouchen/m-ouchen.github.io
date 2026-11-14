@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Corrigé de la série de préparation au contrôle continu</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+/* Disposition : console à deux volets — rail des exercices à gauche, colonne de
+   travail à droite ; au format téléphone le rail devient une barre de pastilles. */
+:root {
+  --bleu:        #2A5B7F;   /* charte M235 — titres, rail, filets        */
+  --sarcelle:    #2E8B79;   /* charte M235 assombrie pour le texte       */
+  --vert:        #5E7A18;   /* charte M235 assombrie — solution retenue  */
+  --prune:       #B03F60;   /* erreurs fréquentes                        */
+  --encre:       #16242E;
+  --encre-douce: #51616C;
+  --fond:        #FBFCFD;
+  --carte:       #FFFFFF;
+  --surface:     #F1F6F9;   /* neutre biaisé vers le bleu de la charte   */
+  --filet:       #D6E3EC;
+  --code-fond:   #F4F8FA;
+  --code-filet:  #DCE8F0;
+  --ombre:       0 1px 2px rgba(22, 36, 46, .06), 0 8px 24px rgba(22, 36, 46, .05);
+
+  --syn-mot:     #C0392B;
+  --syn-natif:   #6F42C1;
+  --syn-texte:   #0B4F8A;
+  --syn-note:    #67757F;
+  --syn-nombre:  #1A6FAF;
+
+  --titre: "Zilla Slab", Rockwell, Georgia, serif;
+  --corps: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: Consolas, "JetBrains Mono", ui-monospace, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+    --encre: #E6EDF2; --encre-douce: #9FB0BC;
+    --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+    --code-fond: #101E27; --code-filet: #263B49;
+    --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+    --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+    --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bleu: #7FB8DC; --sarcelle: #5BC9B2; --vert: #A8CE4F; --prune: #E8849E;
+  --encre: #E6EDF2; --encre-douce: #9FB0BC;
+  --fond: #0E1A22; --carte: #15242E; --surface: #1A2C38; --filet: #2A4050;
+  --code-fond: #101E27; --code-filet: #263B49;
+  --ombre: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  --syn-mot: #FF8A7A; --syn-natif: #C5A3F5; --syn-texte: #8FD0FF;
+  --syn-note: #7A8B96; --syn-nombre: #7FC4F5;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0; background: var(--fond); color: var(--encre);
+  font-family: var(--corps); font-size: 16px; line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+h1, h2, h3, h4 { font-family: var(--titre); text-wrap: balance; margin: 0; }
+code, pre { font-family: var(--mono); }
+:focus-visible { outline: 2.5px solid var(--sarcelle); outline-offset: 2px; border-radius: 3px; }
+
+/* — bandeau — */
+.bandeau {
+  background: var(--bleu); color: #fff;
+  padding-block: 18px 16px; padding-inline: 16px;
+}
+.bandeau-interieur { max-width: 1180px; margin: 0 auto; display: flex;
+  flex-wrap: wrap; gap: 12px 24px; align-items: baseline; }
+.bandeau h1 { font-size: clamp(1.25rem, 1rem + 1.2vw, 1.7rem); font-weight: 600;
+  letter-spacing: .01em; }
+.bandeau p { margin: 0; font-size: .86rem; opacity: .82; }
+.bandeau .module { font-family: var(--mono); font-size: .76rem;
+  letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+
+/* — mise en page — */
+.page { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 20px 56px; display: grid; gap: 24px;
+  grid-template-columns: 236px minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .page { grid-template-columns: minmax(0, 1fr); } }
+
+/* — rail — */
+.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+@media (max-width: 860px) { .rail { position: static; } }
+.rail-groupe + .rail-groupe { margin-top: 18px; }
+.rail-titre { font-family: var(--mono); font-size: .68rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); margin-bottom: 7px; }
+.rail-liste { display: flex; flex-direction: column; gap: 3px; }
+@media (max-width: 860px) {
+  .rail-liste { flex-direction: row; flex-wrap: wrap; }
+  .rail-groupe + .rail-groupe { margin-top: 10px; }
+}
+.onglet {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  font: inherit; font-size: .91rem; text-align: left; cursor: pointer;
+  background: none; border: 1px solid transparent; border-radius: 7px;
+  padding: 6px 10px; color: var(--encre);
+}
+.onglet:hover { background: var(--surface); }
+.onglet[aria-current="true"] { background: var(--bleu); color: #fff;
+  border-color: var(--bleu); }
+.onglet .cle { font-family: var(--mono); font-size: .78rem; font-weight: 600;
+  min-width: 1.6em; }
+.onglet .pastille { margin-left: auto; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--vert); opacity: 0; flex: none; }
+.onglet.vu .pastille { opacity: 1; }
+@media (max-width: 860px) { .onglet { width: auto; } .onglet .pastille { margin-left: 4px; } }
+
+/* — colonne de travail — */
+.travail { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.chapeau { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: baseline;
+  justify-content: space-between; }
+.chapeau h2 { font-size: clamp(1.15rem, 1rem + .9vw, 1.5rem); color: var(--bleu);
+  font-weight: 600; }
+.chapeau .partie { font-family: var(--mono); font-size: .72rem; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--encre-douce); display: block;
+  margin-bottom: 2px; }
+
+.bouton-plat { font: inherit; font-size: .84rem; cursor: pointer;
+  background: var(--carte); color: var(--bleu); border: 1px solid var(--filet);
+  border-radius: 7px; padding: 5px 12px; }
+.bouton-plat:hover { background: var(--surface); }
+
+.enonce { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 10px; padding: 14px 16px; }
+.enonce p { margin: 0 0 10px; }
+.enonce p:last-child { margin-bottom: 0; }
+
+.question { background: var(--carte); border: 1px solid var(--filet);
+  border-radius: 10px; box-shadow: var(--ombre); overflow: hidden; }
+.question-tete { display: flex; gap: 12px; align-items: flex-start;
+  padding: 13px 16px; }
+.question-tete .ref { font-family: var(--mono); font-weight: 600;
+  color: var(--sarcelle); flex: none; padding-top: 1px; }
+.question-tete .texte { min-width: 0; flex: 1; }
+.devoiler { font: inherit; font-size: .84rem; cursor: pointer; flex: none;
+  background: var(--bleu); color: #fff; border: 1px solid var(--bleu);
+  border-radius: 7px; padding: 5px 12px; white-space: nowrap; }
+.devoiler[aria-expanded="true"] { background: var(--carte); color: var(--bleu); }
+@media (max-width: 560px) {
+  .question-tete { flex-wrap: wrap; }
+  .devoiler { width: 100%; }
+}
+.correction { border-top: 1px solid var(--filet); padding: 14px 16px 16px;
+  display: flex; flex-direction: column; gap: 14px; }
+@media (prefers-reduced-motion: no-preference) {
+  .correction { animation: apparait .22s ease-out; }
+  @keyframes apparait { from { opacity: 0; transform: translateY(-3px); } }
+}
+
+.reponse { border-left: 3px solid var(--vert); padding-left: 13px; }
+.reponse .etiquette { font-family: var(--mono); font-size: .68rem;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--vert);
+  font-weight: 600; display: block; margin-bottom: 4px; }
+.reponse p { margin: 0 0 8px; white-space: pre-line; }
+.reponse p:last-child { margin-bottom: 0; }
+
+.sous-titre { font-family: var(--mono); font-size: .7rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-douce); font-weight: 600;
+  display: flex; align-items: center; gap: 9px; }
+.sous-titre::after { content: ""; flex: 1; height: 1px; background: var(--filet); }
+
+.lot { display: flex; flex-direction: column; gap: 10px; }
+.fiche { border: 1px solid var(--filet); border-radius: 9px; overflow: hidden;
+  background: var(--carte); }
+.fiche-tete { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center;
+  padding: 9px 13px; background: var(--surface);
+  border-bottom: 1px solid var(--filet); }
+.fiche-tete h4 { font-size: .95rem; font-weight: 600; min-width: 0; }
+.verdict { font-family: var(--mono); font-size: .66rem; letter-spacing: .07em;
+  text-transform: uppercase; font-weight: 600; padding: 2px 8px;
+  border-radius: 999px; border: 1px solid currentColor; flex: none; }
+.v-retenue  { color: var(--vert); }
+.v-ok       { color: var(--sarcelle); }
+.v-eviter   { color: var(--prune); }
+.v-expert   { color: var(--bleu); }
+.fiche-corps { padding: 11px 13px; display: flex; flex-direction: column; gap: 9px; }
+.fiche-corps p { margin: 0; }
+.fiche.erreur { border-color: color-mix(in srgb, var(--prune) 38%, var(--filet)); }
+.fiche.erreur .fiche-tete { background: color-mix(in srgb, var(--prune) 8%, var(--carte)); }
+
+.ligne-diag { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px;
+  font-size: .91rem; }
+.ligne-diag dt { font-family: var(--mono); font-size: .72rem; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--encre-douce); padding-top: 3px; }
+.ligne-diag dd { margin: 0; min-width: 0; }
+
+pre.code { margin: 0; background: var(--code-fond); border: 1px solid var(--code-filet);
+  border-radius: 7px; padding: 10px 12px; overflow-x: auto;
+  font-size: .845rem; line-height: 1.55; tab-size: 4; }
+pre.code.sortie { background: var(--surface); color: var(--encre-douce); }
+.k { color: var(--syn-mot); } .n { color: var(--syn-natif); }
+.s { color: var(--syn-texte); } .c { color: var(--syn-note); font-style: italic; }
+.d { color: var(--syn-nombre); }
+code.ligne { background: var(--surface); border: 1px solid var(--filet);
+  border-radius: 4px; padding: .5px 5px; font-size: .88em; }
+
+table.pile { width: 100%; border-collapse: collapse; font-size: .88rem; }
+table.pile th, table.pile td { border: 1px solid var(--filet); padding: 6px 10px;
+  text-align: left; }
+table.pile th { background: var(--surface); font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--encre-douce); font-weight: 600; }
+table.pile td:first-child, table.pile td:last-child { font-family: var(--mono);
+  font-variant-numeric: tabular-nums; }
+.table-enveloppe { overflow-x: auto; }
+
+.pied { max-width: 1180px; margin: 0 auto; padding-inline: 16px;
+  padding-block: 0 40px; color: var(--encre-douce); font-size: .82rem; }
+.pied p { margin: 0; }
+</style>
+</head>
+<body>
+
+<header class="bandeau">
+  <div class="bandeau-interieur">
+    <div>
+      <span class="module">Programmation avancée en Python</span>
+      <h1>Série de préparation au contrôle continu — corrigé</h1>
+    </div>
+    <p>Cherchez d'abord, puis dévoilez la correction. Barème sur 20 : 6 points pour l'exercice, 14 pour le problème.</p>
+  </div>
+</header>
+
+<main class="page">
+  <nav class="rail" id="rail" aria-label="Questions de la série"></nav>
+  <section class="travail" id="travail" aria-live="polite"></section>
+</main>
+
+<footer class="pied">
+  <p>École Supérieure Mohammed VI d'Ingénieurs en Sciences de la Santé — UM6SS.</p>
+</footer>
+
+<script>
+/* ------------------------------------------------------------------ *
+ *  Coloration syntaxique Python — segmentation puis échappement.
+ *  On tokenise la chaîne brute, puis on échappe chaque segment : faire
+ *  l'inverse ferait correspondre les motifs à l'intérieur des entités.
+ * ------------------------------------------------------------------ */
+const MOTS = new Set(("False None True and as assert async await break class " +
+  "continue def del elif else except finally for from global if import in is " +
+  "lambda nonlocal not or pass raise return try while with yield").split(" "));
+const NATIFS = new Set(("abs all any bool dict enumerate filter float frozenset " +
+  "hash int isinstance len list map max min print range repr reversed round set " +
+  "sorted str sum tuple type zip").split(" "));
+const JETON = /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|"[^"\n]*"|'[^'\n]*')|(\b\d+\.?\d*\b)|([A-Za-z_]\w*)/g;
+
+function echapper(t) {
+  return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function colorer(source) {
+  let sortie = "", position = 0, m;
+  JETON.lastIndex = 0;
+  while ((m = JETON.exec(source)) !== null) {
+    sortie += echapper(source.slice(position, m.index));
+    const [tout, note, texte, nombre, mot] = m;
+    if (note !== undefined)        sortie += '<span class="c">' + echapper(tout) + "</span>";
+    else if (texte !== undefined)  sortie += '<span class="s">' + echapper(tout) + "</span>";
+    else if (nombre !== undefined) sortie += '<span class="d">' + echapper(tout) + "</span>";
+    else if (MOTS.has(mot))        sortie += '<span class="k">' + echapper(tout) + "</span>";
+    else if (NATIFS.has(mot))      sortie += '<span class="n">' + echapper(tout) + "</span>";
+    else                           sortie += echapper(tout);
+    position = m.index + tout.length;
+  }
+  return sortie + echapper(source.slice(position));
+}
+
+/* Texte enrichi minimal : `code` et **gras**, échappés. */
+function enrichir(t) {
+  return echapper(t)
+    .replace(/`([^`]+)`/g, '<code class="ligne">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+}
+
+const bloc = (src, sortie) =>
+  '<pre class="code' + (sortie ? " sortie" : "") + '">' +
+  (sortie ? echapper(src) : colorer(src)) + "</pre>";
+
+/* ------------------------------------------------------------------ *
+ *  La série, telle qu'elle a été distribuée. Toutes les sorties ont
+ *  été exécutées sous Python 3.11 avant d'être écrites ici.
+ * ------------------------------------------------------------------ */
+const TD = [
+
+/* =================================================================== *
+ *  Exercice 1 — Surveillance d'un oxymètre de pouls (6 points)
+ * =================================================================== */
+{ partie: "Exercice 1 — Oxymètre de pouls", exercices: [
+
+  { id: "q11", titre: "1.1 — Trace et détection d'erreur",
+    enonce: "Un oxymètre de pouls enregistre chaque minute la saturation en oxygène, en pourcentage, dans une liste d'entiers : en dessous de 90 le patient est en désaturation, et un capteur décroché écrit `-1`. Un technicien veut compter les mesures **valides** strictement inférieures à 90. Il écrit ceci :",
+    code: `def compter_hypoxemies(releves):
+    for x in releves:
+        nb = 0
+        if x >= 0 and x < 90:
+            nb = nb + 1
+    return nb`,
+    questions: [
+      { ref: "1.", texte: "Simulez l'exécution de `compter_hypoxemies([96, 88, 85, 97])`. Que vaut `nb` à la fin de chaque tour, et que retourne la fonction au lieu de 2 ?",
+        reponse: "La fonction retourne **0**, et non 2.",
+        pile: { entetes: ["Tour", "`x`", "`nb` après `nb = 0`", "Test `0 <= x < 90`", "`nb` en fin de tour"],
+                lignes: [["1", "96", "0", "faux", "**0**"],
+                         ["2", "88", "0", "vrai", "**1**"],
+                         ["3", "85", "0", "vrai", "**1**"],
+                         ["4", "97", "0", "faux", "**0**"]] },
+        notes: ["La suite des valeurs en fin de tour est donc **0, 1, 1, 0**. Le `return` s'exécute après la boucle, avec la dernière valeur : `nb` vaut 0, parce que le dernier relevé — 97 — est normal.",
+                "Le comptage n'est pas « presque juste » : il ne compte rien du tout."],
+        sortie: `>>> compter_hypoxemies([96, 88, 85, 97])
+0` },
+
+      { ref: "2.", texte: "Quelle est l'erreur algorithmique commise, et comment la corriger ?",
+        reponse: "Le compteur est **réinitialisé à l'intérieur de la boucle**. `nb = 0` doit être écrit **avant** le `for`, une seule fois.",
+        notes: ["Une accumulation se prépare avant la boucle et se consulte après : c'est la règle, et elle vaut pour un compteur, une somme, une liste en construction ou un dictionnaire."],
+        solutions: [
+          { verdict: "retenue", nom: "Le compteur hors de la boucle",
+            code: `def compter_hypoxemies(releves):
+    nb = 0                          # une seule fois, avant la boucle
+    for x in releves:
+        if x >= 0 and x < 90:
+            nb = nb + 1
+    return nb`,
+            sortie: `>>> compter_hypoxemies([96, 88, 85, 97])
+2
+>>> compter_hypoxemies([98, -1, 88])         # le -1 n'est pas une désaturation
+1
+>>> compter_hypoxemies([])
+0`}
+        ] }
+    ] },
+
+  { id: "q12", titre: "1.2 — Filtrage des décrochages",
+    enonce: "Écrivez `nettoyer_spo2(releves)` qui retourne une **nouvelle liste** ne contenant que les mesures valides (`>= 0`), dans le même ordre, **sans modifier** la liste reçue.",
+    questions: [
+      { ref: "", texte: "Écrivez la fonction.",
+        reponse: "Une liste vide, une boucle, une condition, un `append` : c'est le schéma de **filtrage**.",
+        solutions: [
+          { verdict: "retenue", nom: "Construire une liste nouvelle",
+            code: `def nettoyer_spo2(releves):
+    propres = []                    # la liste à construire
+    for x in releves:
+        if x >= 0:
+            propres.append(x)
+    return propres`,
+            sortie: `>>> nettoyer_spo2([98, -1, 94, -1, 89])
+[98, 94, 89]
+>>> nettoyer_spo2([-1, -1])
+[]
+>>> nettoyer_spo2([])
+[]`,
+            texte: "La liste reçue n'est jamais touchée : on la lit, on écrit ailleurs." },
+          { verdict: "expert", nom: "La même chose en compréhension",
+            code: `def nettoyer_spo2(releves):
+    return [x for x in releves if x >= 0]`,
+            texte: "Correct et plus court." }
+        ],
+        erreurs: [
+          { nom: "Supprimer les valeurs en cours de parcours",
+            code: `def nettoyer_spo2(releves):
+    for x in releves:
+        if x < 0:
+            releves.remove(x)
+    return releves`,
+            sortie: `>>> a = [98, -1, -1, 94]
+>>> nettoyer_spo2(a)
+[98, -1, 94]
+>>> a
+[98, -1, 94]`,
+            cause: "Deux fautes d'un coup. Le `-1` en trop **reste** : `remove` décale les éléments suivants et le parcours saute celui qui vient prendre la place. Et la liste de l'appelant est modifiée au passage, alors que l'énoncé l'interdit. On ne retire jamais d'éléments d'une liste que l'on parcourt." },
+          { nom: "Retourner la liste reçue",
+            cause: "Rendre `releves` après l'avoir modifiée sur place viole la consigne : l'appelant perd ses données brutes, et le relevé d'origine est nécessaire à la question 1.1." }
+        ] }
+    ] },
+
+  { id: "q13", titre: "1.3 — Alerte prolongée",
+    enonce: "L'alarme ne se déclenche que si la saturation reste **valide et strictement inférieure à 90** pendant au moins `k` minutes **consécutives**. Complétez les zones en pointillés.",
+    code: `def alarme_hypoxemie(releves, k):
+    duree = ............                # compteur de minutes consécutives
+    for spo2 in releves:
+        if ..........................:  # valide et au-dessous du seuil
+            duree = ......................
+            if duree >= k:
+                return ..................
+        else:
+            duree = ............        # retour à la normale : remise à zéro
+    return ..................`,
+    questions: [
+      { ref: "", texte: "Donnez le code complété.",
+        reponse: "Le compteur part de `0`, s'incrémente sur une minute hypoxémique, et **retombe à `0`** dès qu'une minute normale ou un décrochage l'interrompt. \nSi le compteur atteint `k`, on retourne `True` immédiatement. Sinon, on retourne `False` à la fin.",
+        solutions: [
+          { verdict: "retenue", nom: "Les six zones comblées",
+            code: `def alarme_hypoxemie(releves, k):
+    duree = 0                               # 1
+    for spo2 in releves:
+        if spo2 >= 0 and spo2 < 90:         # 2
+            duree = duree + 1               # 3
+            if duree >= k:
+                return True                 # 4
+        else:
+            duree = 0                       # 5
+    return False                            # 6`,
+            sortie: `>>> alarme_hypoxemie([96, 88, 85, 97], 2)
+True
+>>> alarme_hypoxemie([96, 88, 85, 97], 3)
+False
+>>> alarme_hypoxemie([88, 96, 85, 96, 89], 2)
+False
+>>> alarme_hypoxemie([88, -1, 85], 2)
+False
+>>> alarme_hypoxemie([85], 1)
+True
+>>> alarme_hypoxemie([], 1)
+False` }
+        ]}
+    ] },
+
+  { id: "q14", titre: "1.4 — Complexité",
+    enonce: "On note `n` la taille de la liste `releves`.",
+    questions: [
+      { ref: "1.", texte: "Quelle est la complexité temporelle de `compter_hypoxemies(releves)` ?",
+        reponse: "**O(n)** — linéaire.",
+        notes: ["Une seule boucle, `n` tours, et le corps du tour ne contient que des opérations à coût constant : une comparaison, une addition, une affectation. Le coût total est `n × O(1) = O(n)`.",
+                "Sa complexité **spatiale** est `O(1)` : la fonction n'alloue qu'un entier, quelle que soit la taille du relevé."] },
+
+      { ref: "2.", texte: "Quelle est la complexité spatiale de `nettoyer_spo2(releves)` dans le meilleur et dans le pire des cas ?",
+        reponse: "**O(1)** au meilleur des cas, **O(n)** au pire.",
+        pile: { entetes: ["Cas", "Relevé", "Liste construite", "Mémoire supplémentaire"],
+                lignes: [["Meilleur", "tous les relevés en défaut, `[-1, -1, …]`", "reste vide", "**O(1)**"],
+                         ["Pire", "tous les relevés valides", "`n` éléments", "**O(n)**"]] },
+        notes: ["La complexité spatiale compte la mémoire **supplémentaire** allouée, celle de la liste reçue en argument ne s'y ajoutant pas.",
+                "La complexité **temporelle**, elle, est `O(n)` dans tous les cas : la boucle parcourt le relevé entier quoi qu'il advienne. Meilleur et pire des cas ne se distinguent ici qu'en mémoire."] }
+    ] }
+
+]},
+
+/* =================================================================== *
+ *  Problème — GMAO hospitalière, partie A (4,5 points)
+ * =================================================================== */
+{ partie: "Partie A — Journal des pannes", exercices: [
+
+  { id: "qa1", titre: "A.1 — Charger le journal",
+    enonce: "Le serveur reçoit `pannes.txt`, une ligne par intervention au format `service;code_appareil;cout_en_dh`. Certaines lignes sont vides, d'autres sont des commentaires commençant par `#`. Complétez `charger_pannes`, qui doit rendre une liste de tuples `(service, code, cout)`, le coût en **flottant**.",
+    code: `# Journal GMAO du 07/11/2026
+Urgences;DEF-01;1200.0
+Reanimation;RESP-04;3500.0
+
+Urgences;ECG-02;400.0
+Urgences;DEF-01;800.0`,
+    questions: [
+      { ref: "", texte: "Donnez le code complété.",
+        reponse: "Six zones : \n- le mode `\"r\"` pour ouvrir le fichier en lecture.\n- le parcours `for ligne in f`.\n- le `continue` pour ignorer les lignes vides ou les commentaires.\n- le séparateur `\";\"` pour découper la ligne.\n- la conversion `float`.\n - l'ajout du tuple `(service, code, cout)`.",
+        solutions: [
+          { verdict: "retenue", nom: "La fonction complétée",
+            code: `def charger_pannes(chemin):
+    historique = []
+    with open(chemin, mode="r", encoding="utf-8") as f:
+        for ligne in f:                        # parcours ligne par ligne
+            propre = ligne.strip()
+            if propre == "" or propre.startswith("#"):
+                continue                       # ligne ignorée
+            parties = propre.split(";")
+            service = parties[0]
+            code = parties[1]
+            cout = float(parties[2])           # coût en décimal
+            historique.append((service, code, cout))
+    return historique`,
+            sortie: `>>> charger_pannes("pannes.txt")
+[('Urgences', 'DEF-01', 1200.0), ('Reanimation', 'RESP-04', 3500.0),
+ ('Urgences', 'ECG-02', 400.0), ('Urgences', 'DEF-01', 800.0)]
+>>> type(charger_pannes("pannes.txt")[0][2])
+<class 'float'>` }
+        ] }
+    ] },
+
+  { id: "qa2", titre: "A.2 — Dépenses par service",
+    enonce: "Écrivez `depenses_par_service(pannes)` qui rend un dictionnaire associant à chaque service la **somme** de ses coûts de réparation.",
+    questions: [
+      { ref: "", texte: "Écrivez la fonction.",
+        reponse: "C'est le schéma d'**accumulation dans un dictionnaire** :\nOn doit distinguer la première rencontre d'une clé des suivantes. Si une clé est absente, on l'initialise à 0.0 avant de cumuler le coût.",
+        solutions: [
+          { verdict: "retenue", nom: "Initialiser puis cumuler",
+            code: `def depenses_par_service(pannes):
+    bilan = {}
+    for service, code, cout in pannes:    #  on déballe chaque tuple en trois variables
+        if service not in bilan:
+            bilan[service] = 0.0          # première rencontre du service
+        bilan[service] = bilan[service] + cout
+    return bilan`,
+            sortie: `>>> releves = [("Urgences", "DEF-01", 1200.0), ("Reanimation", "RESP-04", 3500.0),
+...            ("Urgences", "ECG-02", 400.0), ("Urgences", "DEF-01", 800.0)]
+>>> depenses_par_service(releves)
+{'Urgences': 2400.0, 'Reanimation': 3500.0}
+>>> depenses_par_service([])
+{}` },
+          { verdict: "expert", nom: "La même chose avec `get`",
+            code: `def depenses_par_service(pannes):
+    bilan = {}
+    for service, code, cout in pannes:
+        bilan[service] = bilan.get(service, 0.0) + cout
+    return bilan`,
+            texte: "`get(cle, 0.0)` rend la valeur par défaut quand la clé manque, ce qui réunit les deux cas en une ligne." }
+        ] }
+    ] }
+
+]},
+
+/* =================================================================== *
+ *  Problème — partie B (4,5 points)
+ * =================================================================== */
+{ partie: "Partie B — Audit du parc", exercices: [
+
+  { id: "qb1", titre: "B.1 — Historique par appareil",
+    enonce: "Pour associer à chaque code d'appareil la liste de **tous** ses coûts de réparation, un développeur écrit :",
+    code: `def historique_par_appareil(pannes):
+    histo = {}
+    for service, code, cout in pannes:
+        histo[code] = [cout]
+    return histo`,
+    questions: [
+      { ref: "1.", texte: "Quel dictionnaire cette fonction rend-elle sur `pannes = [(\"Urgences\", \"DEF-01\", 1200.0), (\"Urgences\", \"ECG-02\", 400.0), (\"Urgences\", \"DEF-01\", 800.0)]` ?",
+        reponse: "La fonction rend le dictionnaire `{'DEF-01': [800.0], 'ECG-02': [400.0]}`\nSi un appareil a subi plusieurs pannes, seule la **dernière** est conservée.",
+        pile: { entetes: ["Tour", "`code`", "`cout`", "Effet de `histo[code] = [cout]`", "`histo` après le tour"],
+                lignes: [["1", "`DEF-01`", "1200.0", "crée la clé", "`{'DEF-01': [1200.0]}`"],
+                         ["2", "`ECG-02`", "400.0", "crée la clé", "`{'DEF-01': [1200.0], 'ECG-02': [400.0]}`"],
+                         ["3", "`DEF-01`", "800.0", "**remplace** la liste", "`{'DEF-01': [800.0], 'ECG-02': [400.0]}`"]] },
+        sortie: `>>> historique_par_appareil(pannes)
+{'DEF-01': [800.0], 'ECG-02': [400.0]}` },
+
+      { ref: "2.", texte: "Pourquoi `DEF-01` a-t-il perdu sa réparation de 1200,0 DH ? Écrivez les trois lignes qui doivent remplacer `histo[code] = [cout]`.",
+        reponse: "Parce que `histo[code] = [cout]` **affecte une liste neuve** d'un seul élément. Au troisième tour, cette nouvelle liste prend la place de l'ancienne, et les 1200,0 DH disparaissent avec elle.\n\nOn doit utiliser le même principe que pour la somme par service : **initialiser** la première fois (avec une liste vide), **ajouter** à chaque fois.",
+        solutions: [
+          { verdict: "retenue", nom: "Les trois lignes de remplacement",
+            code: `        if code not in histo:
+            histo[code] = []        # première panne : liste vide
+        histo[code].append(cout)    # toutes les pannes : on ajoute`,
+            sortie: `>>> historique_par_appareil(pannes)
+{'DEF-01': [1200.0, 800.0], 'ECG-02': [400.0]}` }
+        ]}
+    ] },
+
+  { id: "qb2", titre: "B.2 — Auditer le parc",
+    enonce: "`auditer_parc(pannes, parc_officiel)` rend un tuple de deux ensembles : les appareils **intacts**, qui n'apparaissent dans aucune panne, et les appareils **multi-pannes**, qui en ont subi au moins deux dans la journée. Complétez :",
+    code: `def auditer_parc(pannes, parc_officiel):
+    tous = set(parc_officiel)
+    vus = ..............        # ensembles vides
+    multi = ............
+    for service, code, cout in pannes:
+        if .........................:   # déjà vu ?
+            multi.........................
+        else:
+            vus.add(code)
+    intacts = ................................   # différence ensembliste
+    return (intacts, multi)`,
+    questions: [
+      { ref: "", texte: "Donnez le code complété.",
+        reponse: "Cinq zones :\n- `set()` deux fois pour initialiser les ensembles `vus` et `multi`.\n- le test `code in vus` pour tester si l'appareil a déjà été vu.\n- l'ajout `multi.add(code)` pour les appareils rencontrés plusieurs fois\n- la différence `tous - vus` pour les appareils jamais vus.",
+        solutions: [
+          { verdict: "retenue", nom: "La fonction complétée",
+            code: `def auditer_parc(pannes, parc_officiel):
+    tous = set(parc_officiel)
+    vus = set()                              # 1
+    multi = set()                            # 2
+    for service, code, cout in pannes:
+        if code in vus:                      # 3
+            multi.add(code)                  # 4
+        else:
+            vus.add(code)
+    intacts = tous - vus                     # 5
+    return (intacts, multi)`,
+            sortie: `>>> pannes = [("Urgences", "DEF-01", 1200.0), ("Reanimation", "RESP-04", 3500.0),
+...           ("Urgences", "ECG-02", 400.0), ("Urgences", "DEF-01", 800.0)]
+>>> parc = ["DEF-01", "ECG-02", "RESP-04", "IRM-01", "ECHO-03"]
+>>> auditer_parc(pannes, parc)
+({'IRM-01', 'ECHO-03'}, {'DEF-01'})` }
+        ]}
+    ] }
+
+]},
+
+/* =================================================================== *
+ *  Problème — partie C (5 points)
+ * =================================================================== */
+{ partie: "Partie C — Export et amortissement", exercices: [
+
+  { id: "qc1", titre: "C.1 — Exporter le bilan",
+    enonce: "Écrivez `exporter_depenses(chemin, bilan_services)` qui écrit une ligne par service au format `service;total_cout`, les services rangés par **ordre alphabétique croissant**.",
+    questions: [
+      { ref: "", texte: "Écrivez la fonction.",
+        reponse: "La fonction nécessite :\n- `with open(..., \"w\", encoding=\"utf-8\")` pour ouvrir le fichier en écriture.\n- un parcours avec `sorted(bilan_services)` pour obtenir les services dans l'ordre alphabétique.\n- `f.write()` avec `\\n` à la fin pour passer à la ligne suivante.",
+        solutions: [
+          { verdict: "retenue", nom: "Écriture triée",
+            code: `def exporter_depenses(chemin, bilan_services):
+    with open(chemin, mode="w", encoding="utf-8") as f:
+        for service in sorted(bilan_services):
+            f.write(f"{service};{bilan_services[service]}\\n")`}]}
+    ] },
+
+  { id: "qc2", titre: "C.2 — Amortissement récursif",
+    enonce: "Un échographe perd chaque année 20 % de sa valeur : elle est multipliée par 0,80 par année écoulée. Écrivez `valeur_residuelle(prix_initial, n)` de façon **récursive**, sans boucle ni opérateur de puissance.",
+    questions: [
+      { ref: "1.", texte: "Écrivez la fonction.",
+        reponse: "Cas de base : au bout de 0 an, l'appareil vaut son prix initial.\nCas récursif : la valeur à l'année `n` vaut 0,80 fois celle de l'année `n - 1`.",
+        solutions: [
+          { verdict: "retenue", nom: "Deux lignes, deux cas",
+            code: `def valeur_residuelle(prix_initial, n):
+    if n == 0:                                     # cas de base
+        return prix_initial
+    return 0.80 * valeur_residuelle(prix_initial, n - 1)`,
+            sortie: `>>> valeur_residuelle(10000.0, 0)
+10000.0
+>>> valeur_residuelle(10000.0, 1)
+8000.0
+>>> valeur_residuelle(10000.0, 2)
+6400.0
+>>> valeur_residuelle(10000.0, 3)
+5120.0` }
+        ]},
+
+      { ref: "2.", texte: "Donnez la trace complète de `valeur_residuelle(10000.0, 3)` : les appels jusqu'au cas de base, puis les valeurs rendues en remontant.",
+        reponse: "Quatre appels à la descente, quatre valeurs à la remontée.",
+        pile: { entetes: ["Descente — appel", "Ce que l'appel doit rendre", "Remontée — valeur rendue"],
+                lignes: [["`valeur_residuelle(10000.0, 3)`", "`0.80 × ` résultat de l'appel `n = 2`", "**5120.0**"],
+                         ["`valeur_residuelle(10000.0, 2)`", "`0.80 × ` résultat de l'appel `n = 1`", "**6400.0**"],
+                         ["`valeur_residuelle(10000.0, 1)`", "`0.80 × ` résultat de l'appel `n = 0`", "**8000.0**"],
+                         ["`valeur_residuelle(10000.0, 0)`", "cas de base : `prix_initial`", "**10000.0**"]] },
+        notes: ["La descente empile quatre appels sans rien calculer : chacun attend le résultat du suivant. Le premier calcul n'a lieu qu'au cas de base, et les multiplications se font **à la remontée**, de bas en haut."],
+        sortie: `Descente :
+  valeur_residuelle(10000.0, 3)
+    valeur_residuelle(10000.0, 2)
+      valeur_residuelle(10000.0, 1)
+        valeur_residuelle(10000.0, 0)  ->  10000.0   (cas de base)
+
+Remontée :
+      0.80 * 10000.0  ->   8000.0
+    0.80 *  8000.0    ->   6400.0
+  0.80 *  6400.0      ->   5120.0` }
+    ] }
+
+]}
+
+];
+
+/* ------------------------------------------------------------------ *
+ *  Mémoire locale — simple confort de lecture, jamais indispensable.
+ * ------------------------------------------------------------------ */
+const CLE = "m235-cc-corriges-vus";
+let vus = new Set();
+try {
+  const brut = localStorage.getItem(CLE);
+  if (brut) vus = new Set(JSON.parse(brut));
+} catch (e) { /* navigation privée, stockage bloqué : on continue sans */ }
+
+function memoriser() {
+  try { localStorage.setItem(CLE, JSON.stringify([...vus])); } catch (e) {}
+}
+
+/* ------------------------------------------------------------------ *
+ *  Rendu
+ * ------------------------------------------------------------------ */
+const rail = document.getElementById("rail");
+const travail = document.getElementById("travail");
+const tousExercices = TD.flatMap(p => p.exercices.map(e => ({ ...e, partie: p.partie })));
+
+function cleQuestion(ex, i) { return ex.id + "-" + i; }
+
+function exerciceVu(ex) {
+  return ex.questions.every((_, i) => vus.has(cleQuestion(ex, i)));
+}
+
+function construireRail() {
+  rail.innerHTML = TD.map(partie => `
+    <div class="rail-groupe">
+      <div class="rail-titre">${echapper(partie.partie.replace(/^Partie /, ""))}</div>
+      <div class="rail-liste">
+        ${partie.exercices.map(ex => `
+          <button class="onglet" type="button" data-cible="${ex.id}">
+            <span class="cle">${echapper(ex.titre.split(" — ")[0])}</span>
+            <span>${echapper(ex.titre.split(" — ")[1] || "")}</span>
+            <span class="pastille" aria-hidden="true"></span>
+          </button>`).join("")}
+      </div>
+    </div>`).join("");
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.addEventListener("click", () => afficher(b.dataset.cible, true)));
+}
+
+function fiche(item, estErreur) {
+  const classeVerdict = { retenue: "v-retenue", ok: "v-ok",
+                          eviter: "v-eviter", expert: "v-expert" }[item.verdict];
+  const libelle = { retenue: "à retenir", ok: "acceptable",
+                    eviter: "à éviter", expert: "pour aller plus loin" }[item.verdict];
+  return `
+    <article class="fiche${estErreur ? " erreur" : ""}">
+      <div class="fiche-tete">
+        <h4>${enrichir(item.nom || item.titre)}</h4>
+        ${estErreur
+          ? '<span class="verdict v-eviter">erreur fréquente</span>'
+          : (classeVerdict ? `<span class="verdict ${classeVerdict}">${libelle}</span>` : "")}
+      </div>
+      <div class="fiche-corps">
+        ${item.code ? bloc(item.code, false) : ""}
+        ${item.sortie ? bloc(item.sortie, true) : ""}
+        ${item.texte ? `<p>${enrichir(item.texte)}</p>` : ""}
+        ${item.cause ? `<dl class="ligne-diag"><dt>Pourquoi</dt><dd>${enrichir(item.cause)}</dd></dl>` : ""}
+      </div>
+    </article>`;
+}
+
+function tableau(p) {
+  return `<div class="table-enveloppe"><table class="pile">
+    <thead><tr>${p.entetes.map(h => `<th>${enrichir(h)}</th>`).join("")}</tr></thead>
+    <tbody>${p.lignes.map(l => `<tr>${l.map(c => `<td>${enrichir(c)}</td>`).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+function corpsCorrection(q) {
+  return `
+    <div class="reponse">
+      <span class="etiquette">Réponse</span>
+      <p>${enrichir(q.reponse)}</p>
+    </div>
+    ${q.sortie ? bloc(q.sortie, true) : ""}
+    ${q.pile ? tableau(q.pile) : ""}
+    ${(q.notes || []).map(n => `<p>${enrichir(n)}</p>`).join("")}
+    ${q.solutions && q.solutions.length ? `
+      <div class="sous-titre">Propositions de solution</div>
+      <div class="lot">${q.solutions.map(s => fiche(s, false)).join("")}</div>` : ""}
+    ${q.erreurs && q.erreurs.length ? `
+      <div class="sous-titre">Erreurs fréquentes</div>
+      <div class="lot">${q.erreurs.map(e => fiche(e, true)).join("")}</div>` : ""}`;
+}
+
+let courant = null;
+
+function afficher(id, deplacerFocus) {
+  const ex = tousExercices.find(e => e.id === id) || tousExercices[0];
+  courant = ex;
+  rail.querySelectorAll(".onglet").forEach(b =>
+    b.setAttribute("aria-current", String(b.dataset.cible === ex.id)));
+
+  travail.innerHTML = `
+    <div class="chapeau">
+      <div>
+        <span class="partie">${echapper(ex.partie)}</span>
+        <h2>${echapper(ex.titre)}</h2>
+      </div>
+      <button class="bouton-plat" type="button" id="tout">Tout afficher</button>
+    </div>
+    <div class="enonce">
+      <p>${enrichir(ex.enonce)}</p>
+      ${ex.code ? bloc(ex.code, false) : ""}
+    </div>
+    ${ex.questions.map((q, i) => {
+      const cle = cleQuestion(ex, i);
+      const ouvert = vus.has(cle);
+      return `
+      <article class="question" id="q-${cle}">
+        <div class="question-tete">
+          ${q.ref ? `<span class="ref">${echapper(q.ref)}</span>` : ""}
+          <div class="texte">${enrichir(q.texte)}</div>
+          <button class="devoiler" type="button" data-cle="${cle}"
+                  aria-expanded="${ouvert}" aria-controls="c-${cle}">
+            ${ouvert ? "Masquer" : "Afficher la correction"}
+          </button>
+        </div>
+        <div class="correction" id="c-${cle}" ${ouvert ? "" : "hidden"}>
+          ${corpsCorrection(q)}
+        </div>
+      </article>`;
+    }).join("")}`;
+
+  travail.querySelectorAll(".devoiler").forEach(b =>
+    b.addEventListener("click", () => basculer(b)));
+  document.getElementById("tout").addEventListener("click", toutAfficher);
+  majPastilles();
+  if (deplacerFocus) {
+    history.replaceState(null, "", "#" + ex.id);
+    travail.querySelector("h2").scrollIntoView({ block: "nearest" });
+  }
+}
+
+function basculer(bouton) {
+  const cle = bouton.dataset.cle;
+  const zone = document.getElementById("c-" + cle);
+  const ouvrir = zone.hidden;
+  zone.hidden = !ouvrir;
+  bouton.setAttribute("aria-expanded", String(ouvrir));
+  bouton.textContent = ouvrir ? "Masquer" : "Afficher la correction";
+  if (ouvrir) vus.add(cle); else vus.delete(cle);
+  memoriser();
+  majPastilles();
+}
+
+function toutAfficher() {
+  const boutons = [...travail.querySelectorAll(".devoiler")];
+  const toutOuvert = boutons.every(b => b.getAttribute("aria-expanded") === "true");
+  boutons.forEach(b => {
+    if ((b.getAttribute("aria-expanded") === "true") === toutOuvert) basculer(b);
+  });
+  document.getElementById("tout").textContent = toutOuvert ? "Tout afficher" : "Tout masquer";
+}
+
+function majPastilles() {
+  rail.querySelectorAll(".onglet").forEach(b => {
+    const ex = tousExercices.find(e => e.id === b.dataset.cible);
+    b.classList.toggle("vu", exerciceVu(ex));
+  });
+  const bouton = document.getElementById("tout");
+  if (bouton && courant) {
+    const boutons = [...travail.querySelectorAll(".devoiler")];
+    bouton.textContent = boutons.every(b => b.getAttribute("aria-expanded") === "true")
+      ? "Tout masquer" : "Tout afficher";
+  }
+}
+
+construireRail();
+const ancre = (location.hash || "").replace("#", "");
+afficher(tousExercices.some(e => e.id === ancre) ? ancre : tousExercices[0].id, false);
+</script>
+</body>
+</html>
