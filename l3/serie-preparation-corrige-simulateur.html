@@ -1,0 +1,1875 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corrigé simulé — Série de préparation au contrôle continu | ESM6ISS - UM6SS</title>
+    <!-- Chargement de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Polices Google Fonts : Inter et JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        medical: {
+                            DEFAULT: '#0F4C81',
+                            dark: '#0A355C',
+                            light: '#EBF3FA',
+                        },
+                        turquoise: {
+                            DEFAULT: '#008080',
+                            dark: '#006161',
+                            light: '#E6F4F4',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Styles de coloration syntaxique Python dans les blocs sombres */
+        .code-block {
+            background-color: #0F172A;
+            color: #E2E8F0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.7;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+        }
+        .kw { color: #C084FC; font-weight: 500; }     /* Mots-clés : def, if, elif, else, for, while, return, in, and, or */
+        .fn { color: #38BDF8; }                       /* Fonctions : print, input, float, abs, round, range */
+        .str { color: #4ADE80; }                      /* Chaînes de caractères */
+        .num { color: #FBBF24; }                      /* Nombres & Booléens */
+        .cmt { color: #64748B; font-style: italic; }  /* Commentaires */
+        .op { color: #94A3B8; }                       /* Opérateurs */
+
+        /* Mise en surbrillance de ligne active dans les simulateurs */
+        .code-line {
+            display: block;
+            padding: 2px 12px;
+            border-left: 3px solid transparent;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            white-space: pre;
+        }
+        .code-line.active-line {
+            background-color: rgba(0, 128, 128, 0.28);
+            border-left-color: #2DD4BF;
+            color: #FFFFFF;
+        }
+        .code-line.bug-line {
+            background-color: rgba(239, 68, 68, 0.22);
+            border-left-color: #F87171;
+            color: #FFFFFF;
+        }
+
+        /* Champs de saisie intégrés dans les blocs de code à trous */
+        .code-input {
+            background-color: #1E293B;
+            color: #F8FAFC;
+            border: 1.5px solid #475569;
+            border-radius: 0.375rem;
+            padding: 1px 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .code-input:focus {
+            border-color: #2DD4BF;
+            box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.25);
+        }
+        .code-input.valid {
+            border-color: #22C55E;
+            background-color: rgba(34, 197, 94, 0.18);
+            color: #86EFAC;
+        }
+        .code-input.invalid {
+            border-color: #EF4444;
+            background-color: rgba(239, 68, 68, 0.18);
+            color: #FCA5A5;
+        }
+
+        /* Transition douce pour les panneaux de corrigé */
+        .solution-panel {
+            transition: all 0.25s ease;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- ===================================================================== -->
+    <!-- EN-TÊTE FIXE : navigation, suivi de lecture, affichage des réponses   -->
+    <!-- ===================================================================== -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <!-- Identité académique -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-medical to-turquoise flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
+                        Py
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-turquoise bg-turquoise-light px-2 py-0.5 rounded-full">ESM6ISS • UM6SS</span>
+                            <span class="text-xs text-slate-500 font-medium">Licence Maintenance &amp; Génie Biomédical</span>
+                        </div>
+                        <h1 class="text-base sm:text-lg font-extrabold text-medical leading-tight mt-0.5">
+                            Corrigé interactif — Série de préparation au contrôle continu
+                        </h1>
+                    </div>
+                </div>
+
+                <!-- Suivi de lecture et commandes d'affichage des réponses -->
+                <div class="flex items-center gap-2.5 self-start md:self-auto w-full md:w-auto justify-between md:justify-end">
+                    <div class="hidden sm:flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 shrink-0">
+                        <span class="text-xs font-semibold text-slate-600 whitespace-nowrap">Questions comprises</span>
+                        <span id="compteur-compris" class="text-medical font-bold text-xs whitespace-nowrap">0 / 8</span>
+                    </div>
+                    <button onclick="basculerTout()" data-bascule="global" aria-label="Afficher ou masquer toutes les réponses" title="Afficher ou masquer toutes les réponses" class="px-3 py-2 rounded-xl border border-medical/30 bg-medical-light text-medical text-xs font-semibold transition hover:bg-medical hover:text-white flex items-center gap-1.5 shrink-0">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        <span class="libelle hidden sm:inline">Afficher toutes les réponses</span>
+                    </button>
+                    <button onclick="resetAll()" aria-label="Tout réinitialiser" title="Tout réinitialiser" class="px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition flex items-center gap-1.5 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span class="hidden sm:inline">Tout réinitialiser</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Barre d'onglets de navigation -->
+            <nav class="flex items-center gap-2 mt-3 overflow-x-auto pb-1" aria-label="Navigation par sections">
+                <button onclick="switchTab('ex1')" id="tab-ex1" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition whitespace-nowrap bg-medical text-white shadow-sm">
+                    Exercice 1 — Incubateur <span class="opacity-80 font-normal">(8 pts)</span>
+                </button>
+                <button onclick="switchTab('partA')" id="tab-partA" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200">
+                    Problème Partie A — Chauffe &amp; Verdict <span class="opacity-80 font-normal">(6 pts)</span>
+                </button>
+                <button onclick="switchTab('partB')" id="tab-partB" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200">
+                    Problème Partie B — Cycle &amp; Témoin <span class="opacity-80 font-normal">(6 pts)</span>
+                </button>
+                <button onclick="switchTab('all')" id="tab-all" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 ml-auto">
+                    Vue complète
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ===================================================================== -->
+    <!-- CONTENU PRINCIPAL                                                     -->
+    <!-- ===================================================================== -->
+    <main class="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 flex-1 space-y-8">
+
+        <!-- ================================================================= -->
+        <!-- SECTION 1 : EXERCICE 1 — INCUBATEUR NÉONATAL (8 POINTS)           -->
+        <!-- ================================================================= -->
+        <section id="section-ex1" class="space-y-6">
+            <!-- Bannière de contexte Exercice 1 -->
+            <div class="bg-gradient-to-r from-medical to-medical-dark text-white rounded-2xl p-5 sm:p-6 shadow-md">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h2 class="text-xl sm:text-2xl font-bold">Exercice 1 — Contrôle thermique d'un incubateur néonatal</h2>
+                    <span class="px-3 py-1 rounded-full bg-white/15 text-sm font-bold border border-white/20">8 points</span>
+                </div>
+                <p class="text-sm sm:text-base text-blue-100 mt-2 leading-relaxed">
+                    Un incubateur (couveuse) de néonatologie doit maintenir sa température interne dans une plage stricte. Les normes du service biomédical définissent trois états selon la température mesurée <code class="bg-white/15 px-1.5 py-0.5 rounded font-mono">T</code> (en °C) :
+                    <span class="font-semibold text-white">Hypothermie</span> (<code class="font-mono">T &lt; 36.0</code>),
+                    <span class="font-semibold text-white">Normal</span> (<code class="font-mono">36.0 &lt;= T &lt;= 37.5</code>),
+                    <span class="font-semibold text-white">Hyperthermie</span> (<code class="font-mono">T &gt; 37.5</code>).
+                </p>
+            </div>
+
+            <!-- ==================== QUESTION 1.1 ==================== -->
+            <article class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <span class="inline-block text-xs font-bold uppercase tracking-wide text-turquoise bg-turquoise-light px-2.5 py-1 rounded-md mb-1.5">Question 1.1 • 2 points</span>
+                        <h3 class="text-lg font-bold text-slate-900">Fonction de diagnostic thermique <code class="text-medical font-mono">statut_incubateur(temp)</code></h3>
+                        <p class="text-sm text-slate-600 mt-1">
+                            Écrire une fonction qui reçoit <code class="font-mono bg-slate-100 px-1 rounded">temp</code> (float) et <strong>retourne</strong> (avec <code class="font-mono bg-slate-100 px-1 rounded">return</code>) la chaîne correspondant au statut thermique.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <button onclick="toggleCompris('q1_1')" id="badge-q1_1" class="px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-50 transition">
+                            ○ Marquer comme compris
+                        </button>
+                        <button onclick="basculerArticle(this)" data-bascule="article" class="px-3 py-1.5 rounded-full text-xs font-semibold border border-medical/30 bg-medical-light text-medical hover:bg-medical hover:text-white transition"><span class="libelle">Afficher la réponse</span></button>
+                    </div>
+                </div>
+
+                <!-- Outil interactif Q1.1 -->
+                <div class="p-5 sm:p-6 bg-slate-50/70 space-y-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 items-center">
+                        <!-- Contrôles de température -->
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label for="q11-slider" class="text-sm font-semibold text-slate-700">Température mesurée <code class="font-mono text-medical">temp</code> :</label>
+                                <div class="flex items-center gap-1.5">
+                                    <input type="number" id="q11-number" min="34.0" max="40.0" step="0.1" value="36.0" oninput="updateQ11(this.value)" class="w-20 px-2.5 py-1 text-center font-mono font-bold text-medical border border-slate-300 rounded-lg focus:outline-none focus:border-turquoise">
+                                    <span class="text-sm font-bold text-slate-500">°C</span>
+                                </div>
+                            </div>
+                            <input type="range" id="q11-slider" min="34.0" max="40.0" step="0.1" value="36.0" oninput="updateQ11(this.value)" class="w-full accent-turquoise cursor-pointer">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-xs text-slate-500 font-medium">Tests rapides :</span>
+                                <button onclick="updateQ11(35.8)" class="px-2.5 py-1 text-xs font-mono font-semibold rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100">35.8 °C</button>
+                                <button onclick="updateQ11(36.0)" class="px-2.5 py-1 text-xs font-mono font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100">36.0 °C (borne)</button>
+                                <button onclick="updateQ11(37.5)" class="px-2.5 py-1 text-xs font-mono font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100">37.5 °C (borne)</button>
+                                <button onclick="updateQ11(37.8)" class="px-2.5 py-1 text-xs font-mono font-semibold rounded-lg bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100">37.8 °C</button>
+                            </div>
+                            <!-- Résultat retourné en direct -->
+                            <div id="q11-result-box" class="p-3.5 rounded-xl border flex items-center justify-between transition-colors">
+                                <div>
+                                    <div class="text-xs uppercase tracking-wider font-semibold opacity-75">Valeur retournée par la fonction</div>
+                                    <div id="q11-return-val" class="text-lg font-mono font-bold mt-0.5">'Normal'</div>
+                                </div>
+                                <span id="q11-status-pill" class="px-3 py-1 rounded-full text-xs font-bold">Plage physiologique</span>
+                            </div>
+                        </div>
+
+                        <!-- Code Python avec surbrillance de la branche exécutée -->
+                        <div class="voile-reponse hidden flex items-center justify-center text-center p-6 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 text-sm text-slate-500 min-h-[150px]">Écrivez d'abord la fonction de votre côté. Le simulateur reste utilisable : il vous dit ce que la fonction attendue renvoie pour chaque température.</div>
+                        <div class="code-block p-3 zone-reponse hidden">
+                            <span class="code-line"><span class="kw">def</span> <span class="fn">statut_incubateur</span>(temp):</span>
+                            <span id="q11-l1" class="code-line">    <span class="kw">if</span> temp <span class="op">&lt;</span> <span class="num">36.0</span>:</span>
+                            <span id="q11-l2" class="code-line">        <span class="kw">return</span> <span class="str">"Hypothermie"</span></span>
+                            <span id="q11-l3" class="code-line">    <span class="kw">elif</span> temp <span class="op">&lt;=</span> <span class="num">37.5</span>:          <span class="cmt"># Ici on sait déjà que temp &gt;= 36.0</span></span>
+                            <span id="q11-l4" class="code-line">        <span class="kw">return</span> <span class="str">"Normal"</span></span>
+                            <span id="q11-l5" class="code-line">    <span class="kw">else</span>:                       <span class="cmt"># Tous les autres cas (temp &gt; 37.5)</span></span>
+                            <span id="q11-l6" class="code-line">        <span class="kw">return</span> <span class="str">"Hyperthermie"</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Bouton Afficher / Masquer le corrigé -->
+                    <div>
+                        <button onclick="toggleSolution('sol-q11')" class="text-sm font-semibold text-medical hover:text-turquoise flex items-center gap-1.5 transition">
+                            <span id="icon-sol-q11">▶</span> Afficher / Masquer le corrigé détaillé et le barème
+                        </button>
+                        <div id="sol-q11" class="zone-reponse hidden mt-3 p-4 rounded-xl bg-medical-light/60 border border-medical/20 text-sm space-y-2">
+                            <p class="font-semibold text-medical">Points clés &amp; Barème (2 pts) :</p>
+                            <ul class="list-disc pl-5 space-y-1 text-slate-700">
+                                <li><strong>En-tête et paramètre (0.25 pt) :</strong> <code class="font-mono">def statut_incubateur(temp):</code></li>
+                                <li><strong>Structure <code class="font-mono">if / elif / else</code> et bornes incluses (1.25 pt) :</strong> attention aux bornes <code class="font-mono">36.0</code> et <code class="font-mono">37.5</code> qui doivent renvoyer <code class="font-mono">"Normal"</code> (opérateur <code class="font-mono">&lt;</code> pour Hypothermie et <code class="font-mono">&lt;=</code> pour Normal).</li>
+                                <li><strong>Usage de <code class="font-mono">return</code> (0.5 pt) :</strong> la consigne demande de <em>retourner</em> la chaîne, et non de l'afficher avec <code class="font-mono">print()</code>.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- ==================== QUESTION 1.2 ==================== -->
+            <article class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <span class="inline-block text-xs font-bold uppercase tracking-wide text-turquoise bg-turquoise-light px-2.5 py-1 rounded-md mb-1.5">Question 1.2 • 3 points</span>
+                        <h3 class="text-lg font-bold text-slate-900">Confusion entre <code class="text-medical font-mono">print</code> et <code class="text-medical font-mono">return</code></h3>
+                        <p class="text-sm text-slate-600 mt-1">
+                            Simuler l'exécution du code du stagiaire pas à pas, déterminer les deux lignes affichées ainsi que la valeur de <code class="font-mono bg-slate-100 px-1 rounded">res</code>, puis proposer la correction.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <button onclick="toggleCompris('q1_2')" id="badge-q1_2" class="px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-50 transition">
+                            ○ Marquer comme compris
+                        </button>
+                        <button onclick="basculerArticle(this)" data-bascule="article" class="px-3 py-1.5 rounded-full text-xs font-semibold border border-medical/30 bg-medical-light text-medical hover:bg-medical hover:text-white transition"><span class="libelle">Afficher la réponse</span></button>
+                    </div>
+                </div>
+
+                <!-- Débogueur pas-à-pas Q1.2 -->
+                <div class="p-5 sm:p-6 bg-slate-50/70 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="stepQ12()" id="q12-step-btn" class="px-4 py-2 rounded-lg bg-medical hover:bg-medical-dark text-white text-xs sm:text-sm font-semibold transition shadow-sm">
+                                Étape suivante ▶
+                            </button>
+                            <button onclick="resetQ12()" class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold transition">
+                                Réinitialiser
+                            </button>
+                        </div>
+                        <label class="flex items-center gap-2.5 cursor-pointer select-none bg-turquoise-light/70 px-3 py-1.5 rounded-lg border border-turquoise/25">
+                            <input type="checkbox" id="q12-fix-toggle" onchange="toggleQ12Fix()" class="w-4 h-4 accent-turquoise rounded">
+                            <span class="text-xs sm:text-sm font-semibold text-turquoise-dark">Voir avec le code corrigé (<code class="font-mono">return round(diff, 1)</code>)</span>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        <!-- Code source -->
+                        <div class="lg:col-span-7 code-block p-3">
+                            <span id="q12-l1" class="code-line"><span class="kw">def</span> <span class="fn">calculer_ecart</span>(mesure, consigne):</span>
+                            <span id="q12-l2" class="code-line">    diff <span class="op">=</span> <span class="fn">abs</span>(mesure <span class="op">-</span> consigne)</span>
+                            <span id="q12-l3" class="code-line">    <span class="fn">print</span>(<span class="fn">round</span>(diff, <span class="num">1</span>))</span>
+                            <span class="code-line"> </span>
+                            <span class="code-line"><span class="cmt"># Programme principal</span></span>
+                            <span id="q12-l4" class="code-line">res <span class="op">=</span> <span class="fn">calculer_ecart</span>(<span class="num">38.2</span>, <span class="num">36.5</span>)</span>
+                            <span id="q12-l5" class="code-line"><span class="fn">print</span>(<span class="str">"L’écart est :"</span>, res)</span>
+                        </div>
+
+                        <!-- Panneaux Mémoire & Console -->
+                        <div class="lg:col-span-5 flex flex-col gap-3">
+                            <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+                                <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Mémoire (Variables)</div>
+                                <div class="grid grid-cols-2 gap-2 text-sm font-mono">
+                                    <div class="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                                        <span class="text-slate-500 text-xs block">diff (locale)</span>
+                                        <span id="q12-mem-diff" class="font-bold text-slate-800">—</span>
+                                    </div>
+                                    <div class="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                                        <span class="text-slate-500 text-xs block">res (globale)</span>
+                                        <span id="q12-mem-res" class="font-bold text-slate-800">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-slate-900 text-emerald-400 p-3.5 rounded-xl font-mono text-sm flex-1 min-h-[105px]">
+                                <div class="text-xs uppercase tracking-wider text-slate-400 mb-1.5 font-sans font-bold">Console (Sortie écran)</div>
+                                <div id="q12-console" class="space-y-1 whitespace-pre-wrap text-xs sm:text-sm"><span class="text-slate-500 italic">(En attente d'exécution...)</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Explication de l'étape active -->
+                    <div id="q12-explain" class="p-3.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-700">
+                        Cliquez sur <strong>Étape suivante ▶</strong> pour dérouler l'exécution ligne par ligne.
+                    </div>
+
+                    <!-- Corrigé Q1.2 -->
+                    <div>
+                        <button onclick="toggleSolution('sol-q12')" class="text-sm font-semibold text-medical hover:text-turquoise flex items-center gap-1.5 transition">
+                            <span id="icon-sol-q12">▶</span> Afficher / Masquer le corrigé détaillé et le barème
+                        </button>
+                        <div id="sol-q12" class="zone-reponse hidden mt-3 p-4 rounded-xl bg-medical-light/60 border border-medical/20 text-sm space-y-2.5">
+                            <div>
+                                <p class="font-semibold text-medical">1. Simulation et valeur de <code class="font-mono">res</code> (1.5 pt) :</p>
+                                <p class="text-slate-700 mt-1">Les deux lignes affichées à l'écran sont exactement :</p>
+                                <pre class="bg-slate-900 text-emerald-400 p-2.5 rounded-lg font-mono text-xs mt-1">1.7
+L’écart est : None</pre>
+                                <p class="text-slate-700 mt-1.5">
+                                    La variable <code class="font-mono font-bold">res</code> vaut <code class="font-mono font-bold text-rose-700">None</code> car la fonction <code class="font-mono">calculer_ecart</code> utilise <code class="font-mono">print()</code> (qui affiche à l'écran mais ne renvoie rien) et ne possède aucune instruction <code class="font-mono">return</code>. En Python, une fonction sans <code class="font-mono">return</code> retourne automatiquement <code class="font-mono">None</code>.
+                                </p>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-medical">2. Correction de la fonction (1.5 pt) :</p>
+                                <p class="text-slate-700 mt-1">Remplacer <code class="font-mono">print(round(diff, 1))</code> par <code class="font-mono font-bold text-emerald-700">return round(diff, 1)</code> afin que le résultat soit transmis à la variable <code class="font-mono">res</code> dans le programme principal.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- ==================== QUESTION 1.3 ==================== -->
+            <article class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <span class="inline-block text-xs font-bold uppercase tracking-wide text-turquoise bg-turquoise-light px-2.5 py-1 rounded-md mb-1.5">Question 1.3 • 1.5 point</span>
+                        <h3 class="text-lg font-bold text-slate-900">Saisie protégée de la température <code class="text-medical font-mono">saisir_temperature()</code></h3>
+                        <p class="text-sm text-slate-600 mt-1">
+                            Complétez les 3 zones pour redemander la température tant qu'elle est hors de l'intervalle physique <code class="font-mono bg-slate-100 px-1 rounded">[20.0 ; 45.0]</code> °C.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <span id="badge-q1_3" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">Auto-corrigé : à vérifier</span>
+                        <button onclick="basculerArticle(this)" data-bascule="article" class="px-3 py-1.5 rounded-full text-xs font-semibold border border-medical/30 bg-medical-light text-medical hover:bg-medical hover:text-white transition"><span class="libelle">Afficher la réponse</span></button>
+                    </div>
+                </div>
+
+                <!-- Code à trous Q1.3 + mini simulateur -->
+                <div class="p-5 sm:p-6 bg-slate-50/70 space-y-4">
+                    <div class="code-block p-4 space-y-1.5">
+                        <div class="whitespace-pre"><span class="kw">def</span> <span class="fn">saisir_temperature</span>():</div>
+                        <div class="whitespace-pre">    t <span class="op">=</span> <input type="text" id="q13-in1" placeholder="trou 1" class="code-input w-20"> (<span class="fn">input</span>(<span class="str">"Température mesurée (°C) : "</span>))  <span class="cmt"># Conversion en décimal</span></div>
+                        <div class="whitespace-pre">    <span class="kw">while</span> <input type="text" id="q13-in2" placeholder="condition hors [20.0 ; 45.0]" class="code-input w-64"> :  <span class="cmt"># Condition : t hors de [20.0 ; 45.0]</span></div>
+                        <div class="whitespace-pre">        <span class="fn">print</span>(<span class="str">"Erreur : la température doit être comprise entre 20.0 et 45.0 °C."</span>)</div>
+                        <div class="whitespace-pre">        t <span class="op">=</span> <input type="text" id="q13-in3" placeholder="redemander la température" class="code-input w-80"></div>
+                        <div class="whitespace-pre">    <span class="kw">return</span> t</div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <button onclick="checkQ13()" class="px-4 py-2 rounded-lg bg-turquoise hover:bg-turquoise-dark text-white text-sm font-semibold transition shadow-sm">
+                            Vérifier mes 3 trous
+                        </button>
+                        <button onclick="fillQ13()" class="px-3 py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition">
+                            Remplir la solution
+                        </button>
+                        <span id="q13-feedback" class="text-sm font-semibold"></span>
+                    </div>
+
+                    <!-- Mini-simulateur de saisie clavier -->
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-medical">Simulateur de saisie interactive</span>
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <span class="text-xs text-slate-500">Tester :</span>
+                                <button onclick="simQ13Submit(365.0)" class="px-2 py-1 rounded bg-rose-50 text-rose-700 border border-rose-200 font-mono text-xs font-semibold hover:bg-rose-100">365.0</button>
+                                <button onclick="simQ13Submit(12.0)" class="px-2 py-1 rounded bg-rose-50 text-rose-700 border border-rose-200 font-mono text-xs font-semibold hover:bg-rose-100">12.0</button>
+                                <button onclick="simQ13Submit(36.8)" class="px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono text-xs font-semibold hover:bg-emerald-100">36.8</button>
+                                <button onclick="simQ13Reset()" class="px-2 py-1 rounded bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200">Effacer</button>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="number" step="0.1" id="q13-sim-input" placeholder="Entrez une température (ex: 365.0)..." class="flex-1 px-3 py-1.5 text-sm font-mono border border-slate-300 rounded-lg focus:outline-none focus:border-turquoise">
+                            <button onclick="simQ13Submit()" class="px-3.5 py-1.5 rounded-lg bg-medical text-white text-xs font-semibold hover:bg-medical-dark">Envoyer</button>
+                        </div>
+                        <div id="q13-sim-console" class="bg-slate-900 text-slate-200 font-mono text-xs p-3 rounded-lg min-h-[70px] space-y-1">
+                            <div class="text-slate-400">&gt;&gt;&gt; saisir_temperature()</div>
+                            <div class="text-sky-300">Température mesurée (°C) : <span class="animate-pulse">_</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Corrigé Q1.3 -->
+                    <div>
+                        <button onclick="toggleSolution('sol-q13')" class="text-sm font-semibold text-medical hover:text-turquoise flex items-center gap-1.5 transition">
+                            <span id="icon-sol-q13">▶</span> Afficher / Masquer le corrigé détaillé et le barème
+                        </button>
+                        <div id="sol-q13" class="zone-reponse hidden mt-3 p-4 rounded-xl bg-medical-light/60 border border-medical/20 text-sm space-y-2">
+                            <p class="font-semibold text-medical">Barème : 3 trous × 0.5 pt = 1.5 pt</p>
+                            <ul class="list-disc pl-5 space-y-1 text-slate-700">
+                                <li><strong>Trou 1 (0.5 pt) :</strong> <code class="font-mono font-bold">float</code> (conversion obligatoire car <code class="font-mono">input()</code> renvoie toujours du texte <code class="font-mono">str</code>).</li>
+                                <li><strong>Trou 2 (0.5 pt) :</strong> <code class="font-mono font-bold">t &lt; 20.0 or t &gt; 45.0</code> (ou <code class="font-mono">not (20.0 &lt;= t &lt;= 45.0)</code>). Attention : mettre <code class="font-mono">and</code> à la place de <code class="font-mono">or</code> est faux car aucun nombre ne peut être à la fois &lt; 20 et &gt; 45.</li>
+                                <li><strong>Trou 3 (0.5 pt) :</strong> <code class="font-mono font-bold">float(input("Température mesurée (°C) : "))</code> (indispensable pour actualiser <code class="font-mono">t</code> et éviter une boucle infinie).</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- ==================== QUESTION 1.4 ==================== -->
+            <article class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <span class="inline-block text-xs font-bold uppercase tracking-wide text-turquoise bg-turquoise-light px-2.5 py-1 rounded-md mb-1.5">Question 1.4 • 1.5 point</span>
+                        <h3 class="text-lg font-bold text-slate-900">Justification algorithmique (<code class="text-medical font-mono">while</code> vs <code class="text-medical font-mono">for</code>)</h3>
+                        <p class="text-sm text-slate-600 mt-1">
+                            Pourquoi utiliser <code class="font-mono bg-slate-100 px-1 rounded">while</code> plutôt que <code class="font-mono bg-slate-100 px-1 rounded">for</code> ? Combien d'itérations si l'opérateur saisit <code class="font-mono bg-slate-100 px-1 rounded">36.8</code> dès la première fois ?
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <span id="badge-q1_4" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">Auto-corrigé : à vérifier</span>
+                        <button onclick="basculerArticle(this)" data-bascule="article" class="px-3 py-1.5 rounded-full text-xs font-semibold border border-medical/30 bg-medical-light text-medical hover:bg-medical hover:text-white transition"><span class="libelle">Afficher la réponse</span></button>
+                    </div>
+                </div>
+
+                <!-- Mini-Quiz Q1.4 -->
+                <div class="p-5 sm:p-6 bg-slate-50/70 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- QCM 1 -->
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2.5">
+                            <p class="text-sm font-bold text-slate-800">1. Pourquoi <code class="font-mono text-medical">while</code> est-il obligatoire ici ?</p>
+                            <label class="flex items-start gap-2 text-sm cursor-pointer p-2 rounded-lg hover:bg-slate-50">
+                                <input type="radio" name="q14-a" value="a" class="mt-0.5 accent-turquoise">
+                                <span>Parce qu'une boucle <code class="font-mono">for</code> ne fonctionne pas avec des nombres <code class="font-mono">float</code>.</span>
+                            </label>
+                            <label class="flex items-start gap-2 text-sm cursor-pointer p-2 rounded-lg hover:bg-slate-50">
+                                <input type="radio" name="q14-a" value="b" class="mt-0.5 accent-turquoise">
+                                <span>Parce qu'on ne connaît pas à l'avance combien d'erreurs de saisie l'opérateur va commettre.</span>
+                            </label>
+                            <label class="flex items-start gap-2 text-sm cursor-pointer p-2 rounded-lg hover:bg-slate-50">
+                                <input type="radio" name="q14-a" value="c" class="mt-0.5 accent-turquoise">
+                                <span>Parce que <code class="font-mono">while</code> exécute toujours au moins un tour de boucle.</span>
+                            </label>
+                        </div>
+
+                        <!-- QCM 2 -->
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2.5">
+                            <p class="text-sm font-bold text-slate-800">2. Combien de tours fait <code class="font-mono text-medical">while</code> si l'opérateur saisit <code class="font-mono">36.8</code> du premier coup ?</p>
+                            <label class="flex items-center gap-2 text-sm cursor-pointer p-2 rounded-lg hover:bg-slate-50">
+                                <input type="radio" name="q14-b" value="0" class="accent-turquoise">
+                                <span><strong>0 itération</strong> (on n'entre jamais dans le corps de la boucle)</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-sm cursor-pointer p-2 rounded-lg hover:bg-slate-50">
+                                <input type="radio" name="q14-b" value="1" class="accent-turquoise">
+                                <span><strong>1 itération</strong> (pour vérifier la valeur puis sortir)</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-sm cursor-pointer p-2 rounded-lg hover:bg-slate-50">
+                                <input type="radio" name="q14-b" value="inf" class="accent-turquoise">
+                                <span><strong>Une boucle infinie</strong></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button onclick="checkQ14()" class="px-4 py-2 rounded-lg bg-turquoise hover:bg-turquoise-dark text-white text-sm font-semibold transition shadow-sm">
+                            Vérifier mes réponses
+                        </button>
+                        <span id="q14-feedback" class="text-sm font-semibold"></span>
+                    </div>
+
+                    <!-- Corrigé Q1.4 -->
+                    <div>
+                        <button onclick="toggleSolution('sol-q14')" class="text-sm font-semibold text-medical hover:text-turquoise flex items-center gap-1.5 transition">
+                            <span id="icon-sol-q14">▶</span> Afficher / Masquer la justification complète et le barème
+                        </button>
+                        <div id="sol-q14" class="zone-reponse hidden mt-3 p-4 rounded-xl bg-medical-light/60 border border-medical/20 text-sm space-y-2">
+                            <ul class="list-disc pl-5 space-y-1.5 text-slate-700">
+                                <li><strong>Choix de <code class="font-mono">while</code> (0.75 pt) :</strong> On utilise une boucle conditionnelle <code class="font-mono">while</code> car le nombre de tentatives nécessaires avant d'obtenir une saisie valide est <strong>inconnu à l'avance</strong> (contrairement à une boucle <code class="font-mono">for</code> qui s'utilise pour un nombre connu d'itérations).</li>
+                                <li><strong>Cas de <code class="font-mono">36.8</code> dès la première saisie (0.75 pt) :</strong> La condition <code class="font-mono">t &lt; 20.0 or t &gt; 45.0</code> est immédiatement évaluée à <code class="font-mono">False</code>. Le programme n'entre donc pas dans le bloc de la boucle : le <code class="font-mono">while</code> effectue exactement <strong>0 itération</strong>.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- SECTION 2 : PROBLÈME PARTIE A — AUTOCLAVES (6 POINTS)             -->
+        <!-- ================================================================= -->
+        <section id="section-partA" class="hidden space-y-6">
+            <!-- Bannière de contexte Problème -->
+            <div class="bg-gradient-to-r from-medical to-turquoise text-white rounded-2xl p-5 sm:p-6 shadow-md">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h2 class="text-xl sm:text-2xl font-bold">Problème — Banc d'essai des autoclaves (Partie A)</h2>
+                    <span class="px-3 py-1 rounded-full bg-white/15 text-sm font-bold border border-white/20">6 points</span>
+                </div>
+                <p class="text-sm sm:text-base text-blue-50 mt-2 leading-relaxed">
+                    Le plateau thermique d'un autoclave doit se maintenir autour de <strong>134.0 °C</strong>.
+                    En dessous de <code class="bg-white/15 px-1.5 py-0.5 rounded font-mono">132.0 °C</code>, la stérilisation est compromise (sous-température).
+                    Au-dessus de <code class="bg-white/15 px-1.5 py-0.5 rounded font-mono">138.0 °C</code>, il y a un risque critique de surpression.
+                </p>
+            </div>
+
+            <!-- ==================== QUESTION A.1 ==================== -->
+            <article class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <span class="inline-block text-xs font-bold uppercase tracking-wide text-turquoise bg-turquoise-light px-2.5 py-1 rounded-md mb-1.5">Question A.1 • 3 points</span>
+                        <h3 class="text-lg font-bold text-slate-900">Trace d'accumulation sur <code class="text-medical font-mono">moyenne_chauffe(nb)</code></h3>
+                        <p class="text-sm text-slate-600 mt-1">
+                            On appelle <code class="font-mono bg-slate-100 px-1 rounded">moyenne_chauffe(3)</code> avec les saisies successives <code class="font-mono bg-slate-100 px-1 rounded">100.0</code>, <code class="font-mono bg-slate-100 px-1 rounded">120.0</code> puis <code class="font-mono bg-slate-100 px-1 rounded">134.0</code>. Identifier la valeur retournée et corriger l'erreur de placement de <code class="font-mono bg-slate-100 px-1 rounded">somme = 0</code>.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <button onclick="toggleCompris('qA_1')" id="badge-qA_1" class="px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-50 transition">
+                            ○ Marquer comme compris
+                        </button>
+                        <button onclick="basculerArticle(this)" data-bascule="article" class="px-3 py-1.5 rounded-full text-xs font-semibold border border-medical/30 bg-medical-light text-medical hover:bg-medical hover:text-white transition"><span class="libelle">Afficher la réponse</span></button>
+                    </div>
+                </div>
+
+                <!-- Simulateur pas-à-pas QA.1 -->
+                <div class="p-5 sm:p-6 bg-slate-50/70 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="stepQA1()" id="qa1-step-btn" class="px-4 py-2 rounded-lg bg-medical hover:bg-medical-dark text-white text-xs sm:text-sm font-semibold transition shadow-sm">
+                                Tour suivant ▶
+                            </button>
+                            <button onclick="resetQA1()" class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold transition">
+                                Réinitialiser
+                            </button>
+                        </div>
+                        <label class="flex items-center gap-2.5 cursor-pointer select-none bg-turquoise-light/70 px-3 py-1.5 rounded-lg border border-turquoise/25">
+                            <input type="checkbox" id="qa1-fix-toggle" onchange="toggleQA1Fix()" class="w-4 h-4 accent-turquoise rounded">
+                            <span class="text-xs sm:text-sm font-semibold text-turquoise-dark">Corriger le placement de <code class="font-mono">somme = 0</code> (avant la boucle)</span>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                        <!-- Bloc de code -->
+                        <div class="lg:col-span-6 code-block p-3">
+                            <span class="code-line"><span class="kw">def</span> <span class="fn">moyenne_chauffe</span>(nb):</span>
+                            <span id="qa1-l-fixed" class="code-line hidden">    somme <span class="op">=</span> <span class="num">0</span>                          <span class="cmt"># Initialisée 1 seule fois !</span></span>
+                            <span id="qa1-l-for" class="code-line">    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, nb <span class="op">+</span> <span class="num">1</span>):</span>
+                            <span id="qa1-l-bug" class="code-line">        somme <span class="op">=</span> <span class="num">0</span>                      <span class="cmt"># PIÈGE : remise à 0 à chaque tour !</span></span>
+                            <span id="qa1-l-in" class="code-line">        t <span class="op">=</span> <span class="fn">float</span>(<span class="fn">input</span>(<span class="str">f"Minute {i} : "</span>))</span>
+                            <span id="qa1-l-add" class="code-line">        somme <span class="op">=</span> somme <span class="op">+</span> t</span>
+                            <span id="qa1-l-ret" class="code-line">    <span class="kw">return</span> somme <span class="op">/</span> nb</span>
+                        </div>
+
+                        <!-- Tableau de trace dynamique -->
+                        <div class="lg:col-span-6 bg-white rounded-xl border border-slate-200 overflow-hidden">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-slate-100 text-slate-600 text-xs uppercase">
+                                    <tr>
+                                        <th class="px-3 py-2.5">Tour <code class="font-mono">i</code></th>
+                                        <th class="px-3 py-2.5"><code class="font-mono">somme</code> avant ajout</th>
+                                        <th class="px-3 py-2.5"><code class="font-mono">t</code> saisi</th>
+                                        <th class="px-3 py-2.5"><code class="font-mono">somme</code> fin de tour</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="qa1-tbody" class="divide-y divide-slate-100 font-mono text-xs sm:text-sm">
+                                    <tr>
+                                        <td colspan="4" class="px-3 py-4 text-center text-slate-400 font-sans italic">Cliquez sur « Tour suivant ▶ » pour simuler les 3 minutes.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div id="qa1-return-banner" class="hidden px-4 py-3 border-t text-sm font-semibold"></div>
+                        </div>
+                    </div>
+
+                    <!-- Corrigé QA.1 -->
+                    <div>
+                        <button onclick="toggleSolution('sol-qa1')" class="text-sm font-semibold text-medical hover:text-turquoise flex items-center gap-1.5 transition">
+                            <span id="icon-sol-qa1">▶</span> Afficher / Masquer le corrigé détaillé et le barème
+                        </button>
+                        <div id="sol-qa1" class="zone-reponse hidden mt-3 p-4 rounded-xl bg-medical-light/60 border border-medical/20 text-sm space-y-2">
+                            <ul class="list-disc pl-5 space-y-1.5 text-slate-700">
+                                <li><strong>Trace et valeur retournée (1.5 pt) :</strong> À la fin du tour 1, <code class="font-mono">somme = 100.0</code>. Au tour 2, elle est remise à 0 puis vaut <code class="font-mono">120.0</code>. Au tour 3, elle est remise à 0 puis vaut <code class="font-mono">134.0</code>. La fonction retourne <code class="font-mono font-bold text-rose-700">134.0 / 3 ≈ 44.7 °C</code> (au lieu de <code class="font-mono">118.0 °C</code>).</li>
+                                <li><strong>Explication et correction (1.5 pt) :</strong> L'instruction <code class="font-mono">somme = 0</code> est placée <em>à l'intérieur</em> de la boucle <code class="font-mono">for</code>, ce qui efface les températures accumulées aux tours précédents. Il faut déplacer <code class="font-mono font-bold text-emerald-700">somme = 0</code> <strong>avant</strong> la ligne <code class="font-mono">for i in range(1, nb + 1):</code>.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- ==================== QUESTION A.2 ==================== -->
+            <article class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <span class="inline-block text-xs font-bold uppercase tracking-wide text-turquoise bg-turquoise-light px-2.5 py-1 rounded-md mb-1.5">Question A.2 • 3 points</span>
+                        <h3 class="text-lg font-bold text-slate-900">Fonction de décision <code class="text-medical font-mono">verdict_cycle(temp_moy, nb_sous_132, alerte_138)</code></h3>
+                        <p class="text-sm text-slate-600 mt-1">
+                            Tester les règles dans l'ordre strict : (1) <code class="font-mono">alerte_138</code> ou <code class="font-mono">nb_sous_132 &gt;= 2</code> &rarr; <code class="font-mono">"Non conforme - Arret"</code> ; (2) sinon <code class="font-mono">nb_sous_132 == 1</code> ou <code class="font-mono">temp_moy &lt; 133.5</code> &rarr; <code class="font-mono">"A recontroler"</code> ; (3) sinon &rarr; <code class="font-mono">"Conforme"</code>.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <button onclick="toggleCompris('qA_2')" id="badge-qA_2" class="px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-50 transition">
+                            ○ Marquer comme compris
+                        </button>
+                        <button onclick="basculerArticle(this)" data-bascule="article" class="px-3 py-1.5 rounded-full text-xs font-semibold border border-medical/30 bg-medical-light text-medical hover:bg-medical hover:text-white transition"><span class="libelle">Afficher la réponse</span></button>
+                    </div>
+                </div>
+
+                <!-- Banc de test QA.2 -->
+                <div class="p-5 sm:p-6 bg-slate-50/70 space-y-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 items-center">
+                        <!-- Réglages des 3 paramètres -->
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-4">
+                            <div class="flex flex-wrap gap-1.5">
+                                <span class="text-xs font-semibold text-slate-500 w-full mb-0.5">4 exemples du sujet :</span>
+                                <button onclick="setQA2(134.5, 0, true)" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 text-xs font-mono font-semibold hover:bg-rose-100">(134.5, 0, True)</button>
+                                <button onclick="setQA2(134.2, 2, false)" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 text-xs font-mono font-semibold hover:bg-rose-100">(134.2, 2, False)</button>
+                                <button onclick="setQA2(134.1, 1, false)" class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-xs font-mono font-semibold hover:bg-amber-100">(134.1, 1, False)</button>
+                                <button onclick="setQA2(134.6, 0, false)" class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-mono font-semibold hover:bg-emerald-100">(134.6, 0, False)</button>
+                            </div>
+
+                            <div class="space-y-3 pt-2 border-t border-slate-100">
+                                <div class="flex items-center justify-between gap-3">
+                                    <label class="text-xs sm:text-sm font-semibold text-slate-700"><code class="font-mono text-medical">temp_moy</code> (°C)</label>
+                                    <input type="number" id="qa2-moy" step="0.1" value="134.6" oninput="updateQA2()" class="w-24 px-2.5 py-1 text-center font-mono font-bold border border-slate-300 rounded-lg focus:outline-none focus:border-turquoise">
+                                </div>
+                                <div class="flex items-center justify-between gap-3">
+                                    <label class="text-xs sm:text-sm font-semibold text-slate-700"><code class="font-mono text-medical">nb_sous_132</code> (entier)</label>
+                                    <input type="number" id="qa2-nb" min="0" max="10" step="1" value="0" oninput="updateQA2()" class="w-24 px-2.5 py-1 text-center font-mono font-bold border border-slate-300 rounded-lg focus:outline-none focus:border-turquoise">
+                                </div>
+                                <div class="flex items-center justify-between gap-3">
+                                    <label class="text-xs sm:text-sm font-semibold text-slate-700"><code class="font-mono text-medical">alerte_138</code> (booléen)</label>
+                                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" id="qa2-alerte" onchange="updateQA2()" class="w-4 h-4 accent-rose-600 rounded">
+                                        <span id="qa2-alerte-lbl" class="font-mono text-sm font-bold text-slate-600">False</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="qa2-verdict-box" class="p-3.5 rounded-xl border transition-colors">
+                                <div class="text-xs uppercase tracking-wider font-semibold opacity-75">Verdict retourné</div>
+                                <div id="qa2-verdict-val" class="text-base sm:text-lg font-mono font-bold mt-0.5">'Conforme'</div>
+                                <div id="qa2-verdict-why" class="text-xs mt-1 opacity-90">Aucun incident et moyenne &gt;= 133.5 °C.</div>
+                            </div>
+                        </div>
+
+                        <!-- Code Python QA.2 -->
+                        <div class="voile-reponse hidden flex items-center justify-center text-center p-6 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 text-sm text-slate-500 min-h-[150px]">Écrivez d'abord la fonction. Le simulateur reste utilisable : réglez les trois indicateurs et lisez le verdict attendu.</div>
+                        <div class="code-block p-3 zone-reponse hidden">
+                            <span class="code-line"><span class="kw">def</span> <span class="fn">verdict_cycle</span>(temp_moy, nb_sous_132, alerte_138):</span>
+                            <span id="qa2-l1" class="code-line">    <span class="kw">if</span> alerte_138 <span class="kw">or</span> nb_sous_132 <span class="op">&gt;=</span> <span class="num">2</span>:</span>
+                            <span id="qa2-l2" class="code-line">        <span class="kw">return</span> <span class="str">"Non conforme - Arret"</span></span>
+                            <span id="qa2-l3" class="code-line">    <span class="kw">elif</span> nb_sous_132 <span class="op">==</span> <span class="num">1</span> <span class="kw">or</span> temp_moy <span class="op">&lt;</span> <span class="num">133.5</span>:</span>
+                            <span id="qa2-l4" class="code-line">        <span class="kw">return</span> <span class="str">"A recontroler"</span></span>
+                            <span id="qa2-l5" class="code-line">    <span class="kw">else</span>:</span>
+                            <span id="qa2-l6" class="code-line">        <span class="kw">return</span> <span class="str">"Conforme"</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Corrigé QA.2 -->
+                    <div>
+                        <button onclick="toggleSolution('sol-qa2')" class="text-sm font-semibold text-medical hover:text-turquoise flex items-center gap-1.5 transition">
+                            <span id="icon-sol-qa2">▶</span> Afficher / Masquer le corrigé détaillé et le barème
+                        </button>
+                        <div id="sol-qa2" class="zone-reponse hidden mt-3 p-4 rounded-xl bg-medical-light/60 border border-medical/20 text-sm space-y-2">
+                            <p class="font-semibold text-medical">Barème (3 pts) :</p>
+                            <ul class="list-disc pl-5 space-y-1 text-slate-700">
+                                <li><strong>En-tête avec les 3 paramètres dans l'ordre (0.5 pt).</strong></li>
+                                <li><strong>Branche 1 prioritaire (1 pt) :</strong> <code class="font-mono">if alerte_138 or nb_sous_132 &gt;= 2:</code> (écrire <code class="font-mono">alerte_138</code> seul ou <code class="font-mono">alerte_138 == True</code> sont tous deux acceptés).</li>
+                                <li><strong>Branche 2 (1 pt) :</strong> <code class="font-mono">elif nb_sous_132 == 1 or temp_moy &lt; 133.5:</code> (l'utilisation de <code class="font-mono">elif</code> garantit qu'on ne teste cette branche que si la règle 1 est fausse).</li>
+                                <li><strong>Branche <code class="font-mono">else</code> et <code class="font-mono">return</code> (0.5 pt).</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- SECTION 3 : PROBLÈME PARTIE B — CYCLE ET TÉMOIN (6 POINTS)        -->
+        <!-- ================================================================= -->
+        <section id="section-partB" class="hidden space-y-6">
+            <!-- Bannière de contexte Partie B -->
+            <div class="bg-gradient-to-r from-turquoise-dark to-medical text-white rounded-2xl p-5 sm:p-6 shadow-md">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h2 class="text-xl sm:text-2xl font-bold">Problème — Suivi complet d'un cycle (Partie B)</h2>
+                    <span class="px-3 py-1 rounded-full bg-white/15 text-sm font-bold border border-white/20">6 points</span>
+                </div>
+                <p class="text-sm sm:text-base text-teal-50 mt-2 leading-relaxed">
+                    Cette partie combine les quatre schémas classiques d'accumulation dans une même boucle <code class="bg-white/15 px-1.5 py-0.5 rounded font-mono">for</code> (somme, minimum avec rang, compteur conditionnel, témoin booléen) et analyse le piège classique du <code class="bg-white/15 px-1.5 py-0.5 rounded font-mono">else</code> sur un témoin.
+                </p>
+            </div>
+
+            <!-- ==================== QUESTION B.1 ==================== -->
+            <article class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <span class="inline-block text-xs font-bold uppercase tracking-wide text-turquoise bg-turquoise-light px-2.5 py-1 rounded-md mb-1.5">Question B.1 • 3.5 points</span>
+                        <h3 class="text-lg font-bold text-slate-900">Code à compléter : <code class="text-medical font-mono">analyser_cycle(nb_releves)</code> (7 trous)</h3>
+                        <p class="text-sm text-slate-600 mt-1">
+                            Complétez les 7 zones manquantes puis lancez le simulateur pas-à-pas sur la série d'exemple du sujet (<code class="font-mono bg-slate-100 px-1 rounded">134.5, 131.5, 134.8, 135.2</code>).
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <span id="badge-qB_1" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">Auto-corrigé : à vérifier</span>
+                        <button onclick="basculerArticle(this)" data-bascule="article" class="px-3 py-1.5 rounded-full text-xs font-semibold border border-medical/30 bg-medical-light text-medical hover:bg-medical hover:text-white transition"><span class="libelle">Afficher la réponse</span></button>
+                    </div>
+                </div>
+
+                <!-- Code à trous QB.1 -->
+                <div class="p-5 sm:p-6 bg-slate-50/70 space-y-5">
+                    <div class="code-block p-4 space-y-1 text-xs sm:text-sm">
+                        <div class="whitespace-pre"><span class="kw">def</span> <span class="fn">analyser_cycle</span>(nb_releves):</div>
+                        <div class="whitespace-pre">    somme <span class="op">=</span> <span class="num">0.0</span></div>
+                        <div class="whitespace-pre">    nb_sous_132 <span class="op">=</span> <span class="num">0</span></div>
+                        <div class="whitespace-pre">    alerte_138 <span class="op">=</span> <input type="text" id="qb1-in1" placeholder="(1)" class="code-input w-24">  <span class="cmt"># Initialisation du témoin booléen</span></div>
+                        <div class="whitespace-pre">    temp_min <span class="op">=</span> <span class="num">999.0</span></div>
+                        <div class="whitespace-pre">    rang_min <span class="op">=</span> <span class="num">0</span></div>
+                        <div class="whitespace-pre">    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <input type="text" id="qb1-in2" placeholder="(2)" class="code-input w-36">):  <span class="cmt"># De 1 à nb_releves inclus</span></div>
+                        <div class="whitespace-pre">        t <span class="op">=</span> <span class="fn">float</span>(<span class="fn">input</span>(<span class="str">f"Relevé n°{i} (°C) : "</span>))</div>
+                        <div class="whitespace-pre">        somme <span class="op">=</span> somme <span class="op">+</span> t</div>
+                        <div class="whitespace-pre">        <span class="kw">if</span> t <span class="op">&lt;</span> temp_min:</div>
+                        <div class="whitespace-pre">            temp_min <span class="op">=</span> <input type="text" id="qb1-in3" placeholder="(3)" class="code-input w-20">  <span class="cmt"># Nouvelle température minimale</span></div>
+                        <div class="whitespace-pre">            rang_min <span class="op">=</span> <input type="text" id="qb1-in4" placeholder="(4)" class="code-input w-20">  <span class="cmt"># Numéro du relevé</span></div>
+                        <div class="whitespace-pre">        <span class="kw">if</span> t <span class="op">&lt;</span> <span class="num">132.0</span>:</div>
+                        <div class="whitespace-pre">            nb_sous_132 <span class="op">=</span> <input type="text" id="qb1-in5" placeholder="(5)" class="code-input w-36">  <span class="cmt"># Incrémenter compteur</span></div>
+                        <div class="whitespace-pre">        <span class="kw">if</span> t <span class="op">&gt;</span> <span class="num">138.0</span>:</div>
+                        <div class="whitespace-pre">            alerte_138 <span class="op">=</span> <input type="text" id="qb1-in6" placeholder="(6)" class="code-input w-24">  <span class="cmt"># Lever le témoin critique</span></div>
+                        <div class="whitespace-pre">    moyenne <span class="op">=</span> <input type="text" id="qb1-in7" placeholder="(7)" class="code-input w-44">  <span class="cmt"># Moyenne après la boucle</span></div>
+                        <div class="whitespace-pre">    verdict <span class="op">=</span> <span class="fn">verdict_cycle</span>(moyenne, nb_sous_132, alerte_138)</div>
+                        <div class="whitespace-pre">    <span class="fn">print</span>(<span class="str">f"Température moyenne : {round(moyenne, 1)} °C"</span>)</div>
+                        <div class="whitespace-pre">    <span class="fn">print</span>(<span class="str">f"Minimum : {temp_min} °C (atteint au relevé n°{rang_min})"</span>)</div>
+                        <div class="whitespace-pre">    <span class="fn">print</span>(<span class="str">f"Verdict du cycle : {verdict}"</span>)</div>
+                        <div class="whitespace-pre">    <span class="kw">return</span> verdict</div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <button onclick="checkQB1()" class="px-4 py-2 rounded-lg bg-turquoise hover:bg-turquoise-dark text-white text-sm font-semibold transition shadow-sm">
+                            Vérifier les 7 trous
+                        </button>
+                        <button onclick="fillQB1()" class="px-3 py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition">
+                            Remplir la solution
+                        </button>
+                        <span id="qb1-feedback" class="text-sm font-semibold"></span>
+                    </div>
+
+                    <!-- Simulateur pas-à-pas sur 134.5, 131.5, 134.8, 135.2 -->
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-medical">Simulateur de l'exemple : analyser_cycle(4)</div>
+                                <div class="text-xs text-slate-500 font-mono mt-0.5">Saisies : [134.5, 131.5, 134.8, 135.2]</div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="stepQB1Sim()" id="qb1-sim-btn" class="px-3.5 py-1.5 rounded-lg bg-medical hover:bg-medical-dark text-white text-xs font-semibold transition">
+                                    Relevé suivant ▶
+                                </button>
+                                <button onclick="resetQB1Sim()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">
+                                    Réinitialiser
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- État des 5 variables en direct -->
+                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 font-mono text-center">
+                            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                                <div class="text-[11px] text-slate-500 font-sans">somme</div>
+                                <div id="qb1-v-somme" class="text-base font-bold text-medical">0.0</div>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                                <div class="text-[11px] text-slate-500 font-sans">temp_min</div>
+                                <div id="qb1-v-min" class="text-base font-bold text-medical">999.0</div>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                                <div class="text-[11px] text-slate-500 font-sans">rang_min</div>
+                                <div id="qb1-v-rang" class="text-base font-bold text-medical">0</div>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                                <div class="text-[11px] text-slate-500 font-sans">nb_sous_132</div>
+                                <div id="qb1-v-nb" class="text-base font-bold text-medical">0</div>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 col-span-2 sm:col-span-1">
+                                <div class="text-[11px] text-slate-500 font-sans">alerte_138</div>
+                                <div id="qb1-v-alerte" class="text-base font-bold text-slate-700">False</div>
+                            </div>
+                        </div>
+
+                        <!-- Historique des tours + sortie console finale -->
+                        <div id="qb1-sim-log" class="bg-slate-900 text-slate-200 font-mono text-xs p-3.5 rounded-xl space-y-1 min-h-[85px]">
+                            <div class="text-slate-400 italic">Cliquez sur « Relevé suivant ▶ » pour observer la mise à jour simultanée des 5 variables.</div>
+                        </div>
+                    </div>
+
+                    <!-- Corrigé QB.1 -->
+                    <div>
+                        <button onclick="toggleSolution('sol-qb1')" class="text-sm font-semibold text-medical hover:text-turquoise flex items-center gap-1.5 transition">
+                            <span id="icon-sol-qb1">▶</span> Afficher / Masquer le corrigé détaillé et le barème
+                        </button>
+                        <div id="sol-qb1" class="zone-reponse hidden mt-3 p-4 rounded-xl bg-medical-light/60 border border-medical/20 text-sm">
+                            <p class="font-semibold text-medical mb-2">Barème : 7 trous × 0.5 pt = 3.5 pts</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 font-mono text-xs text-slate-800">
+                                <div>(1) <strong>False</strong></div>
+                                <div>(2) <strong>nb_releves + 1</strong></div>
+                                <div>(3) <strong>t</strong></div>
+                                <div>(4) <strong>i</strong></div>
+                                <div>(5) <strong>nb_sous_132 + 1</strong></div>
+                                <div>(6) <strong>True</strong></div>
+                                <div>(7) <strong>somme / nb_releves</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- ==================== QUESTION B.2 ==================== -->
+            <article class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <span class="inline-block text-xs font-bold uppercase tracking-wide text-turquoise bg-turquoise-light px-2.5 py-1 rounded-md mb-1.5">Question B.2 • 2.5 points</span>
+                        <h3 class="text-lg font-bold text-slate-900">Le piège du <code class="text-rose-600 font-mono">else: alerte_138 = False</code> sur un témoin</h3>
+                        <p class="text-sm text-slate-600 mt-1">
+                            Comparer l'évolution du témoin booléen <code class="font-mono bg-slate-100 px-1 rounded">alerte_138</code> sur la série <code class="font-mono bg-slate-100 px-1 rounded">134.0, 139.5, 135.0, 134.2</code> avec et sans branche <code class="font-mono bg-slate-100 px-1 rounded">else</code>.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <button onclick="toggleCompris('qB_2')" id="badge-qB_2" class="px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-50 transition">
+                            ○ Marquer comme compris
+                        </button>
+                        <button onclick="basculerArticle(this)" data-bascule="article" class="px-3 py-1.5 rounded-full text-xs font-semibold border border-medical/30 bg-medical-light text-medical hover:bg-medical hover:text-white transition"><span class="libelle">Afficher la réponse</span></button>
+                    </div>
+                </div>
+
+                <!-- Frise comparative QB.2 -->
+                <div class="p-5 sm:p-6 bg-slate-50/70 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 bg-white p-3.5 rounded-xl border border-slate-200">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="stepQB2()" id="qb2-step-btn" class="px-4 py-2 rounded-lg bg-medical hover:bg-medical-dark text-white text-xs sm:text-sm font-semibold transition shadow-sm">
+                                Relevé suivant ▶
+                            </button>
+                            <button onclick="runAllQB2()" class="px-3 py-2 rounded-lg bg-turquoise-light text-turquoise-dark hover:bg-teal-100 text-xs sm:text-sm font-semibold transition">
+                                Tout dérouler
+                            </button>
+                            <button onclick="resetQB2()" class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold transition">
+                                Réinitialiser
+                            </button>
+                        </div>
+                        <span id="qb2-progress-lbl" class="text-xs font-semibold text-slate-500">Étape 0 / 4</span>
+                    </div>
+
+                    <!-- Frise des 4 relevés -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="qb2-timeline">
+                        <!-- Généré dynamiquement par JS -->
+                    </div>
+
+                    <!-- Comparaison côte à côte -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Version Sans else (Correct) -->
+                        <div class="bg-white rounded-xl border-2 border-emerald-200 p-4 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-bold text-emerald-800">Version CORRECTE (Sans <code class="font-mono">else</code>)</span>
+                                <span id="qb2-good-val" class="px-3 py-1 rounded-full font-mono text-sm font-bold bg-slate-100 text-slate-700">False</span>
+                            </div>
+                            <div class="code-block p-2.5 text-xs">
+                                <span class="code-line"><span class="kw">if</span> t <span class="op">&gt;</span> <span class="num">138.0</span>:</span>
+                                <span class="code-line">    alerte_138 <span class="op">=</span> <span class="num">True</span></span>
+                            </div>
+                            <p id="qb2-good-note" class="text-xs text-slate-600">Initialisée à <code class="font-mono">False</code> avant la boucle.</p>
+                        </div>
+
+                        <!-- Version Avec else (Buggué) -->
+                        <div class="bg-white rounded-xl border-2 border-rose-200 p-4 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-bold text-rose-800">Version BUGGUÉE (Avec <code class="font-mono">else</code>)</span>
+                                <span id="qb2-bad-val" class="px-3 py-1 rounded-full font-mono text-sm font-bold bg-slate-100 text-slate-700">False</span>
+                            </div>
+                            <div class="code-block p-2.5 text-xs">
+                                <span class="code-line"><span class="kw">if</span> t <span class="op">&gt;</span> <span class="num">138.0</span>:</span>
+                                <span class="code-line">    alerte_138 <span class="op">=</span> <span class="num">True</span></span>
+                                <span class="code-line bug-line"><span class="kw">else</span>:</span>
+                                <span class="code-line bug-line">    alerte_138 <span class="op">=</span> <span class="num">False</span></span>
+                            </div>
+                            <p id="qb2-bad-note" class="text-xs text-slate-600">Initialisée à <code class="font-mono">False</code> avant la boucle.</p>
+                        </div>
+                    </div>
+
+                    <!-- Corrigé QB.2 -->
+                    <div>
+                        <button onclick="toggleSolution('sol-qb2')" class="text-sm font-semibold text-medical hover:text-turquoise flex items-center gap-1.5 transition">
+                            <span id="icon-sol-qb2">▶</span> Afficher / Masquer l'explication complète et le barème
+                        </button>
+                        <div id="sol-qb2" class="zone-reponse hidden mt-3 p-4 rounded-xl bg-medical-light/60 border border-medical/20 text-sm space-y-2">
+                            <p class="font-semibold text-medical">Corrigé rédigé &amp; Barème (2.5 pts) :</p>
+                            <ul class="list-disc pl-5 space-y-1.5 text-slate-700">
+                                <li><strong>Valeur finale avec le <code class="font-mono">else</code> (1 pt) :</strong> À la sortie de la boucle, <code class="font-mono font-bold text-rose-700">alerte_138</code> vaudra <code class="font-mono font-bold text-rose-700">False</code> (au lieu de <code class="font-mono">True</code>), masquant la surchauffe grave de 139.5 °C survenue au 2<sup>e</sup> relevé.</li>
+                                <li><strong>Explication algorithmique (1.5 pt) :</strong> Un témoin booléen (drapeau) sert à mémoriser si un événement s'est produit <em>au moins une fois</em> durant toute la boucle. En ajoutant <code class="font-mono">else: alerte_138 = False</code>, dès qu'un relevé ultérieur redevient normal (135.0 °C puis 134.2 °C), le témoin est écrasé et remis à <code class="font-mono">False</code>. La variable ne reflète alors plus l'historique du cycle, mais uniquement l'état du <strong>tout dernier relevé</strong>.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <!-- Pied de page -->
+    <footer class="border-t border-slate-200 bg-white mt-10 py-4 text-center text-xs text-slate-500">
+        ESM6ISS - UM6SS • Licence Maintenance et Génie Biomédical — Corrigé Interactif Python (Contrôle Continu)
+    </footer>
+
+    <!-- ===================================================================== -->
+    <!-- LOGIQUE JAVASCRIPT INTERACTIVE                                        -->
+    <!-- ===================================================================== -->
+    <script>
+        /* -------------------------------------------------------------------
+           1. GESTION DES ONGLETS ET DU SCORE GLOBAL SUR 20 POINTS
+           ------------------------------------------------------------------- */
+        /* -------------------------------------------------------------------
+           1. SUIVI DE LECTURE ET AFFICHAGE DES RÉPONSES
+           -------------------------------------------------------------------
+           Aucune note n'est calculée : un corrigé ne note pas. Les cinq
+           questions de raisonnement portent un marquage « compris », que
+           l'étudiant pose lui-même ; les trois questions à trous ou à choix
+           sont, elles, réellement corrigées.
+           ------------------------------------------------------------------- */
+        const CLES_COMPRIS = ['q1_1', 'q1_2', 'qA_1', 'qA_2', 'qB_2'];
+        const compris = {};
+        CLES_COMPRIS.forEach(k => compris[k] = false);
+        const autoReussies = { q1_3: false, q1_4: false, qB_1: false };
+
+        const CLASSE_A_VOIR = "px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-50 transition";
+        const CLASSE_COMPRIS = "px-3 py-1.5 rounded-full text-xs font-semibold border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition";
+        const CLASSE_NEUTRE = "px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200";
+        const CLASSE_JUSTE = "px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300";
+        const CLASSE_PARTIEL = "px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-300";
+        const BASCULE_FERMEE = "px-3 py-1.5 rounded-full text-xs font-semibold border border-medical/30 bg-medical-light text-medical hover:bg-medical hover:text-white transition";
+        const BASCULE_OUVERTE = "px-3 py-1.5 rounded-full text-xs font-semibold border border-medical bg-medical text-white hover:bg-medical-dark transition";
+
+        function majCompteurCompris() {
+            const n = CLES_COMPRIS.filter(k => compris[k]).length
+                    + Object.values(autoReussies).filter(Boolean).length;
+            const el = document.getElementById('compteur-compris');
+            if (el) el.textContent = `${n} / 8`;
+        }
+
+        function toggleCompris(cle) {
+            const btn = document.getElementById(`badge-${cle}`);
+            compris[cle] = !compris[cle];
+            btn.className = compris[cle] ? CLASSE_COMPRIS : CLASSE_A_VOIR;
+            btn.textContent = compris[cle] ? '✓ Compris' : '○ Marquer comme compris';
+            majCompteurCompris();
+        }
+
+        /* Chaque réponse vit dans un élément .zone-reponse, masqué au départ.
+           Un bouton par question, et un bouton global, les découvrent. */
+        function zonesDe(portee) {
+            return Array.from(portee.querySelectorAll('.zone-reponse'));
+        }
+
+        function majAffichage() {
+            document.querySelectorAll('.voile-reponse').forEach(voile => {
+                const cible = voile.nextElementSibling;
+                if (cible && cible.classList.contains('zone-reponse')) {
+                    voile.classList.toggle('hidden', !cible.classList.contains('hidden'));
+                }
+            });
+            document.querySelectorAll('[data-bascule]').forEach(btn => {
+                const global = btn.dataset.bascule === 'global';
+                const portee = global ? document : (btn.closest('article') || document);
+                const zones = zonesDe(portee);
+                const visibles = zones.filter(z => !z.classList.contains('hidden')).length;
+                const libelle = btn.querySelector('.libelle');
+                if (!libelle) return;
+                if (global) {
+                    libelle.textContent = (zones.length && visibles === zones.length)
+                        ? 'Masquer toutes les réponses' : 'Afficher toutes les réponses';
+                } else {
+                    libelle.textContent = visibles ? 'Masquer la réponse' : 'Afficher la réponse';
+                    btn.className = visibles ? BASCULE_OUVERTE : BASCULE_FERMEE;
+                }
+            });
+            document.querySelectorAll('[id^="icon-sol-"]').forEach(ic => {
+                const cible = document.getElementById(ic.id.replace('icon-', ''));
+                if (cible) ic.textContent = cible.classList.contains('hidden') ? '▶' : '▼';
+            });
+        }
+
+        function basculerZones(portee, forcer) {
+            const zones = zonesDe(portee);
+            if (!zones.length) return;
+            const visibles = zones.filter(z => !z.classList.contains('hidden')).length;
+            const afficher = (forcer === undefined) ? (visibles < zones.length) : forcer;
+            zones.forEach(z => z.classList.toggle('hidden', !afficher));
+            majAffichage();
+        }
+
+        function basculerArticle(btn) { basculerZones(btn.closest('article')); }
+        function basculerTout() { basculerZones(document); }
+
+        /* -------------------------------------------------------------------
+           2. ÉVALUATION DES RÉPONSES ÉCRITES
+           -------------------------------------------------------------------
+           On compare ce que l'expression CALCULE, et non la façon dont elle est
+           écrite : toute écriture Python équivalente est acceptée. Le jeu de
+           jetons autorisés tient lieu de garde-fou — un identifiant inconnu ou
+           un caractère étranger à l'arithmétique est refusé avant évaluation.
+           ------------------------------------------------------------------- */
+        const MOTS_PYTHON = { 'and': '&&', 'or': '||', 'not': '!', 'True': 'true', 'False': 'false' };
+        const COMPARAISONS = ['<', '>', '<=', '>=', '===', '!=='];
+
+        function jetonner(expr) {
+            if (!/^[A-Za-z0-9_+\-*/%.()<>=!\s]*$/.test(expr)) return null;
+            return expr.match(/[A-Za-z_][A-Za-z0-9_]*|\d+\.\d*|\.\d+|\d+|<=|>=|==|!=|[<>+\-*/%()]/g) || [];
+        }
+
+        /* « not » s'étend jusqu'au prochain and / or de même niveau : en Python,
+           not a == b and c se lit (not (a == b)) and c. */
+        function porterNegations(jetons) {
+            let prof = 0;
+            for (let i = 0; i < jetons.length; i++) {
+                const j = jetons[i];
+                if (j === '(') { prof++; continue; }
+                if (j === ')') { prof--; continue; }
+                if (prof !== 0 || j !== '!') continue;
+                let fin = jetons.length, p = 0;
+                for (let k = i + 1; k < jetons.length; k++) {
+                    if (jetons[k] === '(') p++;
+                    else if (jetons[k] === ')') { if (p === 0) { fin = k; break; } p--; }
+                    else if (p === 0 && (jetons[k] === '&&' || jetons[k] === '||')) { fin = k; break; }
+                }
+                const dedans = porterNegations(jetons.slice(i + 1, fin));
+                return jetons.slice(0, i).concat(['!', '('], dedans, [')'], porterNegations(jetons.slice(fin)));
+            }
+            return jetons;
+        }
+
+        /* a < b < c devient (a < b) && (b < c) : Python enchaîne, JavaScript non. */
+        function deplierNiveau(jetons) {
+            let prof = 0, logique = false;
+            const positions = [];
+            jetons.forEach((j, i) => {
+                if (j === '(') prof++;
+                else if (j === ')') prof--;
+                else if (prof === 0) {
+                    if (COMPARAISONS.includes(j)) positions.push(i);
+                    else if (j === '&&' || j === '||') logique = true;
+                }
+            });
+            if (logique || positions.length < 2) return jetons;
+            const morceaux = [];
+            let debut = 0;
+            for (const i of positions) { morceaux.push(jetons.slice(debut, i)); debut = i + 1; }
+            morceaux.push(jetons.slice(debut));
+            const sortie = [];
+            positions.forEach((i, k) => {
+                if (k) sortie.push('&&');
+                sortie.push('(', ...morceaux[k], jetons[i], ...morceaux[k + 1], ')');
+            });
+            return sortie;
+        }
+
+        function deplier(jetons) {
+            const pile = [[]];
+            for (const j of jetons) {
+                if (j === '(') pile.push([]);
+                else if (j === ')') {
+                    if (pile.length < 2) return null;
+                    const groupe = deplierNiveau(pile.pop());
+                    pile[pile.length - 1].push('(', ...groupe, ')');
+                } else pile[pile.length - 1].push(j);
+            }
+            if (pile.length !== 1) return null;
+            return deplierNiveau(pile[0]);
+        }
+
+        function pythonVersJs(expr, variables) {
+            const bruts = jetonner(expr);
+            if (!bruts || !bruts.length) return null;
+            const jetons = [];
+            for (const j of bruts) {
+                if (Object.prototype.hasOwnProperty.call(MOTS_PYTHON, j)) { jetons.push(MOTS_PYTHON[j]); continue; }
+                if (/^[A-Za-z_]/.test(j)) {
+                    if (!variables.includes(j)) return null;
+                    jetons.push(j); continue;
+                }
+                jetons.push(j === '==' ? '===' : j === '!=' ? '!==' : j);
+            }
+            const deplies = deplier(porterNegations(jetons));
+            return deplies === null ? null : deplies.join(' ');
+        }
+
+        function fabriquer(expr, variables) {
+            const js = pythonVersJs(expr, variables);
+            if (js === null) return null;
+            try { return new Function(...variables, 'return (' + js + ');'); } catch (e) { return null; }
+        }
+
+        /* Deux écritures sont tenues pour équivalentes si elles rendent la même
+           chose sur tous les jeux d'essai — bornes comprises. */
+        function equivalentes(saisie, reference, variables, jeux) {
+            const f = fabriquer(saisie, variables);
+            const g = fabriquer(reference, variables);
+            if (!f || !g) return false;
+            for (const jeu of jeux) {
+                let a, b;
+                try { a = f(...jeu); b = g(...jeu); } catch (e) { return false; }
+                if (typeof b === 'boolean') { if (Boolean(a) !== b) return false; }
+                else if (typeof b === 'number') {
+                    if (typeof a !== 'number' || !isFinite(a) || Math.abs(a - b) > 1e-9) return false;
+                } else if (a !== b) return false;
+            }
+            return true;
+        }
+
+        function normaliser(str) { return str.trim().replace(/\s+/g, ''); }
+
+        /* Un indice nommé vaut mieux qu'un champ rouge : si la réponse fausse
+           est l'une des fautes attendues, on dit laquelle. */
+        function indice(valeur, pieges) {
+            const v = normaliser(valeur);
+            for (const [motif, message] of pieges) {
+                if (motif.test(v)) return message;
+            }
+            return null;
+        }
+
+        function switchTab(tab) {
+            const sections = {
+                ex1: document.getElementById('section-ex1'),
+                partA: document.getElementById('section-partA'),
+                partB: document.getElementById('section-partB')
+            };
+            const tabs = ['ex1', 'partA', 'partB', 'all'];
+
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tab) {
+                    btn.classList.remove('bg-slate-100', 'text-slate-700', 'hover:bg-slate-200');
+                    btn.classList.add('bg-medical', 'text-white', 'shadow-sm');
+                } else {
+                    btn.classList.remove('bg-medical', 'text-white', 'shadow-sm');
+                    btn.classList.add('bg-slate-100', 'text-slate-700', 'hover:bg-slate-200');
+                }
+            });
+
+            if (tab === 'all') {
+                Object.values(sections).forEach(s => s.classList.remove('hidden'));
+            } else {
+                Object.keys(sections).forEach(k => {
+                    sections[k].classList.toggle('hidden', k !== tab);
+                });
+            }
+        }
+
+        function toggleSolution(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('hidden');
+            majAffichage();
+        }
+
+        /* -------------------------------------------------------------------
+           2. QUESTION 1.1 — SIMULATEUR statut_incubateur(temp)
+           ------------------------------------------------------------------- */
+        function updateQ11(val) {
+            const temp = parseFloat(val);
+            if (isNaN(temp)) return;
+            document.getElementById('q11-slider').value = temp;
+            document.getElementById('q11-number').value = temp.toFixed(1);
+
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById(`q11-l${i}`).classList.remove('active-line');
+            }
+
+            const box = document.getElementById('q11-result-box');
+            const retVal = document.getElementById('q11-return-val');
+            const pill = document.getElementById('q11-status-pill');
+
+            if (temp < 36.0) {
+                document.getElementById('q11-l1').classList.add('active-line');
+                document.getElementById('q11-l2').classList.add('active-line');
+                retVal.textContent = '"Hypothermie"';
+                box.className = "p-3.5 rounded-xl border bg-blue-50 border-blue-200 text-blue-900 flex items-center justify-between transition-colors";
+                pill.className = "px-3 py-1 rounded-full text-xs font-bold bg-blue-600 text-white";
+                pill.textContent = "T < 36.0 °C";
+            } else if (temp <= 37.5) {
+                document.getElementById('q11-l3').classList.add('active-line');
+                document.getElementById('q11-l4').classList.add('active-line');
+                retVal.textContent = '"Normal"';
+                box.className = "p-3.5 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 flex items-center justify-between transition-colors";
+                pill.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white";
+                pill.textContent = "36.0 <= T <= 37.5";
+            } else {
+                document.getElementById('q11-l5').classList.add('active-line');
+                document.getElementById('q11-l6').classList.add('active-line');
+                retVal.textContent = '"Hyperthermie"';
+                box.className = "p-3.5 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 flex items-center justify-between transition-colors";
+                pill.className = "px-3 py-1 rounded-full text-xs font-bold bg-rose-600 text-white";
+                pill.textContent = "T > 37.5 °C";
+            }
+        }
+
+        /* -------------------------------------------------------------------
+           3. QUESTION 1.2 — DÉBOGUEUR PAS-À-PAS print vs return
+           ------------------------------------------------------------------- */
+        let q12Step = 0;
+        let q12Fixed = false;
+
+        function toggleQ12Fix() {
+            q12Fixed = document.getElementById('q12-fix-toggle').checked;
+            const l3 = document.getElementById('q12-l3');
+            if (q12Fixed) {
+                l3.innerHTML = '    <span class="kw">return</span> <span class="fn">round</span>(diff, <span class="num">1</span>)';
+            } else {
+                l3.innerHTML = '    <span class="fn">print</span>(<span class="fn">round</span>(diff, <span class="num">1</span>))';
+            }
+            resetQ12();
+        }
+
+        function resetQ12() {
+            q12Step = 0;
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById(`q12-l${i}`);
+                el.classList.remove('active-line', 'bug-line');
+            }
+            document.getElementById('q12-mem-diff').textContent = '—';
+            document.getElementById('q12-mem-res').textContent = '—';
+            document.getElementById('q12-mem-res').className = 'font-bold text-slate-800';
+            document.getElementById('q12-console').innerHTML = '<span class="text-slate-500 italic">(En attente d\'exécution...)</span>';
+            document.getElementById('q12-explain').innerHTML = 'Cliquez sur <strong>Étape suivante ▶</strong> pour dérouler l\'exécution ligne par ligne.';
+            document.getElementById('q12-step-btn').disabled = false;
+            document.getElementById('q12-step-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        function stepQ12() {
+            q12Step++;
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`q12-l${i}`).classList.remove('active-line', 'bug-line');
+            }
+
+            const memDiff = document.getElementById('q12-mem-diff');
+            const memRes = document.getElementById('q12-mem-res');
+            const consoleEl = document.getElementById('q12-console');
+            const explainEl = document.getElementById('q12-explain');
+
+            if (q12Step === 1) {
+                document.getElementById('q12-l4').classList.add('active-line');
+                explainEl.innerHTML = '<strong>Étape 1 :</strong> Le programme principal appelle <code class="font-mono">calculer_ecart(38.2, 36.5)</code>. L\'exécution saute à l\'intérieur de la fonction.';
+            } else if (q12Step === 2) {
+                document.getElementById('q12-l2').classList.add('active-line');
+                memDiff.textContent = '1.7000000000000028';
+                explainEl.innerHTML = '<strong>Étape 2 :</strong> Calcul de <code class="font-mono">diff = abs(38.2 - 36.5)</code> (environ <code class="font-mono">1.7</code>).';
+            } else if (q12Step === 3) {
+                if (!q12Fixed) {
+                    document.getElementById('q12-l3').classList.add('bug-line');
+                    consoleEl.innerHTML = '<div>1.7</div>';
+                    explainEl.innerHTML = '<strong>Étape 3 (Piège !) :</strong> <code class="font-mono">print(round(diff, 1))</code> affiche <strong>1.7</strong> dans la console, mais ne renvoie aucune valeur ! La fonction se termine donc en renvoyant implicitement <code class="font-mono font-bold text-rose-600">None</code>.';
+                } else {
+                    document.getElementById('q12-l3').classList.add('active-line');
+                    explainEl.innerHTML = '<strong>Étape 3 (Corrigé) :</strong> <code class="font-mono">return round(diff, 1)</code> renvoie la valeur numérique <strong>1.7</strong> au programme principal sans rien afficher pour l\'instant.';
+                }
+            } else if (q12Step === 4) {
+                document.getElementById('q12-l4').classList.add('active-line');
+                memDiff.textContent = '(détruite)';
+                if (!q12Fixed) {
+                    memRes.textContent = 'None';
+                    memRes.className = 'font-bold text-rose-600';
+                    explainEl.innerHTML = '<strong>Étape 4 :</strong> Retour au programme principal. La variable <code class="font-mono">res</code> récupère la valeur renvoyée par la fonction, c\'est-à-dire <code class="font-mono font-bold text-rose-600">None</code>.';
+                } else {
+                    memRes.textContent = '1.7';
+                    memRes.className = 'font-bold text-emerald-600';
+                    explainEl.innerHTML = '<strong>Étape 4 :</strong> Retour au programme principal. La variable <code class="font-mono">res</code> reçoit bien le flottant <code class="font-mono font-bold text-emerald-600">1.7</code>.';
+                }
+            } else if (q12Step === 5) {
+                document.getElementById('q12-l5').classList.add('active-line');
+                if (!q12Fixed) {
+                    consoleEl.innerHTML = '<div>1.7</div><div class="text-rose-400">L’écart est : None</div>';
+                    explainEl.innerHTML = '<strong>Étape 5 (Fin) :</strong> La console affiche la 2<sup>e</sup> ligne : <code class="font-mono">L’écart est : None</code>. Activez l\'interrupteur ci-dessus pour comparer avec la version corrigée !';
+                } else {
+                    consoleEl.innerHTML = '<div class="text-emerald-400">L’écart est : 1.7</div>';
+                    explainEl.innerHTML = '<strong>Étape 5 (Fin) :</strong> La console affiche proprement une seule ligne : <code class="font-mono">L’écart est : 1.7</code> et <code class="font-mono">res</code> est réutilisable dans un calcul.';
+                }
+                document.getElementById('q12-step-btn').disabled = true;
+                document.getElementById('q12-step-btn').classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        /* -------------------------------------------------------------------
+           4. QUESTION 1.3 — CODE À TROUS saisir_temperature() + SIMULATEUR
+           ------------------------------------------------------------------- */
+        function norm(str) {
+            return str.trim().replace(/\s+/g, '');
+        }
+
+        /* Les bornes sont des cas d'essai à part entière : une condition qui
+           se trompe sur 20.0 ou 45.0 ne passe pas. */
+        const JEUX_T = [-10, 0, 19.9, 19.999, 20, 20.001, 25, 36.8, 44.999, 45, 45.001, 50, 365].map(v => [v]);
+
+        const PIEGES_Q13 = {
+            'q13-in1': [
+                [/^int$/, "int refuse un texte qui contient un point : int(\"36.8\") lève une ValueError. La sonde rend des décimaux."],
+                [/^str$/, "input rend déjà du texte ; sans conversion numérique, la comparaison avec 20.0 n'a pas de sens."],
+                [/^input$/, "la conversion s'applique à ce que input a rendu, elle ne le remplace pas."]
+            ],
+            'q13-in2': [
+                [/and/, "avec and, il faudrait une température à la fois inférieure à 20 et supérieure à 45 : la condition est toujours fausse et la boucle ne tourne jamais."],
+                [/^t>20.*t<45$/, "cette condition est vraie pour toute température valide : la boucle ne s'arrêterait jamais."],
+                [/<=20|>=45/, "les deux bornes sont acceptées : 20.0 et 45.0 sont des mesures valides. Le rejet porte sur des inégalités strictes."]
+            ],
+            'q13-in3': [
+                [/^t$/, "il faut une nouvelle saisie, pas la valeur déjà refusée."],
+                [/^input\(/, "sans float, t resterait du texte et la comparaison échouerait."],
+                [/^int\(input/, "int refuse un texte qui contient un point décimal."]
+            ]
+        };
+
+        function checkQ13() {
+            const champs = ['q13-in1', 'q13-in2', 'q13-in3'].map(id => document.getElementById(id));
+            const [i1, i2, i3] = champs;
+
+            const ok1 = normaliser(i1.value) === 'float';
+            const ok2 = equivalentes(i2.value, 't < 20.0 or t > 45.0', ['t'], JEUX_T);
+            const ok3 = /^float\(input\(.*\)\)$/.test(normaliser(i3.value));
+
+            const verdicts = [ok1, ok2, ok3];
+            champs.forEach((el, k) => {
+                el.classList.remove('valid', 'invalid');
+                el.classList.add(verdicts[k] ? 'valid' : 'invalid');
+            });
+
+            const nbOk = verdicts.filter(Boolean).length;
+            autoReussies.q1_3 = (nbOk === 3);
+            majCompteurCompris();
+
+            const badge = document.getElementById('badge-q1_3');
+            badge.textContent = nbOk === 3 ? 'Auto-corrigé : 3 zones justes' : `Auto-corrigé : ${nbOk} zone(s) sur 3`;
+            badge.className = nbOk === 3 ? CLASSE_JUSTE : CLASSE_PARTIEL;
+
+            const fb = document.getElementById('q13-feedback');
+            if (nbOk === 3) {
+                fb.textContent = "✅ Les 3 zones sont justes. Toute écriture équivalente est acceptée.";
+                fb.className = "text-sm font-semibold text-emerald-700";
+            } else {
+                const aides = [];
+                champs.forEach((el, k) => {
+                    if (verdicts[k]) return;
+                    const message = indice(el.value, PIEGES_Q13[el.id] || []);
+                    if (message) aides.push(`Zone ${k + 1} : ${message}`);
+                });
+                fb.innerHTML = `⚠️ ${nbOk}/3 zone(s) juste(s). Reprenez les champs en rouge.`
+                    + (aides.length ? '<br><span class="font-normal text-slate-700">' + aides.join('<br>') + '</span>' : '');
+                fb.className = "text-sm font-semibold text-rose-600";
+            }
+        }
+
+        function fillQ13() {
+            document.getElementById('q13-in1').value = 'float';
+            document.getElementById('q13-in2').value = 't < 20.0 or t > 45.0';
+            document.getElementById('q13-in3').value = 'float(input("Température mesurée (°C) : "))';
+            checkQ13();
+        }
+
+        // Mini simulateur clavier Q1.3
+        let q13SimDone = false;
+        function simQ13Reset() {
+            q13SimDone = false;
+            document.getElementById('q13-sim-input').value = '';
+            document.getElementById('q13-sim-console').innerHTML =
+                '<div class="text-slate-400">&gt;&gt;&gt; saisir_temperature()</div>' +
+                '<div class="text-sky-300">Température mesurée (°C) : <span class="animate-pulse">_</span></div>';
+        }
+
+        function simQ13Submit(presetVal) {
+            if (q13SimDone) simQ13Reset();
+            const inputEl = document.getElementById('q13-sim-input');
+            const val = presetVal !== undefined ? presetVal : parseFloat(inputEl.value);
+            if (isNaN(val)) return;
+            inputEl.value = '';
+
+            const cons = document.getElementById('q13-sim-console');
+            // Supprimer le dernier prompt clignotant
+            if (cons.lastElementChild) cons.removeChild(cons.lastElementChild);
+
+            cons.innerHTML += `<div><span class="text-sky-300">Température mesurée (°C) : </span><span class="text-amber-300 font-bold">${val}</span></div>`;
+
+            if (val < 20.0 || val > 45.0) {
+                cons.innerHTML += `<div class="text-rose-400">Erreur : la température doit être comprise entre 20.0 et 45.0 °C.</div>`;
+                cons.innerHTML += `<div class="text-sky-300">Température mesurée (°C) : <span class="animate-pulse">_</span></div>`;
+            } else {
+                cons.innerHTML += `<div class="text-emerald-400 font-bold">→ Sortie de la boucle ! La fonction retourne : ${val}</div>`;
+                q13SimDone = true;
+            }
+        }
+
+        /* -------------------------------------------------------------------
+           5. QUESTION 1.4 — MINI-QUIZ while vs for
+           ------------------------------------------------------------------- */
+        function checkQ14() {
+            const a = document.querySelector('input[name="q14-a"]:checked');
+            const b = document.querySelector('input[name="q14-b"]:checked');
+            const fb = document.getElementById('q14-feedback');
+
+            if (!a || !b) {
+                fb.textContent = "Veuillez sélectionner une réponse pour chacune des deux questions.";
+                fb.className = "text-sm font-semibold text-amber-700";
+                return;
+            }
+
+            const okA = (a.value === 'b');
+            const okB = (b.value === '0');
+            autoReussies.q1_4 = (okA && okB);
+            majCompteurCompris();
+
+            const badge = document.getElementById('badge-q1_4');
+            const justes = (okA ? 1 : 0) + (okB ? 1 : 0);
+            badge.textContent = justes === 2 ? 'Auto-corrigé : 2 réponses justes' : `Auto-corrigé : ${justes} réponse(s) sur 2`;
+            badge.className = justes === 2 ? CLASSE_JUSTE : CLASSE_PARTIEL;
+
+            if (okA && okB) {
+                fb.textContent = "✅ Exact : nombre d'essais inconnu d'avance (while), et 0 itération pour 36.8.";
+                fb.className = "text-sm font-semibold text-emerald-700";
+            } else {
+                fb.textContent = `⚠️ ${okA ? 'Q1 juste' : 'Q1 fausse'} • ${okB ? 'Q2 juste' : 'Q2 fausse (pensez : la condition est fausse dès le début)'}.`;
+                fb.className = "text-sm font-semibold text-rose-600";
+            }
+        }
+
+        /* -------------------------------------------------------------------
+           6. QUESTION A.1 — SIMULATEUR moyenne_chauffe(3)
+           ------------------------------------------------------------------- */
+        const qa1Inputs = [100.0, 120.0, 134.0];
+        let qa1Step = 0;
+        let qa1Fixed = false;
+
+        function toggleQA1Fix() {
+            qa1Fixed = document.getElementById('qa1-fix-toggle').checked;
+            document.getElementById('qa1-l-fixed').classList.toggle('hidden', !qa1Fixed);
+            document.getElementById('qa1-l-bug').classList.toggle('hidden', qa1Fixed);
+            resetQA1();
+        }
+
+        function resetQA1() {
+            qa1Step = 0;
+            ['qa1-l-fixed', 'qa1-l-for', 'qa1-l-bug', 'qa1-l-in', 'qa1-l-add', 'qa1-l-ret'].forEach(id => {
+                document.getElementById(id).classList.remove('active-line', 'bug-line');
+            });
+            document.getElementById('qa1-tbody').innerHTML =
+                '<tr><td colspan="4" class="px-3 py-4 text-center text-slate-400 font-sans italic">Cliquez sur « Tour suivant ▶ » pour simuler les 3 minutes.</td></tr>';
+            document.getElementById('qa1-return-banner').classList.add('hidden');
+            const btn = document.getElementById('qa1-step-btn');
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        function stepQA1() {
+            qa1Step++;
+            ['qa1-l-fixed', 'qa1-l-for', 'qa1-l-bug', 'qa1-l-in', 'qa1-l-add', 'qa1-l-ret'].forEach(id => {
+                document.getElementById(id).classList.remove('active-line', 'bug-line');
+            });
+
+            const tbody = document.getElementById('qa1-tbody');
+            if (qa1Step === 1) tbody.innerHTML = '';
+
+            if (qa1Step <= 3) {
+                const t = qa1Inputs[qa1Step - 1];
+                let before = 0.0;
+                if (qa1Fixed) {
+                    for (let k = 0; k < qa1Step - 1; k++) before += qa1Inputs[k];
+                    document.getElementById('qa1-l-add').classList.add('active-line');
+                } else {
+                    before = 0.0;
+                    document.getElementById('qa1-l-bug').classList.add('bug-line');
+                }
+                const after = before + t;
+
+                tbody.innerHTML += `
+                    <tr class="${qa1Step === 3 ? 'bg-slate-50 font-semibold' : ''}">
+                        <td class="px-3 py-2 text-medical font-bold">i = ${qa1Step}</td>
+                        <td class="px-3 py-2 ${!qa1Fixed && qa1Step > 1 ? 'text-rose-600 font-bold' : 'text-slate-600'}">${before.toFixed(1)}${!qa1Fixed && qa1Step > 1 ? ' (reset!)' : ''}</td>
+                        <td class="px-3 py-2 text-amber-700">${t.toFixed(1)}</td>
+                        <td class="px-3 py-2 font-bold ${qa1Fixed ? 'text-emerald-700' : 'text-rose-700'}">${after.toFixed(1)}</td>
+                    </tr>`;
+            }
+
+            if (qa1Step === 3) {
+                document.getElementById('qa1-l-ret').classList.add('active-line');
+                const banner = document.getElementById('qa1-return-banner');
+                banner.classList.remove('hidden');
+                if (qa1Fixed) {
+                    banner.className = "px-4 py-3 border-t bg-emerald-50 text-emerald-800 text-sm font-semibold";
+                    banner.innerHTML = '✅ Retour final : <code class="font-mono">354.0 / 3 = 118.0 °C</code> (Vraie moyenne !)';
+                } else {
+                    banner.className = "px-4 py-3 border-t bg-rose-50 text-rose-800 text-sm font-semibold";
+                    banner.innerHTML = '❌ Retour final (erroné) : <code class="font-mono">134.0 / 3 ≈ 44.7 °C</code> (seule la dernière minute a compté !)';
+                }
+                const btn = document.getElementById('qa1-step-btn');
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        /* -------------------------------------------------------------------
+           7. QUESTION A.2 — BANC DE TEST verdict_cycle
+           ------------------------------------------------------------------- */
+        function setQA2(moy, nb, alerte) {
+            document.getElementById('qa2-moy').value = moy;
+            document.getElementById('qa2-nb').value = nb;
+            document.getElementById('qa2-alerte').checked = alerte;
+            updateQA2();
+        }
+
+        function updateQA2() {
+            const moy = parseFloat(document.getElementById('qa2-moy').value) || 0;
+            const nb = parseInt(document.getElementById('qa2-nb').value, 10) || 0;
+            const alerte = document.getElementById('qa2-alerte').checked;
+            document.getElementById('qa2-alerte-lbl').textContent = alerte ? 'True' : 'False';
+            document.getElementById('qa2-alerte-lbl').className = alerte ? 'font-mono text-sm font-bold text-rose-600' : 'font-mono text-sm font-bold text-slate-600';
+
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById(`qa2-l${i}`).classList.remove('active-line');
+            }
+
+            const box = document.getElementById('qa2-verdict-box');
+            const valEl = document.getElementById('qa2-verdict-val');
+            const whyEl = document.getElementById('qa2-verdict-why');
+
+            if (alerte || nb >= 2) {
+                document.getElementById('qa2-l1').classList.add('active-line');
+                document.getElementById('qa2-l2').classList.add('active-line');
+                box.className = "p-3.5 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 transition-colors";
+                valEl.textContent = '"Non conforme - Arret"';
+                whyEl.textContent = alerte
+                    ? "Règle 1 déclenchée : alerte_138 vaut True (surchauffe critique)."
+                    : `Règle 1 déclenchée : nb_sous_132 = ${nb} (>= 2).`;
+            } else if (nb === 1 || moy < 133.5) {
+                document.getElementById('qa2-l3').classList.add('active-line');
+                document.getElementById('qa2-l4').classList.add('active-line');
+                box.className = "p-3.5 rounded-xl border bg-amber-50 border-amber-200 text-amber-900 transition-colors";
+                valEl.textContent = '"A recontroler"';
+                whyEl.textContent = nb === 1
+                    ? "Règle 2 déclenchée : exactement 1 relevé sous 132.0 °C."
+                    : `Règle 2 déclenchée : temp_moy = ${moy} °C (< 133.5 °C).`;
+            } else {
+                document.getElementById('qa2-l5').classList.add('active-line');
+                document.getElementById('qa2-l6').classList.add('active-line');
+                box.className = "p-3.5 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 transition-colors";
+                valEl.textContent = '"Conforme"';
+                whyEl.textContent = "Règle 3 (else) : aucun incident critique et moyenne >= 133.5 °C.";
+            }
+        }
+
+        /* -------------------------------------------------------------------
+           8. QUESTION B.1 — 7 TROUS analyser_cycle + SIMULATEUR
+           ------------------------------------------------------------------- */
+        /* Les variables en portée au moment du trou. Elles varient
+           indépendamment d'un jeu à l'autre : écrire i là où t est attendu,
+           ou somme / i là où somme / nb_releves est attendu, ne passe pas par
+           hasard. */
+        const VARS_QB1 = ['t', 'i', 'somme', 'nb_releves', 'nb_sous_132', 'temp_min', 'rang_min'];
+        const JEUX_QB1 = [
+            [134.5, 1,   0.0,   4,  0, 999.0, 0],
+            [131.5, 2, 266.0,   7,  1, 134.5, 1],
+            [ 12.25, 3, 400.5, 10,  2, 131.5, 2],
+            [  0.0, 4,   1.0,   1,  3,  12.25, 3],
+            [ 99.0, 5,  12.5,   3,  0, 140.0, 4],
+            [  7.0, 6, 350.0,   2,  5,  80.0, 5]
+        ];
+
+        const REGLES_QB1 = [
+            { id: 'qb1-in1', type: 'booleen', attendu: 'False', pieges: [
+                [/^(false|0|None|)$/i, "le témoin est un booléen Python : False, avec une majuscule."],
+                [/^True$/, "lever le témoin avant le premier relevé déclare tous les cycles non conformes."]] },
+            { id: 'qb1-in2', type: 'expression', reference: 'nb_releves + 1', pieges: [
+                [/^nb_releves$/, "la borne haute d'un range est exclue : le dernier relevé ne serait jamais demandé."],
+                [/^nb_releves\+2$/, "un relevé de trop serait demandé."]] },
+            { id: 'qb1-in3', type: 'expression', reference: 't', pieges: [
+                [/^i$/, "i est le numéro du relevé, t sa température."],
+                [/^temp_min$/, "temp_min est l'ancien minimum : c'est le relevé courant qui le remplace."]] },
+            { id: 'qb1-in4', type: 'expression', reference: 'i', pieges: [
+                [/^t$/, "on range ici le numéro du relevé, pas sa température."],
+                [/^i\+1$/, "les relevés sont déjà numérotés de 1 à nb_releves par le range."]] },
+            { id: 'qb1-in5', type: 'expression', reference: 'nb_sous_132 + 1', pieges: [
+                [/^1$/, "le compteur resterait à 1 quel que soit le nombre de sous-températures : la règle « deux relevés ou plus » ne se déclencherait jamais."],
+                [/^nb_sous_132$/, "rien n'est compté : il faut un de plus que ce qu'on avait."]] },
+            { id: 'qb1-in6', type: 'booleen', attendu: 'True', pieges: [
+                [/^(true|1|)$/i, "le témoin est un booléen Python : True, avec une majuscule."],
+                [/^False$/, "c'est ici que le témoin se lève, il ne se baisse jamais."]] },
+            { id: 'qb1-in7', type: 'expression', reference: 'somme / nb_releves', pieges: [
+                [/^somme\/i$/, "i vaut bien nb_releves à la sortie, mais par accident : la variable de boucle n'est pas le nombre de relevés."],
+                [/^somme$/, "il manque la division."],
+                [/\/\//, "// est la division entière : la moyenne d'un cycle est un décimal."]] }
+        ];
+
+        function checkQB1() {
+            let nbOk = 0;
+            const aides = [];
+            REGLES_QB1.forEach((r, k) => {
+                const el = document.getElementById(r.id);
+                const ok = (r.type === 'booleen')
+                    ? normaliser(el.value) === r.attendu
+                    : equivalentes(el.value, r.reference, VARS_QB1, JEUX_QB1);
+                el.classList.remove('valid', 'invalid');
+                el.classList.add(ok ? 'valid' : 'invalid');
+                if (ok) { nbOk++; return; }
+                const message = indice(el.value, r.pieges || []);
+                if (message) aides.push(`Zone ${k + 1} : ${message}`);
+            });
+
+            autoReussies.qB_1 = (nbOk === 7);
+            majCompteurCompris();
+
+            const badge = document.getElementById('badge-qB_1');
+            badge.textContent = nbOk === 7 ? 'Auto-corrigé : 7 zones justes' : `Auto-corrigé : ${nbOk} zone(s) sur 7`;
+            badge.className = nbOk === 7 ? CLASSE_JUSTE : CLASSE_PARTIEL;
+
+            const fb = document.getElementById('qb1-feedback');
+            if (nbOk === 7) {
+                fb.textContent = "✅ Les 7 zones sont justes. Toute écriture équivalente est acceptée.";
+                fb.className = "text-sm font-semibold text-emerald-700";
+            } else {
+                fb.innerHTML = `⚠️ ${nbOk}/7 zone(s) juste(s). Reprenez les champs en rouge.`
+                    + (aides.length ? '<br><span class="font-normal text-slate-700">' + aides.join('<br>') + '</span>' : '');
+                fb.className = "text-sm font-semibold text-rose-600";
+            }
+        }
+
+        function fillQB1() {
+            document.getElementById('qb1-in1').value = 'False';
+            document.getElementById('qb1-in2').value = 'nb_releves + 1';
+            document.getElementById('qb1-in3').value = 't';
+            document.getElementById('qb1-in4').value = 'i';
+            document.getElementById('qb1-in5').value = 'nb_sous_132 + 1';
+            document.getElementById('qb1-in6').value = 'True';
+            document.getElementById('qb1-in7').value = 'somme / nb_releves';
+            checkQB1();
+        }
+
+        // Simulateur pas-à-pas QB.1
+        const qb1Data = [134.5, 131.5, 134.8, 135.2];
+        let qb1State = { idx: 0, somme: 0.0, min: 999.0, rang: 0, nb: 0, alerte: false };
+
+        function resetQB1Sim() {
+            qb1State = { idx: 0, somme: 0.0, min: 999.0, rang: 0, nb: 0, alerte: false };
+            document.getElementById('qb1-v-somme').textContent = '0.0';
+            document.getElementById('qb1-v-min').textContent = '999.0';
+            document.getElementById('qb1-v-rang').textContent = '0';
+            document.getElementById('qb1-v-nb').textContent = '0';
+            document.getElementById('qb1-v-alerte').textContent = 'False';
+            document.getElementById('qb1-sim-log').innerHTML =
+                '<div class="text-slate-400 italic">Cliquez sur « Relevé suivant ▶ » pour observer la mise à jour simultanée des 5 variables.</div>';
+            const btn = document.getElementById('qb1-sim-btn');
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        function stepQB1Sim() {
+            const log = document.getElementById('qb1-sim-log');
+            if (qb1State.idx === 0) log.innerHTML = '';
+
+            if (qb1State.idx < qb1Data.length) {
+                const i = qb1State.idx + 1;
+                const t = qb1Data[qb1State.idx];
+                qb1State.somme = Math.round((qb1State.somme + t) * 10) / 10;
+
+                let notes = [];
+                if (t < qb1State.min) {
+                    qb1State.min = t;
+                    qb1State.rang = i;
+                    notes.push(`nouveau min=${t} au rang ${i}`);
+                }
+                if (t < 132.0) {
+                    qb1State.nb++;
+                    notes.push(`t < 132.0 → nb_sous_132=${qb1State.nb}`);
+                }
+                if (t > 138.0) {
+                    qb1State.alerte = true;
+                    notes.push(`alerte_138=True`);
+                }
+
+                document.getElementById('qb1-v-somme').textContent = qb1State.somme.toFixed(1);
+                document.getElementById('qb1-v-min').textContent = qb1State.min.toFixed(1);
+                document.getElementById('qb1-v-rang').textContent = qb1State.rang;
+                document.getElementById('qb1-v-nb').textContent = qb1State.nb;
+                document.getElementById('qb1-v-alerte').textContent = qb1State.alerte ? 'True' : 'False';
+
+                log.innerHTML += `<div><span class="text-sky-300">Relevé n°${i} (°C) : ${t.toFixed(1)}</span> <span class="text-slate-400">(${notes.length ? notes.join(' ; ') : 'somme mise à jour'})</span></div>`;
+                qb1State.idx++;
+            }
+
+            if (qb1State.idx === qb1Data.length) {
+                const moy = (qb1State.somme / qb1Data.length).toFixed(1);
+                log.innerHTML += `<div class="border-t border-slate-700 mt-2 pt-2 text-emerald-400">Température moyenne : ${moy} °C</div>`;
+                log.innerHTML += `<div class="text-emerald-400">Minimum : ${qb1State.min.toFixed(1)} °C (atteint au relevé n°${qb1State.rang})</div>`;
+                log.innerHTML += `<div class="text-amber-300 font-bold">Verdict du cycle : A recontroler</div>`;
+                const btn = document.getElementById('qb1-sim-btn');
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        /* -------------------------------------------------------------------
+           9. QUESTION B.2 — FRISE COMPARATIVE SANS else vs AVEC else
+           ------------------------------------------------------------------- */
+        const qb2Series = [134.0, 139.5, 135.0, 134.2];
+        let qb2Step = 0;
+
+        function renderQB2() {
+            const container = document.getElementById('qb2-timeline');
+            container.innerHTML = '';
+            let goodVal = false;
+            let badVal = false;
+            let goodNote = 'Initialisée à False avant la boucle.';
+            let badNote = 'Initialisée à False avant la boucle.';
+
+            qb2Series.forEach((t, idx) => {
+                const done = idx < qb2Step;
+                const current = idx === qb2Step - 1;
+                const isOver = t > 138.0;
+
+                if (done) {
+                    if (isOver) {
+                        goodVal = true;
+                        badVal = true;
+                        goodNote = `Relevé n°${idx + 1} (${t} °C > 138.0) : alerte_138 passe à True.`;
+                        badNote = `Relevé n°${idx + 1} (${t} °C > 138.0) : alerte_138 passe à True.`;
+                    } else {
+                        goodNote = `Relevé n°${idx + 1} (${t} °C <= 138.0) : on ne touche pas à alerte_138 (reste ${goodVal ? 'True' : 'False'}).`;
+                        badVal = false;
+                        badNote = `Relevé n°${idx + 1} (${t} °C <= 138.0) : la branche else s'exécute et ÉCRASE alerte_138 à False !`;
+                    }
+                }
+
+                container.innerHTML += `
+                    <div class="p-3 rounded-xl border text-center transition-all ${current ? 'ring-2 ring-medical border-medical bg-white shadow-sm' : done ? 'bg-white border-slate-200' : 'bg-slate-100/70 border-slate-200 opacity-60'}">
+                        <div class="text-[11px] font-semibold uppercase text-slate-500">Relevé n°${idx + 1}</div>
+                        <div class="text-lg font-mono font-bold mt-0.5 ${isOver ? 'text-rose-600' : 'text-slate-800'}">${t.toFixed(1)} °C</div>
+                        <div class="text-[11px] font-semibold mt-1 ${isOver ? 'text-rose-600' : 'text-slate-500'}">${isOver ? '⚠️ Surchauffe > 138' : 'Normal <= 138'}</div>
+                    </div>`;
+            });
+
+            document.getElementById('qb2-progress-lbl').textContent = `Étape ${qb2Step} / 4`;
+
+            const gEl = document.getElementById('qb2-good-val');
+            gEl.textContent = goodVal ? 'True' : 'False';
+            gEl.className = goodVal
+                ? 'px-3 py-1 rounded-full font-mono text-sm font-bold bg-emerald-600 text-white'
+                : 'px-3 py-1 rounded-full font-mono text-sm font-bold bg-slate-100 text-slate-700';
+            document.getElementById('qb2-good-note').textContent = goodNote;
+
+            const bEl = document.getElementById('qb2-bad-val');
+            bEl.textContent = badVal ? 'True' : 'False';
+            bEl.className = (!badVal && qb2Step >= 3)
+                ? 'px-3 py-1 rounded-full font-mono text-sm font-bold bg-rose-600 text-white'
+                : (badVal ? 'px-3 py-1 rounded-full font-mono text-sm font-bold bg-amber-500 text-white' : 'px-3 py-1 rounded-full font-mono text-sm font-bold bg-slate-100 text-slate-700');
+            document.getElementById('qb2-bad-note').textContent = badNote;
+
+            const btn = document.getElementById('qb2-step-btn');
+            btn.disabled = (qb2Step >= 4);
+            btn.classList.toggle('opacity-50', qb2Step >= 4);
+            btn.classList.toggle('cursor-not-allowed', qb2Step >= 4);
+        }
+
+        function stepQB2() {
+            if (qb2Step < 4) {
+                qb2Step++;
+                renderQB2();
+            }
+        }
+
+        function runAllQB2() {
+            qb2Step = 4;
+            renderQB2();
+        }
+
+        function resetQB2() {
+            qb2Step = 0;
+            renderQB2();
+        }
+
+        /* -------------------------------------------------------------------
+           10. RÉINITIALISATION GLOBALE
+           ------------------------------------------------------------------- */
+        function resetAll() {
+            // Le marquage de lecture repart à zéro.
+            CLES_COMPRIS.forEach(k => {
+                compris[k] = false;
+                const btn = document.getElementById(`badge-${k}`);
+                btn.className = CLASSE_A_VOIR;
+                btn.textContent = '○ Marquer comme compris';
+            });
+            Object.keys(autoReussies).forEach(k => autoReussies[k] = false);
+            majCompteurCompris();
+
+            // Questions 1.1 et 1.2
+            updateQ11(36.0);
+            document.getElementById('q12-fix-toggle').checked = false;
+            toggleQ12Fix();
+
+            // Question 1.3
+            ['q13-in1', 'q13-in2', 'q13-in3'].forEach(id => {
+                const el = document.getElementById(id);
+                el.value = '';
+                el.classList.remove('valid', 'invalid');
+            });
+            document.getElementById('q13-feedback').textContent = '';
+            document.getElementById('badge-q1_3').textContent = 'Auto-corrigé : à vérifier';
+            document.getElementById('badge-q1_3').className = CLASSE_NEUTRE;
+            simQ13Reset();
+
+            // Question 1.4
+            document.querySelectorAll('input[name="q14-a"], input[name="q14-b"]').forEach(r => r.checked = false);
+            document.getElementById('q14-feedback').textContent = '';
+            document.getElementById('badge-q1_4').textContent = 'Auto-corrigé : à vérifier';
+            document.getElementById('badge-q1_4').className = CLASSE_NEUTRE;
+
+            // Questions A.1 et A.2
+            document.getElementById('qa1-fix-toggle').checked = false;
+            toggleQA1Fix();
+            setQA2(134.6, 0, false);
+
+            // Question B.1
+            ['qb1-in1', 'qb1-in2', 'qb1-in3', 'qb1-in4', 'qb1-in5', 'qb1-in6', 'qb1-in7'].forEach(id => {
+                const el = document.getElementById(id);
+                el.value = '';
+                el.classList.remove('valid', 'invalid');
+            });
+            document.getElementById('qb1-feedback').textContent = '';
+            document.getElementById('badge-qB_1').textContent = 'Auto-corrigé : à vérifier';
+            document.getElementById('badge-qB_1').className = CLASSE_NEUTRE;
+            resetQB1Sim();
+
+            // Question B.2
+            resetQB2();
+
+            // Toutes les réponses se referment.
+            basculerZones(document, false);
+        }
+
+        // Initialisation au chargement de la page
+        window.onload = function () {
+            updateQ11(36.0);
+            updateQA2();
+            renderQB2();
+            majCompteurCompris();
+            majAffichage();
+        };
+    </script>
+</body>
+</html>
